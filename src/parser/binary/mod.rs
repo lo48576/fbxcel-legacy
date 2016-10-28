@@ -3,8 +3,10 @@
 use std::fmt;
 use std::io::Read;
 
+pub use self::error::{Result, Error};
 use self::reader::CountReader;
 
+mod error;
 mod reader;
 
 
