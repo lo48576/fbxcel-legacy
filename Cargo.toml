@@ -1,0 +1,9 @@
+[package]
+name = "fbxcel"
+version = "0.1.0"
+authors = ["Takuma YOSHIOKA <tashioka.256@gmail.com>"]
+license = "MIT/Apache-2.0"
+readme = "README.md"
+description = "Excellent FBX loader"
+
+[dependencies]
