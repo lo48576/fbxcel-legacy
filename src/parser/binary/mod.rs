@@ -5,6 +5,8 @@ use std::io::Read;
 
 pub use self::error::{Result, Error, Warning};
 pub use self::event::{Event, FbxHeader, FbxFooter, StartNode};
+use self::event::EventBuilder;
+use self::event::read_fbx_header;
 use self::reader::CountReader;
 
 mod error;
@@ -39,6 +41,8 @@ pub struct BinaryParser<R> {
     state: Result<State>,
     /// Warnings.
     warnings: Vec<Warning>,
+    /// FBX version.
+    fbx_version: Option<u32>,
 }
 
 impl<R: Read> BinaryParser<R> {
@@ -48,7 +52,15 @@ impl<R: Read> BinaryParser<R> {
             source: CountReader::new(source),
             state: Ok(State::Header),
             warnings: Vec::new(),
+            fbx_version: None,
         }
+    }
+
+    /// Returns FBX version of the reading input.
+    ///
+    /// Returns `None` if unknown yet.
+    pub fn fbx_version(&self) -> Option<u32> {
+        self.fbx_version
     }
 
     /// Returns the parser error if available.
@@ -59,6 +71,19 @@ impl<R: Read> BinaryParser<R> {
     /// Returns reference to the warnings.
     pub fn warnings(&self) -> &Vec<Warning> {
         &self.warnings
+    }
+
+    /// Parses FBX from the given stream and returns the next event.
+    pub fn next_event(&mut self) -> Result<Event<R>> {
+        let builder = match try!(self.state.clone()) {
+            State::Header => self.read_fbx_header(),
+            State::NodeStarted => self.read_after_node_start(),
+            State::NodeEnded => self.read_after_node_end(),
+        };
+        if let Err(ref err) = builder {
+            self.set_error(err);
+        }
+        Ok(try!(builder).build(self))
     }
 
     /// Set the parser state as error.
@@ -74,6 +99,24 @@ impl<R: Read> BinaryParser<R> {
         debug!("Parser: {:#?}", self);
         self.warnings.push(warning);
     }
+
+    /// Reads FBX header.
+    fn read_fbx_header(&mut self) -> Result<EventBuilder> {
+        let header = try!(read_fbx_header(self));
+        self.fbx_version = Some(header.version);
+        self.state = Ok(State::NodeEnded);
+        Ok(header.into())
+    }
+
+    /// Gets event after node start.
+    fn read_after_node_start(&mut self) -> Result<EventBuilder> {
+        unimplemented!()
+    }
+
+    /// Gets event after node end.
+    fn read_after_node_end(&mut self) -> Result<EventBuilder> {
+        unimplemented!()
+    }
 }
 
 impl<R> fmt::Debug for BinaryParser<R> {
@@ -82,6 +125,7 @@ impl<R> fmt::Debug for BinaryParser<R> {
             .field("source", &self.source)
             .field("state", &self.state)
             .field("warnings", &self.warnings)
+            .field("fbx_version", &self.fbx_version)
             .finish()
     }
 }

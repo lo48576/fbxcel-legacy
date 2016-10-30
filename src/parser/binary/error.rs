@@ -14,13 +14,20 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 pub enum Error {
     /// Successfully finished parsing FBX data.
     Finished,
+    /// Magic binary not detected.
+    MagicNotDetected([u8; 21]),
     /// I/O error.
     Io(io::Error),
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", (self as &error::Error).description())
+        match *self {
+            Error::MagicNotDetected(ref bytes) => {
+                write!(f, "Magic binary not detected: Got {:?}", bytes)
+            },
+            _ => write!(f, "{}", (self as &error::Error).description()),
+        }
     }
 }
 
@@ -28,6 +35,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::Finished => "Successfully finished parsing and there are no more data",
+            Error::MagicNotDetected(_) => "Magic binary not detected",
             Error::Io(ref err) => err.description(),
         }
     }
@@ -60,17 +68,28 @@ impl From<io::Error> for Error {
 
 /// FBX parser warning.
 #[derive(Debug, Clone, Copy)]
-// FIXME: This should be enum.
-pub struct Warning {}
+pub enum Warning {
+    /// Unknown 2 bytes right after FBX magic is unexpected.
+    UnexpectedBytesAfterMagic([u8; 2]),
+}
 
 impl fmt::Display for Warning {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        unimplemented!()
+        match *self {
+            Warning::UnexpectedBytesAfterMagic(ref bytes) => {
+                write!(f,
+                       "Unexpected bytes right after magic binary: expected [0x1a, 0x00] but got \
+                        {:?}",
+                       bytes)
+            },
+        }
     }
 }
 
 impl error::Error for Warning {
     fn description(&self) -> &str {
-        unimplemented!()
+        match *self {
+            Warning::UnexpectedBytesAfterMagic(_) => "Unexpected bytes right after magic binary",
+        }
     }
 }
