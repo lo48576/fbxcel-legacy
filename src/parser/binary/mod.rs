@@ -4,9 +4,11 @@ use std::fmt;
 use std::io::Read;
 
 pub use self::error::{Result, Error, Warning};
+pub use self::event::{Event, FbxHeader, FbxFooter, StartNode};
 use self::reader::CountReader;
 
 mod error;
+mod event;
 mod reader;
 
 
