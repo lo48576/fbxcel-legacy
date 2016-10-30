@@ -8,3 +8,4 @@ description = "Excellent FBX loader"
 
 [dependencies]
 byteorder = "^0.5.3"
+log = "^0.3.6"
