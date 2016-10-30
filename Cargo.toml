@@ -7,3 +7,4 @@ readme = "README.md"
 description = "Excellent FBX loader"
 
 [dependencies]
+byteorder = "^0.5.3"

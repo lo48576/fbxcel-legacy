@@ -2,6 +2,7 @@
 
 use std::fmt;
 use std::io;
+use byteorder::{ReadBytesExt, LittleEndian};
 
 
 /// Reader with read bytes count.
@@ -47,7 +48,36 @@ impl<R: io::Read> CountReader<R> {
         assert_eq!(self.count(), next_pos);
         Ok(())
     }
+
+    /// Reads and returns `u8` value.
+    pub fn read_u8(&mut self) -> io::Result<u8> {
+        ReadBytesExt::read_u8(self)
+    }
 }
+
+macro_rules! impl_read_primitive {
+    ($name:ident : $t:ty) => {
+        /// Reads the value as little endian and returns it.
+        pub fn $name(&mut self) -> io::Result<$t> {
+            ReadBytesExt::$name::<LittleEndian>(self)
+        }
+    };
+    ($($name:ident : $t:ty),*,) => {
+        impl<R: io::Read> CountReader<R> {
+            $(impl_read_primitive!($name: $t);)*
+        }
+    };
+}
+
+impl_read_primitive!(
+    read_i16: i16,
+    read_i32: i32,
+    read_u32: u32,
+    read_i64: i64,
+    read_u64: u64,
+    read_f32: f32,
+    read_f64: f64,
+);
 
 impl<R: io::Read> io::Read for CountReader<R> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
@@ -70,6 +100,7 @@ impl<R> fmt::Debug for CountReader<R> {
             .finish()
     }
 }
+
 
 #[cfg(test)]
 mod tests {
