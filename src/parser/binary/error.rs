@@ -57,3 +57,20 @@ impl From<io::Error> for Error {
         Error::Io(e)
     }
 }
+
+/// FBX parser warning.
+#[derive(Debug, Clone, Copy)]
+// FIXME: This should be enum.
+pub struct Warning {}
+
+impl fmt::Display for Warning {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unimplemented!()
+    }
+}
+
+impl error::Error for Warning {
+    fn description(&self) -> &str {
+        unimplemented!()
+    }
+}
