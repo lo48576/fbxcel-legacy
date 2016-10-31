@@ -36,6 +36,20 @@ enum State {
 }
 
 
+/// Information about opened (but not yet closed) node.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+struct OpenNode {
+    /// Start offset of the node attribute.
+    ///
+    /// Note that this doesn't mean start offset of node header.
+    begin: u64,
+    /// End offset of the node.
+    end: u64,
+    /// End offset of attributes of the node.
+    attributes_end: u64,
+}
+
+
 /// Pull parser for FBX binary format.
 // I want to use `#[derive(Debug)]` but it causes compile error for rustc-1.12(stable), 1.13(beta),
 // 1.14(nightly).
@@ -53,6 +67,8 @@ pub struct BinaryParser<R> {
     warnings: Vec<Warning>,
     /// FBX version.
     fbx_version: Option<u32>,
+    /// Open nodes stack.
+    open_nodes: Vec<OpenNode>,
 }
 
 impl<R: Read> BinaryParser<R> {
@@ -63,6 +79,7 @@ impl<R: Read> BinaryParser<R> {
             state: Ok(State::Header),
             warnings: Vec::new(),
             fbx_version: None,
+            open_nodes: Vec::new(),
         }
     }
 
@@ -136,6 +153,7 @@ impl<R> fmt::Debug for BinaryParser<R> {
             .field("state", &self.state)
             .field("warnings", &self.warnings)
             .field("fbx_version", &self.fbx_version)
+            .field("open_nodes", &self.open_nodes)
             .finish()
     }
 }
