@@ -84,11 +84,20 @@ impl error::Error for Error {
 impl Clone for Error {
     fn clone(&self) -> Self {
         match *self {
+            Error::Finished => Error::Finished,
+            Error::MagicNotDetected(v) => Error::MagicNotDetected(v),
+            Error::NodeNameInvalidUtf8(ref err) => Error::NodeNameInvalidUtf8(err.clone()),
             Error::Io(ref err) => {
                 // To clone `io::Error`, convert inner error into string and use it as new inner error.
                 Error::Io(io::Error::new(err.kind(), error::Error::description(err)))
             },
-            ref err => err.clone(),
+            Error::WrongNodeEndOffset { begin, expected_end, real_end } => {
+                Error::WrongNodeEndOffset {
+                    begin: begin,
+                    expected_end: expected_end,
+                    real_end: real_end,
+                }
+            },
         }
     }
 }
