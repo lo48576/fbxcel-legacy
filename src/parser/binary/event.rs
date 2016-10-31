@@ -89,6 +89,8 @@ pub struct FbxFooter {
 /// FBX node info.
 #[derive(Debug)]
 pub struct StartNode<'a, R: 'a + Read> {
+    /// Node name.
+    name: String,
     /// Parser.
     _parser: &'a mut BinaryParser<R>,
 }
@@ -141,12 +143,17 @@ impl From<StartNodeBuilder> for EventBuilder {
 /// `StartNode` without reference to a parser.
 #[derive(Debug, Clone)]
 pub struct StartNodeBuilder {
+    /// Node name.
+    pub name: String,
 }
 
 impl StartNodeBuilder {
     /// Creates `StartNode` from the `StartNodeBuilder` and the given parser.
     pub fn build<R: Read>(self, parser: &mut BinaryParser<R>) -> StartNode<R> {
-        StartNode { _parser: parser }
+        StartNode {
+            name: self.name,
+            _parser: parser,
+        }
     }
 }
 

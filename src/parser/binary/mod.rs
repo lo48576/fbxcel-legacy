@@ -1,11 +1,12 @@
 //! FBX binary parser.
 
 use std::fmt;
+use std::io;
 use std::io::Read;
 
 pub use self::error::{Result, Error, Warning};
 pub use self::event::{Event, FbxHeader, FbxFooter, StartNode};
-use self::event::EventBuilder;
+use self::event::{EventBuilder, NodeHeader, StartNodeBuilder};
 use self::event::read_fbx_header;
 use self::reader::CountReader;
 
@@ -137,12 +138,92 @@ impl<R: Read> BinaryParser<R> {
 
     /// Gets event after node start.
     fn read_after_node_start(&mut self) -> Result<EventBuilder> {
-        unimplemented!()
+        // Attributes of recent opened node might remain partially unread.
+        // They should be skipped before getting a next node event.
+        try!(self.skip_attributes());
+
+        // Most recent opened node might ends here without a null node header.
+        if let Some(end) = self.open_nodes.last().map(|v| v.end) {
+            if self.source.count() == end {
+                // Most recent opened node ends here (without a null node header).
+                self.state = Ok(State::NodeEnded);
+                self.open_nodes.pop();
+                return Ok(EventBuilder::EndNode);
+            }
+        }
+
+        let builder = try!(self.read_node_event());
+        Ok(builder)
     }
 
     /// Gets event after node end.
     fn read_after_node_end(&mut self) -> Result<EventBuilder> {
-        unimplemented!()
+        self.read_node_event()
+    }
+
+    /// Reads a next node-related event from the source.
+    ///
+    /// This always returns `Ok(EventBuilder::StartNode)`, `Ok(EventBuilder::EndNode)`,
+    /// `Ok(EventBuilder::EndFbx)` or `Err(_)`.
+    fn read_node_event(&mut self) -> Result<EventBuilder> {
+        let header = try!(NodeHeader::read_from_parser(self));
+        if header.is_node_end() {
+            if let Some(last_node) = self.open_nodes.pop() {
+                // There is open nodes, so this is not end of the FBX.
+                let current_pos = self.source.count();
+                if current_pos != last_node.end {
+                    // Invalid node header.
+                    return Err(Error::WrongNodeEndOffset {
+                        begin: last_node.begin,
+                        expected_end: last_node.end,
+                        real_end: current_pos,
+                    });
+                }
+            } else {
+                assert_eq!(self.state.as_ref().ok(),
+                           Some(&State::NodeEnded),
+                           "End of implicit root node is read with unexpected parser state {:?}",
+                           self.state);
+                // No open nodes, so this `EndNode` event indicates the end of
+                // the implicit root node.
+                // FBX file has no more nodes.
+                let footer = try!(self.read_fbx_footer());
+                return Ok(footer.into());
+            }
+
+            self.state = Ok(State::NodeEnded);
+            Ok(EventBuilder::EndNode)
+        } else {
+            let mut name_vec = vec![0u8; header.len_name as usize];
+            try!(self.source.read_exact(&mut name_vec));
+            let name = try!(String::from_utf8(name_vec).map_err(Error::node_name_invalid_utf8));
+            let current_pos = self.source.count();
+            self.open_nodes.push(OpenNode {
+                begin: current_pos,
+                end: header.end_offset,
+                attributes_end: current_pos + header.len_attributes,
+            });
+
+            // Zero or more attributes come after node start.
+            self.state = Ok(State::NodeStarted);
+            Ok(StartNodeBuilder { name: name }.into())
+        }
+    }
+
+    /// Reads an FBX footer.
+    fn read_fbx_footer(&mut self) -> Result<FbxFooter> {
+        let footer = unimplemented!();
+        self.set_error(&Error::Finished);
+        Ok(footer)
+    }
+
+    /// Skip attributes of the most recent opened node.
+    fn skip_attributes(&mut self) -> io::Result<()> {
+        let attributes_end = self.open_nodes
+            .last()
+            .expect("`BinaryParser::skip_attributes()` is called but no nodes are open")
+            .attributes_end;
+        self.source.skip_to(attributes_end)
     }
 }
 
