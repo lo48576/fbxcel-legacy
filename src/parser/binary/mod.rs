@@ -20,8 +20,18 @@ enum State {
     /// Reading file header.
     Header,
     /// A node started.
+    ///
+    /// This status means:
+    ///
+    /// - there might be some attributes remain unread, or
+    /// - the most recent opened node might close without no null node header.
     NodeStarted,
     /// A node ended.
+    ///
+    /// This status means:
+    ///
+    /// - if the next event is `NodeEnd`, there must be a null node header, and
+    /// - if the parser got an extra null header, it indicates end of implicit root node.
     NodeEnded,
 }
 
