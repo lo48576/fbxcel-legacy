@@ -114,6 +114,11 @@ impl<R: Read> BinaryParser<R> {
         Ok(try!(builder).build(self))
     }
 
+    /// Set the parser state as finished parsing.
+    fn set_finish(&mut self) {
+        self.state = Err(Error::Finished);
+    }
+
     /// Set the parser state as error.
     fn set_error(&mut self, err: &Error) {
         error!("FBX binary parser error: {}", err);
@@ -212,8 +217,8 @@ impl<R: Read> BinaryParser<R> {
 
     /// Reads an FBX footer.
     fn read_fbx_footer(&mut self) -> Result<FbxFooter> {
-        let footer = unimplemented!();
-        self.set_error(&Error::Finished);
+        let footer = try!(FbxFooter::read_from_parser(self));
+        self.set_finish();
         Ok(footer)
     }
 

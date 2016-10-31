@@ -14,8 +14,17 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 /// FBX parsing error.
 #[derive(Debug)]
 pub enum Error {
+    /// FBX footer is broken.
+    BrokenFbxFooter,
     /// Successfully finished parsing FBX data.
     Finished,
+    /// Specified FBX versions mismatched in header and footer.
+    HeaderFooterVersionMismatch {
+        /// Version specified in header.
+        header: u32,
+        /// Version specified in footer.
+        footer: u32,
+    },
     /// Magic binary not detected.
     MagicNotDetected([u8; 21]),
     /// Node name has invalid UTF-8 sequences.
@@ -43,6 +52,12 @@ impl Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            Error::HeaderFooterVersionMismatch { header, footer } => {
+                write!(f,
+                       "FBX version is {} in the FBX header but {} in the footer",
+                       header,
+                       footer)
+            },
             Error::MagicNotDetected(ref bytes) => {
                 write!(f, "Magic binary not detected: Got {:?}", bytes)
             },
@@ -64,7 +79,11 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::BrokenFbxFooter => "FBX footer is broken",
             Error::Finished => "Successfully finished parsing and there are no more data",
+            Error::HeaderFooterVersionMismatch { .. } => {
+                "Specified FBX versions mismatched in header and footer"
+            },
             Error::MagicNotDetected(_) => "Magic binary not detected",
             Error::NodeNameInvalidUtf8(_) => "Node name is not vaiid UTF-8 string",
             Error::Io(ref err) => err.description(),
@@ -84,7 +103,14 @@ impl error::Error for Error {
 impl Clone for Error {
     fn clone(&self) -> Self {
         match *self {
+            Error::BrokenFbxFooter => Error::BrokenFbxFooter,
             Error::Finished => Error::Finished,
+            Error::HeaderFooterVersionMismatch { header, footer } => {
+                Error::HeaderFooterVersionMismatch {
+                    header: header,
+                    footer: footer,
+                }
+            },
             Error::MagicNotDetected(v) => Error::MagicNotDetected(v),
             Error::NodeNameInvalidUtf8(ref err) => Error::NodeNameInvalidUtf8(err.clone()),
             Error::Io(ref err) => {
