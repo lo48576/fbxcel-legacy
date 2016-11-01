@@ -5,7 +5,7 @@ use std::io;
 use std::io::Read;
 
 pub use self::error::{Result, Error, Warning};
-pub use self::event::{Event, FbxHeader, FbxFooter, StartNode};
+pub use self::event::{Event, FbxHeader, FbxFooter, StartNode, Attributes};
 use self::event::{EventBuilder, NodeHeader, StartNodeBuilder};
 use self::event::read_fbx_header;
 use self::reader::CountReader;
@@ -211,7 +211,11 @@ impl<R: Read> BinaryParser<R> {
 
             // Zero or more attributes come after node start.
             self.state = Ok(State::NodeStarted);
-            Ok(StartNodeBuilder { name: name }.into())
+            Ok(StartNodeBuilder {
+                name: name,
+                header: header,
+            }
+            .into())
         }
     }
 

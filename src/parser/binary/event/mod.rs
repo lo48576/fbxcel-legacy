@@ -5,6 +5,7 @@ use std::io::Read;
 
 use parser::binary::BinaryParser;
 use parser::binary::error::{Result, Error, Warning};
+pub use self::attribute::Attributes;
 
 mod attribute;
 
@@ -182,8 +183,8 @@ impl FbxFooter {
 pub struct StartNode<'a, R: 'a + Read> {
     /// Node name.
     pub name: String,
-    /// Parser.
-    _parser: &'a mut BinaryParser<R>,
+    /// Node attributes.
+    pub attributes: Attributes<'a, R>,
 }
 
 
@@ -236,6 +237,8 @@ impl From<StartNodeBuilder> for EventBuilder {
 pub struct StartNodeBuilder {
     /// Node name.
     pub name: String,
+    /// Node header.
+    pub header: NodeHeader,
 }
 
 impl StartNodeBuilder {
@@ -243,7 +246,7 @@ impl StartNodeBuilder {
     pub fn build<R: Read>(self, parser: &mut BinaryParser<R>) -> StartNode<R> {
         StartNode {
             name: self.name,
-            _parser: parser,
+            attributes: attribute::new_attributes(parser, &self.header),
         }
     }
 }
