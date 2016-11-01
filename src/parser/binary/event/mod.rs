@@ -3,8 +3,8 @@
 use std::io;
 use std::io::Read;
 
-use super::BinaryParser;
-use super::error::{Result, Error, Warning};
+use parser::binary::BinaryParser;
+use parser::binary::error::{Result, Error, Warning};
 
 mod attribute;
 
