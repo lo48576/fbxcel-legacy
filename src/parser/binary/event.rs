@@ -179,7 +179,7 @@ impl FbxFooter {
 #[derive(Debug)]
 pub struct StartNode<'a, R: 'a + Read> {
     /// Node name.
-    name: String,
+    pub name: String,
     /// Parser.
     _parser: &'a mut BinaryParser<R>,
 }
