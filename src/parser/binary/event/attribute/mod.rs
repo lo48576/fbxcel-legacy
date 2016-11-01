@@ -6,7 +6,7 @@ use parser::binary::BinaryParser;
 use parser::binary::error::Result;
 use parser::binary::event::NodeHeader;
 pub use self::array::ArrayAttribute;
-pub use self::special::SpecialAttribute;
+pub use self::special::{SpecialAttribute, SpecialAttributeType};
 
 mod array;
 mod special;
