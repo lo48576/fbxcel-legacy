@@ -10,7 +10,7 @@ pub use self::event::{Attributes, Attribute};
 pub use self::event::{PrimitiveAttribute, ArrayAttribute, SpecialAttribute};
 use self::event::{EventBuilder, NodeHeader, StartNodeBuilder};
 use self::event::read_fbx_header;
-use self::reader::CountReader;
+pub use self::reader::CountReader;
 
 mod error;
 mod event;
