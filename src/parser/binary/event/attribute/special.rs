@@ -21,7 +21,7 @@ pub enum SpecialAttributeType {
 
 /// Special type attribute.
 #[derive(Debug)]
-pub struct SpecialAttribute<'a, R: 'a + Read> {
+pub struct SpecialAttribute<'a, R: 'a> {
     /// Parser.
     parser: &'a mut BinaryParser<R>,
     /// Value type.

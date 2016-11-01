@@ -6,4 +6,4 @@ use std::io::Read;
 /// Array type attribute.
 // FIXME: unimplemented.
 #[derive(Debug)]
-pub struct ArrayAttribute<'a, R: 'a + Read>(&'a mut R);
+pub struct ArrayAttribute<'a, R: 'a>(&'a mut R);

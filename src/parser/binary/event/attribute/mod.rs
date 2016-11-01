@@ -14,7 +14,7 @@ mod special;
 
 /// Node attribute.
 #[derive(Debug)]
-pub struct Attributes<'a, R: 'a + Read> {
+pub struct Attributes<'a, R: 'a> {
     /// Number of all attributes.
     num_attributes: u64,
     /// Number of rest attributes.
@@ -42,7 +42,7 @@ impl<'a, R: 'a + Read> Attributes<'a, R> {
 
 
 /// Creates a new `Attributes`.
-pub fn new_attributes<'a, R: 'a + Read>(
+pub fn new_attributes<'a, R: 'a>(
     parser: &'a mut BinaryParser<R>,
     header: &NodeHeader
 ) -> Attributes<'a, R> {
@@ -56,7 +56,7 @@ pub fn new_attributes<'a, R: 'a + Read>(
 
 /// Node attribute.
 #[derive(Debug)]
-pub enum Attribute<'a, R: 'a + Read> {
+pub enum Attribute<'a, R: 'a> {
     /// Primitive type value.
     Primitive(PrimitiveAttribute),
     /// Array type value.

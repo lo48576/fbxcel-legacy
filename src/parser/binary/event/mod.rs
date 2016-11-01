@@ -13,7 +13,7 @@ mod attribute;
 
 /// Parser event.
 #[derive(Debug)]
-pub enum Event<'a, R: 'a + Read> {
+pub enum Event<'a, R: 'a> {
     /// Start of the FBX document.
     StartFbx(FbxHeader),
     /// End of the FBX document.
@@ -181,7 +181,7 @@ impl FbxFooter {
 
 /// FBX node info.
 #[derive(Debug)]
-pub struct StartNode<'a, R: 'a + Read> {
+pub struct StartNode<'a, R: 'a> {
     /// Node name.
     pub name: String,
     /// Node attributes.
