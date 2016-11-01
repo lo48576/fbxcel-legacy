@@ -37,7 +37,7 @@ pub enum Error {
         begin: u64,
         /// End offset of the node told by node header.
         expected_end: u64,
-        /// Position of the node detected while reading input.
+        /// Position of the end of the node detected while reading input.
         real_end: u64,
     },
 }
