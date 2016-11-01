@@ -5,7 +5,9 @@ use std::io;
 use std::io::Read;
 
 pub use self::error::{Result, Error, Warning};
-pub use self::event::{Event, FbxHeader, FbxFooter, StartNode, Attributes};
+pub use self::event::{Event, FbxHeader, FbxFooter, StartNode};
+pub use self::event::{Attributes, Attribute};
+pub use self::event::{PrimitiveAttribute, ArrayAttribute, SpecialAttribute};
 use self::event::{EventBuilder, NodeHeader, StartNodeBuilder};
 use self::event::read_fbx_header;
 use self::reader::CountReader;
