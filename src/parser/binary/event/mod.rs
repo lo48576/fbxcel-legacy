@@ -6,6 +6,8 @@ use std::io::Read;
 use super::BinaryParser;
 use super::error::{Result, Error, Warning};
 
+mod attribute;
+
 
 /// Parser event.
 #[derive(Debug)]
