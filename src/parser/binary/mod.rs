@@ -201,14 +201,14 @@ impl<R: Read> BinaryParser<R> {
             self.state = Ok(State::NodeEnded);
             Ok(EventBuilder::EndNode)
         } else {
-            let mut name_vec = vec![0u8; header.len_name as usize];
+            let mut name_vec = vec![0u8; header.bytelen_name as usize];
             try!(self.source.read_exact(&mut name_vec));
             let name = try!(String::from_utf8(name_vec).map_err(Error::node_name_invalid_utf8));
             let current_pos = self.source.count();
             self.open_nodes.push(OpenNode {
                 begin: current_pos,
                 end: header.end_offset,
-                attributes_end: current_pos + header.len_attributes,
+                attributes_end: current_pos + header.bytelen_attributes,
             });
 
             // Zero or more attributes come after node start.

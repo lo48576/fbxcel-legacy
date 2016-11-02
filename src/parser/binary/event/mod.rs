@@ -260,40 +260,40 @@ pub struct NodeHeader {
     pub end_offset: u64,
     /// Number of the node attributes.
     pub num_attributes: u64,
-    /// Byte length of the node attributes.
-    pub len_attributes: u64,
-    /// Length of the node name.
-    pub len_name: u8,
+    /// Length of the node attributes in bytes.
+    pub bytelen_attributes: u64,
+    /// Length of the node name in bytes.
+    pub bytelen_name: u8,
 }
 
 impl NodeHeader {
     /// Returns true if all fields of the node header is `0`.
     pub fn is_node_end(&self) -> bool {
-        self.end_offset == 0 && self.num_attributes == 0 && self.len_attributes == 0 &&
-        self.len_name == 0
+        self.end_offset == 0 && self.num_attributes == 0 && self.bytelen_attributes == 0 &&
+        self.bytelen_name == 0
     }
 
     /// Reads node header from the given parser and returns it.
     pub fn read_from_parser<R: Read>(parser: &mut BinaryParser<R>) -> io::Result<Self> {
         let fbx_version = parser.fbx_version
             .expect("Attempt to read FBX node header but the parser doesn't know FBX version");
-        let (end_offset, num_attributes, len_attributes) = if fbx_version < 7500 {
+        let (end_offset, num_attributes, bytelen_attributes) = if fbx_version < 7500 {
             let eo = try!(parser.source.read_u32()) as u64;
             let na = try!(parser.source.read_u32()) as u64;
-            let la = try!(parser.source.read_u32()) as u64;
-            (eo, na, la)
+            let bla = try!(parser.source.read_u32()) as u64;
+            (eo, na, bla)
         } else {
             let eo = try!(parser.source.read_u64());
             let na = try!(parser.source.read_u64());
-            let la = try!(parser.source.read_u64());
-            (eo, na, la)
+            let bla = try!(parser.source.read_u64());
+            (eo, na, bla)
         };
-        let len_name = try!(parser.source.read_u8());
+        let bytelen_name = try!(parser.source.read_u8());
         Ok(NodeHeader {
             end_offset: end_offset,
             num_attributes: num_attributes,
-            len_attributes: len_attributes,
-            len_name: len_name,
+            bytelen_attributes: bytelen_attributes,
+            bytelen_name: bytelen_name,
         })
     }
 }
