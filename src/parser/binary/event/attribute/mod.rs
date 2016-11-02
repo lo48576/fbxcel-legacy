@@ -3,7 +3,7 @@
 use std::io::Read;
 
 use parser::binary::BinaryParser;
-use parser::binary::error::Result;
+use parser::binary::error::{Result, Warning};
 use parser::binary::event::NodeHeader;
 pub use self::array::ArrayAttribute;
 pub use self::special::{SpecialAttribute, SpecialAttributeType};
@@ -36,7 +36,33 @@ impl<'a, R: 'a + Read> Attributes<'a, R> {
 
     /// Returns the next attribute if available.
     pub fn next_attribute(&mut self) -> Result<Option<Attribute<R>>> {
-        unimplemented!()
+        if self.rest_attributes == 0 {
+            return Ok(None);
+        }
+
+        self.rest_attributes -= 1;
+        let type_code = try!(self.parser.source.read_u8());
+        let position = self.parser.source.count();
+        match type_code {
+            b'C' => {
+                let raw = try!(self.parser.source.read_u8());
+                let val = (raw & 0x01) == 1;
+                if raw != b'T' && raw != b'Y' {
+                    self.parser.warn(Warning::InvalidBooleanAttributeValue {
+                        got: raw,
+                        assumed: val,
+                        position: position,
+                    });
+                }
+                Ok(Some(Attribute::Primitive(PrimitiveAttribute::Bool(val))))
+            },
+            b'Y' => Ok(Some(Attribute::Primitive(PrimitiveAttribute::I16(try!(self.parser.source.read_i16()))))),
+            b'I' => Ok(Some(Attribute::Primitive(PrimitiveAttribute::I32(try!(self.parser.source.read_i32()))))),
+            b'L' => Ok(Some(Attribute::Primitive(PrimitiveAttribute::I64(try!(self.parser.source.read_i64()))))),
+            b'F' => Ok(Some(Attribute::Primitive(PrimitiveAttribute::F32(try!(self.parser.source.read_f32()))))),
+            b'D' => Ok(Some(Attribute::Primitive(PrimitiveAttribute::F64(try!(self.parser.source.read_f64()))))),
+            _ => unimplemented!(),
+        }
     }
 }
 

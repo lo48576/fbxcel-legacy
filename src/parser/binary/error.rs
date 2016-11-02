@@ -137,6 +137,15 @@ impl From<io::Error> for Error {
 /// FBX parser warning.
 #[derive(Debug, Clone, Copy)]
 pub enum Warning {
+    /// Invalid node attribute of boolean value.
+    InvalidBooleanAttributeValue {
+        /// Got value.
+        got: u8,
+        /// Assumed value.
+        assumed: bool,
+        /// Position of the attribute value.
+        position: u64,
+    },
     /// Unknown 2 bytes right after FBX magic is unexpected.
     UnexpectedBytesAfterMagic([u8; 2]),
 }
@@ -144,6 +153,13 @@ pub enum Warning {
 impl fmt::Display for Warning {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            Warning::InvalidBooleanAttributeValue { got, assumed, position } => {
+                write!(f,
+                       "Invalid boolean node attribute value at position {}: got {:?}, assumed {}",
+                       position,
+                       got,
+                       assumed)
+            },
             Warning::UnexpectedBytesAfterMagic(ref bytes) => {
                 write!(f,
                        "Unexpected bytes right after magic binary: expected [0x1a, 0x00] but got \
@@ -157,6 +173,7 @@ impl fmt::Display for Warning {
 impl error::Error for Warning {
     fn description(&self) -> &str {
         match *self {
+            Warning::InvalidBooleanAttributeValue { .. } => "Invalid boolean node attribute value",
             Warning::UnexpectedBytesAfterMagic(_) => "Unexpected bytes right after magic binary",
         }
     }
