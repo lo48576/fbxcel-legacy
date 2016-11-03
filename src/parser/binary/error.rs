@@ -146,6 +146,13 @@ pub enum Warning {
         /// Position of the attribute value.
         position: u64,
     },
+    /// FBX footer has invalid padding.
+    InvalidPaddingInFbxFooter {
+        /// Expected padding length.
+        expected: u8,
+        /// Actual padding length.
+        actual: u8,
+    },
     /// Unknown 2 bytes right after FBX magic is unexpected.
     UnexpectedBytesAfterMagic([u8; 2]),
 }
@@ -159,6 +166,12 @@ impl fmt::Display for Warning {
                        position,
                        got,
                        assumed)
+            },
+            Warning::InvalidPaddingInFbxFooter { expected, actual } => {
+                write!(f,
+                       "Invalid padding in FBX footer: expected {} bytes but got {} bytes",
+                       expected,
+                       actual)
             },
             Warning::UnexpectedBytesAfterMagic(ref bytes) => {
                 write!(f,
@@ -174,6 +187,7 @@ impl error::Error for Warning {
     fn description(&self) -> &str {
         match *self {
             Warning::InvalidBooleanAttributeValue { .. } => "Invalid boolean node attribute value",
+            Warning::InvalidPaddingInFbxFooter { .. } => "Invalid padding in FBX footer",
             Warning::UnexpectedBytesAfterMagic(_) => "Unexpected bytes right after magic binary",
         }
     }

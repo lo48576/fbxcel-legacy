@@ -143,15 +143,11 @@ impl FbxFooter {
             // Note that its length might be 0.
             info!("Padding exists (as expected) before the footer (len={})",
                   expected_padding_len);
-        } else if partial_footer2_len == 16 {
-            // Padding doesn't exist while it should.
-            warn!("Expected padding (len={}) but not found",
-                  expected_padding_len);
         } else {
-            error!("Unexpected padding length: expected={}, got={}",
-                   expected_padding_len,
-                   16 - partial_footer2_len);
-            return Err(Error::BrokenFbxFooter);
+            parser.warn(Warning::InvalidPaddingInFbxFooter {
+                expected: expected_padding_len as u8,
+                actual: 16 - partial_footer2_len as u8,
+            });
         }
 
         // Check the FBX version.
