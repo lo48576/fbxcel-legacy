@@ -19,6 +19,8 @@ pub struct Attributes<'a, R: 'a> {
     num_attributes: u64,
     /// Number of rest attributes.
     rest_attributes: u64,
+    /// End offset of the previous attribute.
+    prev_attr_end: Option<u64>,
     /// Parser.
     parser: &'a mut BinaryParser<R>,
 }
@@ -38,6 +40,12 @@ impl<'a, R: 'a + Read> Attributes<'a, R> {
     pub fn next_attribute(&mut self) -> Result<Option<Attribute<R>>> {
         if self.rest_attributes == 0 {
             return Ok(None);
+        }
+
+        // Skip unread part of the previous attribute if available.
+        if let Some(prev_attr_end) = self.prev_attr_end {
+            try!(self.parser.source.skip_to(prev_attr_end));
+            self.prev_attr_end = None;
         }
 
         self.rest_attributes -= 1;
@@ -75,6 +83,7 @@ pub fn new_attributes<'a, R: 'a>(
     Attributes {
         num_attributes: header.num_attributes,
         rest_attributes: header.num_attributes,
+        prev_attr_end: None,
         parser: parser,
     }
 }
