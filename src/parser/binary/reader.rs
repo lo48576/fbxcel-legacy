@@ -111,11 +111,12 @@ mod tests {
         let mut short_buf = Cursor::new(vec![0; buf_size]);
         let short_count = {
             let mut reader = CountReader::new(&mut short_buf);
-            reader.skip_to(skip_dest).unwrap();
+            reader.skip_to(skip_dest).expect("Failed to skip");
             reader.count()
         };
         assert_eq!(short_count, skip_dest);
-        assert_eq!(short_count, short_buf.seek(SeekFrom::Current(0)).unwrap());
+        assert_eq!(short_count,
+                   short_buf.seek(SeekFrom::Current(0)).expect("Failed to seek"));
     }
 
     #[test]
