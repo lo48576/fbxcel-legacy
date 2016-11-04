@@ -5,7 +5,9 @@ use std::io::Read;
 use parser::binary::BinaryParser;
 use parser::binary::error::{Result, Warning};
 use parser::binary::event::NodeHeader;
+use self::array::read_array_attribute;
 pub use self::array::{ArrayAttribute, ArrayAttributeReader};
+use self::special::read_special_attribute;
 pub use self::special::{SpecialAttribute, SpecialAttributeType};
 
 mod array;
@@ -72,13 +74,13 @@ impl<'a, R: 'a + Read> Attributes<'a, R> {
             b'D' => Ok(Some(PrimitiveAttribute::F64(try!(self.parser.source.read_f64())).into())),
             // Special type attributes.
             b'R' | b'S' => {
-                let (attr, end_offset) = try!(special::read_special_attribute(self.parser, type_code));
+                let (attr, end_offset) = try!(read_special_attribute(self.parser, type_code));
                 self.prev_attr_end = Some(end_offset);
                 Ok(Some(attr.into()))
             },
             // Array type attributes.
             b'b' | b'i' | b'l' | b'f' | b'd' => {
-                let (attr, end_offset) = try!(array::read_array_attribute(self.parser, type_code));
+                let (attr, end_offset) = try!(read_array_attribute(self.parser, type_code));
                 self.prev_attr_end = Some(end_offset);
                 Ok(Some(attr.into()))
             },
