@@ -6,6 +6,11 @@ license = "MIT/Apache-2.0"
 readme = "README.md"
 description = "Excellent FBX loader"
 
+[features]
+default = ["libflate"]
+
 [dependencies]
 byteorder = "^0.5.3"
+flate2 = { git = "https://github.com/alexcrichton/flate2-rs", rev = "bf0b5e458da245711b06240ada13a7da6e428361", optional = true }
+libflate = { version = "^0.1.1", optional = true }
 log = "^0.3.6"

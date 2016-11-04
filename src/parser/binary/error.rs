@@ -31,6 +31,8 @@ pub enum Error {
     NodeNameInvalidUtf8(Arc<string::FromUtf8Error>),
     /// I/O error.
     Io(io::Error),
+    /// Unknown array attribute encoding.
+    UnknownArrayAttributeEncoding(u32),
     /// End offset of a node is wrong.
     WrongNodeEndOffset {
         /// Start offset of the node.
@@ -64,6 +66,9 @@ impl fmt::Display for Error {
             Error::NodeNameInvalidUtf8(ref err) => {
                 write!(f, "Node name is not vaiid UTF-8 string: {}", err)
             },
+            Error::UnknownArrayAttributeEncoding(val) => {
+                write!(f, "Unknown array attribute encoding: encoding={}", val)
+            },
             Error::WrongNodeEndOffset { begin, expected_end, real_end } => {
                 write!(f,
                        "Node ends with unexpected position: begin={}, expected_end={}, real_end={}",
@@ -87,6 +92,7 @@ impl error::Error for Error {
             Error::MagicNotDetected(_) => "Magic binary not detected",
             Error::NodeNameInvalidUtf8(_) => "Node name is not vaiid UTF-8 string",
             Error::Io(ref err) => err.description(),
+            Error::UnknownArrayAttributeEncoding(_) => "Unknown array attribute encoding",
             Error::WrongNodeEndOffset { .. } => "Wrong node end offset",
         }
     }
@@ -117,6 +123,7 @@ impl Clone for Error {
                 // To clone `io::Error`, convert inner error into string and use it as new inner error.
                 Error::Io(io::Error::new(err.kind(), error::Error::description(err)))
             },
+            Error::UnknownArrayAttributeEncoding(v) => Error::UnknownArrayAttributeEncoding(v),
             Error::WrongNodeEndOffset { begin, expected_end, real_end } => {
                 Error::WrongNodeEndOffset {
                     begin: begin,
