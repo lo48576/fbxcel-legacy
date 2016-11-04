@@ -25,6 +25,13 @@ pub enum Error {
         /// Version specified in footer.
         footer: u32,
     },
+    /// Invalid node attribute type code.
+    InvalidNodeAttributeTypeCode {
+        /// Got type code.
+        got: u8,
+        /// Position of the type code.
+        position: u64,
+    },
     /// Magic binary not detected.
     MagicNotDetected([u8; 21]),
     /// Node name has invalid UTF-8 sequences.
@@ -60,6 +67,12 @@ impl fmt::Display for Error {
                        header,
                        footer)
             },
+            Error::InvalidNodeAttributeTypeCode { got, position } => {
+                write!(f,
+                       "Invalid node attribute type code: Got {:?} at position {}",
+                       got,
+                       position)
+            },
             Error::MagicNotDetected(ref bytes) => {
                 write!(f, "Magic binary not detected: Got {:?}", bytes)
             },
@@ -89,6 +102,7 @@ impl error::Error for Error {
             Error::HeaderFooterVersionMismatch { .. } => {
                 "Specified FBX versions mismatched in header and footer"
             },
+            Error::InvalidNodeAttributeTypeCode { .. } => "Invalid node attribute type code",
             Error::MagicNotDetected(_) => "Magic binary not detected",
             Error::NodeNameInvalidUtf8(_) => "Node name is not vaiid UTF-8 string",
             Error::Io(ref err) => err.description(),
@@ -111,6 +125,12 @@ impl Clone for Error {
         match *self {
             Error::BrokenFbxFooter => Error::BrokenFbxFooter,
             Error::Finished => Error::Finished,
+            Error::InvalidNodeAttributeTypeCode { got, position } => {
+                Error::InvalidNodeAttributeTypeCode {
+                    got: got,
+                    position: position,
+                }
+            },
             Error::HeaderFooterVersionMismatch { header, footer } => {
                 Error::HeaderFooterVersionMismatch {
                     header: header,

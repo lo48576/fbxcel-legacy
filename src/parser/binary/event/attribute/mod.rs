@@ -3,7 +3,7 @@
 use std::io::Read;
 
 use parser::binary::BinaryParser;
-use parser::binary::error::{Result, Warning};
+use parser::binary::error::{Result, Error, Warning};
 use parser::binary::event::NodeHeader;
 use self::array::read_array_attribute;
 pub use self::array::{ArrayAttribute, ArrayAttributeReader};
@@ -85,7 +85,12 @@ impl<'a, R: 'a + Read> Attributes<'a, R> {
                 Ok(Some(attr.into()))
             },
             // Unknown type attributes.
-            _ => unimplemented!(),
+            _ => {
+                Err(Error::InvalidNodeAttributeTypeCode {
+                    got: type_code,
+                    position: position,
+                })
+            },
         }
     }
 }
