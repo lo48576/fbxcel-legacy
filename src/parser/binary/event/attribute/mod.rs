@@ -63,28 +63,46 @@ impl<'a, R: 'a + Read> Attributes<'a, R> {
                         position: position,
                     });
                 }
-                Ok(Some(Attribute::Primitive(PrimitiveAttribute::Bool(val))))
+                Ok(Some(PrimitiveAttribute::Bool(val).into()))
             },
-            b'Y' => Ok(Some(Attribute::Primitive(PrimitiveAttribute::I16(try!(self.parser.source.read_i16()))))),
-            b'I' => Ok(Some(Attribute::Primitive(PrimitiveAttribute::I32(try!(self.parser.source.read_i32()))))),
-            b'L' => Ok(Some(Attribute::Primitive(PrimitiveAttribute::I64(try!(self.parser.source.read_i64()))))),
-            b'F' => Ok(Some(Attribute::Primitive(PrimitiveAttribute::F32(try!(self.parser.source.read_f32()))))),
-            b'D' => Ok(Some(Attribute::Primitive(PrimitiveAttribute::F64(try!(self.parser.source.read_f64()))))),
+            b'Y' => Ok(Some(PrimitiveAttribute::I16(try!(self.parser.source.read_i16())).into())),
+            b'I' => Ok(Some(PrimitiveAttribute::I32(try!(self.parser.source.read_i32())).into())),
+            b'L' => Ok(Some(PrimitiveAttribute::I64(try!(self.parser.source.read_i64())).into())),
+            b'F' => Ok(Some(PrimitiveAttribute::F32(try!(self.parser.source.read_f32())).into())),
+            b'D' => Ok(Some(PrimitiveAttribute::F64(try!(self.parser.source.read_f64())).into())),
             // Special type attributes.
             b'R' | b'S' => {
                 let (attr, end_offset) = try!(special::read_special_attribute(self.parser, type_code));
                 self.prev_attr_end = Some(end_offset);
-                Ok(Some(Attribute::Special(attr)))
+                Ok(Some(attr.into()))
             },
             // Array type attributes.
             b'b' | b'i' | b'l' | b'f' | b'd' => {
                 let (attr, end_offset) = try!(array::read_array_attribute(self.parser, type_code));
                 self.prev_attr_end = Some(end_offset);
-                Ok(Some(Attribute::Array(attr)))
+                Ok(Some(attr.into()))
             },
             // Unknown type attributes.
             _ => unimplemented!(),
         }
+    }
+}
+
+impl<'a, R: 'a> From<PrimitiveAttribute> for Attribute<'a, R> {
+    fn from(a: PrimitiveAttribute) -> Self {
+        Attribute::Primitive(a)
+    }
+}
+
+impl<'a, R: 'a> From<SpecialAttribute<'a, R>> for Attribute<'a, R> {
+    fn from(a: SpecialAttribute<'a, R>) -> Self {
+        Attribute::Special(a)
+    }
+}
+
+impl<'a, R: 'a> From<ArrayAttribute<'a, R>> for Attribute<'a, R> {
+    fn from(a: ArrayAttribute<'a, R>) -> Self {
+        Attribute::Array(a)
     }
 }
 
