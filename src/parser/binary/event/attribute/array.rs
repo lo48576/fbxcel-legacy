@@ -8,7 +8,34 @@ use flate2::read::ZlibDecoder;
 #[cfg(feature = "libflate")]
 use libflate::zlib;
 
+use parser::binary::BinaryParser;
 use parser::binary::error::{Result, Error};
+
+
+/// Header of an array attribute.
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+struct ArrayAttributeHeader {
+    /// Number of elements.
+    num_elements: u32,
+    /// Array encoding, i.e. compression method.
+    encoding: u32,
+    /// Length of the array (excluding this header) in bytes.
+    bytelen_elements: u32,
+}
+
+impl ArrayAttributeHeader {
+    fn read_from_parser<R: Read>(parser: &mut BinaryParser<R>) -> io::Result<Self> {
+        let num_elements = try!(parser.source.read_u32());
+        let encoding = try!(parser.source.read_u32());
+        let bytelen_elements = try!(parser.source.read_u32());
+
+        Ok(ArrayAttributeHeader {
+            num_elements: num_elements,
+            encoding: encoding,
+            bytelen_elements: bytelen_elements,
+        })
+    }
+}
 
 
 /// Array type attribute.
