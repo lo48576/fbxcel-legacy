@@ -76,6 +76,13 @@ impl<'a, R: 'a + Read> Attributes<'a, R> {
                 self.prev_attr_end = Some(end_offset);
                 Ok(Some(Attribute::Special(attr)))
             },
+            // Array type attributes.
+            b'b' | b'i' | b'l' | b'f' | b'd' => {
+                let (attr, end_offset) = try!(array::read_array_attribute(self.parser, type_code));
+                self.prev_attr_end = Some(end_offset);
+                Ok(Some(Attribute::Array(attr)))
+            },
+            // Unknown type attributes.
             _ => unimplemented!(),
         }
     }

@@ -14,6 +14,28 @@ use parser::binary::{BinaryParser, CountReader};
 use parser::binary::error::{Result, Error, Warning};
 
 
+/// Read array type attribute from the given parser.
+pub fn read_array_attribute<R: Read>(
+    parser: &mut BinaryParser<R>,
+    type_code: u8
+) -> Result<(ArrayAttribute<R>, u64)> {
+    let header = try!(ArrayAttributeHeader::read_from_parser(parser));
+    let current_pos = parser.source.count();
+    let BinaryParser { ref mut source, ref mut warnings, .. } = *parser;
+    let reader = try!(ArrayDecoder::new(source, &header));
+
+    let value = match type_code {
+        b'b' => ArrayAttribute::Bool(ArrayAttributeReader::new(&header, reader, warnings)),
+        b'i' => ArrayAttribute::I32(ArrayAttributeReader::new(&header, reader, warnings)),
+        b'l' => ArrayAttribute::I64(ArrayAttributeReader::new(&header, reader, warnings)),
+        b'f' => ArrayAttribute::F32(ArrayAttributeReader::new(&header, reader, warnings)),
+        b'd' => ArrayAttribute::F64(ArrayAttributeReader::new(&header, reader, warnings)),
+        _ => unreachable!(),
+    };
+    Ok((value, current_pos + header.bytelen_elements as u64))
+}
+
+
 /// Header of an array attribute.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 struct ArrayAttributeHeader {
