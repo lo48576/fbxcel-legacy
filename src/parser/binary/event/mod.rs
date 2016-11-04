@@ -18,7 +18,7 @@ pub enum Event<'a, R: 'a> {
     /// Start of the FBX document.
     StartFbx(FbxHeader),
     /// End of the FBX document.
-    EndFbx(FbxFooter),
+    EndFbx(Result<FbxFooter>),
     /// Start of a node.
     StartNode(StartNode<'a, R>),
     /// End of a node.
@@ -31,8 +31,8 @@ impl<'a, R: 'a + Read> From<FbxHeader> for Event<'a, R> {
     }
 }
 
-impl<'a, R: 'a + Read> From<FbxFooter> for Event<'a, R> {
-    fn from(f: FbxFooter) -> Self {
+impl<'a, R: 'a + Read> From<Result<FbxFooter>> for Event<'a, R> {
+    fn from(f: Result<FbxFooter>) -> Self {
         Event::EndFbx(f)
     }
 }
@@ -192,7 +192,7 @@ pub enum EventBuilder {
     /// Start of the FBX document.
     StartFbx(FbxHeader),
     /// End of the FBX document.
-    EndFbx(FbxFooter),
+    EndFbx(Result<FbxFooter>),
     /// Start of a node.
     StartNode(StartNodeBuilder),
     /// End of a node.
@@ -217,8 +217,8 @@ impl From<FbxHeader> for EventBuilder {
     }
 }
 
-impl From<FbxFooter> for EventBuilder {
-    fn from(f: FbxFooter) -> Self {
+impl From<Result<FbxFooter>> for EventBuilder {
+    fn from(f: Result<FbxFooter>) -> Self {
         EventBuilder::EndFbx(f)
     }
 }

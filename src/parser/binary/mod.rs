@@ -195,7 +195,7 @@ impl<R: Read> BinaryParser<R> {
                 // No open nodes, so this `EndNode` event indicates the end of
                 // the implicit root node.
                 // FBX file has no more nodes.
-                let footer = try!(self.read_fbx_footer());
+                let footer = self.read_fbx_footer();
                 return Ok(footer.into());
             }
 
@@ -224,9 +224,8 @@ impl<R: Read> BinaryParser<R> {
 
     /// Reads an FBX footer.
     fn read_fbx_footer(&mut self) -> Result<FbxFooter> {
-        let footer = try!(FbxFooter::read_from_parser(self));
         self.set_finish();
-        Ok(footer)
+        FbxFooter::read_from_parser(self)
     }
 
     /// Skip attributes of the most recent opened node.
