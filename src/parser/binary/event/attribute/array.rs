@@ -1,15 +1,17 @@
 //! Array type node attribute.
 
 use std::fmt;
+use std::marker::PhantomData;
 use std::io;
 use std::io::Read;
+use byteorder::{ReadBytesExt, LittleEndian};
 #[cfg(feature = "flate2")]
 use flate2::read::ZlibDecoder;
 #[cfg(feature = "libflate")]
 use libflate::zlib;
 
-use parser::binary::BinaryParser;
-use parser::binary::error::{Result, Error};
+use parser::binary::{BinaryParser, CountReader};
+use parser::binary::error::{Result, Error, Warning};
 
 
 /// Header of an array attribute.
@@ -39,9 +41,92 @@ impl ArrayAttributeHeader {
 
 
 /// Array type attribute.
-// FIXME: unimplemented.
 #[derive(Debug)]
-pub struct ArrayAttribute<'a, R: 'a>(&'a mut R);
+pub enum ArrayAttribute<'a, R: 'a> {
+    /// Array of `bool`.
+    Bool(ArrayAttributeReader<'a, R, bool>),
+    /// Array of `i32`.
+    I32(ArrayAttributeReader<'a, R, i32>),
+    /// Array of `i64`.
+    I64(ArrayAttributeReader<'a, R, i64>),
+    /// Array of `f32`.
+    F32(ArrayAttributeReader<'a, R, f32>),
+    /// Array of `f64`.
+    F64(ArrayAttributeReader<'a, R, f64>),
+}
+
+
+/// Reader of array attribute elements.
+#[derive(Debug)]
+pub struct ArrayAttributeReader<'a, R: 'a, T> {
+    num_elements: u64,
+    rest_elements: u64,
+    reader: ArrayDecoder<'a, CountReader<R>>,
+    warnings: &'a mut Vec<Warning>,
+    _value_type: PhantomData<T>,
+}
+
+impl<'a, R: 'a + Read, T> ArrayAttributeReader<'a, R, T> {
+    fn new<'b>(
+        header: &'b ArrayAttributeHeader,
+        reader: ArrayDecoder<'a, CountReader<R>>,
+        warnings: &'a mut Vec<Warning>
+    ) -> Self {
+        ArrayAttributeReader {
+            num_elements: header.num_elements as u64,
+            rest_elements: header.num_elements as u64,
+            reader: reader,
+            warnings: warnings,
+            _value_type: PhantomData,
+        }
+    }
+
+    /// Returns number of elements.
+    pub fn num_elements(&self) -> u64 {
+        self.num_elements
+    }
+
+    /// Returns number of rest elements.
+    pub fn rest_elements(&self) -> u64 {
+        self.num_elements
+    }
+}
+
+impl<'a, R: 'a + Read> Iterator for ArrayAttributeReader<'a, R, bool> {
+    type Item = io::Result<bool>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.rest_elements == 0 {
+            return None;
+        }
+        let raw = match self.reader.read_u8() {
+            Ok(val) => val,
+            Err(err) => return Some(Err(err)),
+        };
+        let val = (raw & 1) == 1;
+        Some(Ok(val))
+    }
+}
+
+macro_rules! impl_attr_array_iter {
+    ($ty:ty, $f:ident) => {
+        impl<'a, R: 'a + Read> Iterator for ArrayAttributeReader<'a, R, $ty> {
+            type Item = io::Result<$ty>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                if self.rest_elements == 0 {
+                    return None;
+                }
+                Some(self.reader.$f::<LittleEndian>())
+            }
+        }
+    }
+}
+
+impl_attr_array_iter!(i32, read_i32);
+impl_attr_array_iter!(i64, read_i64);
+impl_attr_array_iter!(f32, read_f32);
+impl_attr_array_iter!(f64, read_f64);
 
 
 /// Attribute array decoder.

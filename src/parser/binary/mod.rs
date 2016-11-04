@@ -8,6 +8,7 @@ pub use self::error::{Result, Error, Warning};
 pub use self::event::{Event, FbxHeader, FbxFooter, StartNode};
 pub use self::event::{Attributes, Attribute, SpecialAttributeType};
 pub use self::event::{PrimitiveAttribute, ArrayAttribute, SpecialAttribute};
+pub use self::event::ArrayAttributeReader;
 use self::event::{EventBuilder, NodeHeader, StartNodeBuilder};
 use self::event::read_fbx_header;
 pub use self::reader::CountReader;

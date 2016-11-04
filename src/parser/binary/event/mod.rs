@@ -7,6 +7,7 @@ use parser::binary::BinaryParser;
 use parser::binary::error::{Result, Error, Warning};
 pub use self::attribute::{Attributes, Attribute, SpecialAttributeType};
 pub use self::attribute::{PrimitiveAttribute, ArrayAttribute, SpecialAttribute};
+pub use self::attribute::ArrayAttributeReader;
 
 mod attribute;
 
