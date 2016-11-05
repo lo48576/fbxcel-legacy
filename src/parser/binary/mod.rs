@@ -10,7 +10,7 @@ pub use self::event::{PrimitiveAttribute, ArrayAttribute, SpecialAttribute};
 pub use self::event::ArrayAttributeReader;
 use self::event::{EventBuilder, NodeHeader, StartNodeBuilder};
 use self::event::read_fbx_header;
-pub use self::reader::BasicSource;
+pub use self::reader::{BasicSource, SeekableSource};
 use self::reader::ParserSource;
 
 mod error;
@@ -77,6 +77,19 @@ impl<R: Read> BinaryParser<BasicSource<R>> {
     pub fn new(source: R) -> Self {
         BinaryParser {
             source: BasicSource::new(source),
+            state: Ok(State::Header),
+            warnings: Vec::new(),
+            fbx_version: None,
+            open_nodes: Vec::new(),
+        }
+    }
+}
+
+impl<R: Read + io::Seek> BinaryParser<SeekableSource<R>> {
+    /// Creates a new binary parser.
+    pub fn from_seekable(source: R) -> Self {
+        BinaryParser {
+            source: SeekableSource::new(source),
             state: Ok(State::Header),
             warnings: Vec::new(),
             fbx_version: None,

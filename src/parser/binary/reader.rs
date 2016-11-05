@@ -126,6 +126,88 @@ impl<R: io::Read> ParserSource for BasicSource<R> {
 }
 
 
+/// Reader with position info and seek feature.
+///
+/// This wrapper doesn't manage offset, i.e. the start of the source stream should be the start of
+/// the FBX data.
+pub struct SeekableSource<R> {
+    /// Source reader.
+    source: R,
+    /// Current position from the start of the stream..
+    position: u64,
+}
+
+impl<R: io::Read + io::Seek> SeekableSource<R> {
+    /// Creates a new `SeekableSource`.
+    pub fn new(source: R) -> Self {
+        SeekableSource {
+            source: source,
+            position: 0,
+        }
+    }
+}
+
+impl<R: io::Read> io::Read for SeekableSource<R> {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let read_len = try!(self.source.read(buf));
+        self.position += read_len as u64;
+        Ok(read_len)
+    }
+
+    fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
+        try!(self.source.read_exact(buf));
+        self.position += buf.len() as u64;
+        Ok(())
+    }
+}
+
+impl<R: io::Read + io::Seek> io::Seek for SeekableSource<R> {
+    fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
+        self.position = try!(self.source.seek(pos));
+        Ok(self.position)
+    }
+}
+
+impl<R> fmt::Debug for SeekableSource<R> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("SeekableSource")
+            .field("position", &self.position)
+            .finish()
+    }
+}
+
+impl<R: io::Read + io::Seek> ParserSource for SeekableSource<R> {
+    fn position(&self) -> u64 {
+        self.position
+    }
+
+    fn skip_to(&mut self, dest_pos: u64) -> io::Result<()> {
+        use std::io::{Seek, SeekFrom};
+
+        assert!(dest_pos >= self.position(),
+                "Destination position should be after current position");
+        try!(self.seek(SeekFrom::Start(dest_pos)));
+
+        assert_eq!(self.position(), dest_pos);
+        Ok(())
+    }
+
+    fn read_u8(&mut self) -> io::Result<u8> {
+        ReadBytesExt::read_u8(self)
+    }
+
+    impl_read_primitive!(
+        read_i16: i16,
+        read_i32: i32,
+        read_u32: u32,
+        read_i64: i64,
+        read_u64: u64,
+        read_f32: f32,
+        read_f64: f64,
+    );
+}
+
+
 #[cfg(test)]
 mod tests {
     use std::io::{Cursor, Seek, SeekFrom};
