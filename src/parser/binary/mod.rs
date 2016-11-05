@@ -1,6 +1,5 @@
 //! FBX binary parser.
 
-use std::fmt;
 use std::io;
 use std::io::Read;
 
@@ -56,13 +55,10 @@ struct OpenNode {
 
 
 /// Pull parser for FBX binary format.
-// I want to use `#[derive(Debug)]` but it causes compile error for rustc-1.12(stable), 1.13(beta),
-// 1.14(nightly).
-// See also: #[derive] is too conservative with field trait bounds · Issue #26925 · rust-lang/rust
-//           ( https://github.com/rust-lang/rust/issues/26925 ).
+#[derive(Debug)]
 pub struct BinaryParser<R> {
     /// Source reader.
-    source: CountReader<R>,
+    source: R,
     /// Parser state.
     ///
     /// `Ok(State)` if the parser is working without critical error,
@@ -76,7 +72,7 @@ pub struct BinaryParser<R> {
     open_nodes: Vec<OpenNode>,
 }
 
-impl<R: Read> BinaryParser<R> {
+impl<R: Read> BinaryParser<CountReader<R>> {
     /// Creates a new binary parser.
     pub fn new(source: R) -> Self {
         BinaryParser {
@@ -87,7 +83,9 @@ impl<R: Read> BinaryParser<R> {
             open_nodes: Vec::new(),
         }
     }
+}
 
+impl<R: ParserSource> BinaryParser<R> {
     /// Returns FBX version of the reading input.
     ///
     /// Returns `None` if unknown yet.
@@ -236,17 +234,5 @@ impl<R: Read> BinaryParser<R> {
             .expect("`BinaryParser::skip_attributes()` is called but no nodes are open")
             .attributes_end;
         self.source.skip_to(attributes_end)
-    }
-}
-
-impl<R> fmt::Debug for BinaryParser<R> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("BinaryParser")
-            .field("source", &self.source)
-            .field("state", &self.state)
-            .field("warnings", &self.warnings)
-            .field("fbx_version", &self.fbx_version)
-            .field("open_nodes", &self.open_nodes)
-            .finish()
     }
 }

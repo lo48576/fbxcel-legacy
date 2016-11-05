@@ -9,13 +9,13 @@ use flate2::read::ZlibDecoder;
 #[cfg(feature = "libflate")]
 use libflate::zlib;
 
-use parser::binary::{BinaryParser, CountReader};
+use parser::binary::BinaryParser;
 use parser::binary::error::{Result, Error, Warning};
 use parser::binary::reader::ParserSource;
 
 
 /// Read array type attribute from the given parser.
-pub fn read_array_attribute<R: Read>(
+pub fn read_array_attribute<R: ParserSource>(
     parser: &mut BinaryParser<R>,
     type_code: u8
 ) -> Result<(ArrayAttribute<R>, u64)> {
@@ -48,7 +48,7 @@ struct ArrayAttributeHeader {
 }
 
 impl ArrayAttributeHeader {
-    fn read_from_parser<R: Read>(parser: &mut BinaryParser<R>) -> io::Result<Self> {
+    fn read_from_parser<R: ParserSource>(parser: &mut BinaryParser<R>) -> io::Result<Self> {
         let num_elements = try!(parser.source.read_u32());
         let encoding = try!(parser.source.read_u32());
         let bytelen_elements = try!(parser.source.read_u32());
@@ -83,7 +83,7 @@ pub enum ArrayAttribute<'a, R: 'a> {
 pub struct ArrayAttributeReader<'a, R: 'a, T> {
     num_elements: u64,
     rest_elements: u64,
-    reader: ArrayDecoder<'a, CountReader<R>>,
+    reader: ArrayDecoder<'a, R>,
     warnings: &'a mut Vec<Warning>,
     _value_type: PhantomData<T>,
 }
@@ -91,7 +91,7 @@ pub struct ArrayAttributeReader<'a, R: 'a, T> {
 impl<'a, R: 'a + Read, T> ArrayAttributeReader<'a, R, T> {
     fn new<'b>(
         header: &'b ArrayAttributeHeader,
-        reader: ArrayDecoder<'a, CountReader<R>>,
+        reader: ArrayDecoder<'a, R>,
         warnings: &'a mut Vec<Warning>
     ) -> Self {
         ArrayAttributeReader {

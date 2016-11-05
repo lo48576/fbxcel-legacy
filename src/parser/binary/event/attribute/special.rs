@@ -3,7 +3,7 @@
 use std::io;
 use std::io::Read;
 
-use parser::binary::{BinaryParser, CountReader};
+use parser::binary::BinaryParser;
 use parser::binary::reader::ParserSource;
 
 
@@ -33,9 +33,9 @@ pub struct SpecialAttribute<'a, R: 'a> {
     end_offset: u64,
 }
 
-impl<'a, R: 'a + Read> SpecialAttribute<'a, R> {
+impl<'a, R: 'a + ParserSource> SpecialAttribute<'a, R> {
     /// Returns reader of the raw attribute value.
-    pub fn reader(&mut self) -> io::Take<&mut CountReader<R>> {
+    pub fn reader(&mut self) -> io::Take<&mut R> {
         let limit = self.rest_len();
         self.parser.source.by_ref().take(limit)
     }
@@ -72,7 +72,7 @@ impl<'a, R: 'a + Read> SpecialAttribute<'a, R> {
 
 
 /// Read special type attribute from the given parser.
-pub fn read_special_attribute<R: Read>(
+pub fn read_special_attribute<R: ParserSource>(
     parser: &mut BinaryParser<R>,
     type_code: u8
 ) -> io::Result<(SpecialAttribute<R>, u64)> {

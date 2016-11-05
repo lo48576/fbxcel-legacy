@@ -1,7 +1,5 @@
 //! Node attributes.
 
-use std::io::Read;
-
 use parser::binary::BinaryParser;
 use parser::binary::error::{Result, Error, Warning};
 use parser::binary::event::NodeHeader;
@@ -28,7 +26,7 @@ pub struct Attributes<'a, R: 'a> {
     parser: &'a mut BinaryParser<R>,
 }
 
-impl<'a, R: 'a + Read> Attributes<'a, R> {
+impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
     /// Returns number of all attributes.
     pub fn num_attributes(&self) -> u64 {
         self.num_attributes
@@ -96,19 +94,19 @@ impl<'a, R: 'a + Read> Attributes<'a, R> {
     }
 }
 
-impl<'a, R: 'a> From<PrimitiveAttribute> for Attribute<'a, R> {
+impl<'a, R: 'a + ParserSource> From<PrimitiveAttribute> for Attribute<'a, R> {
     fn from(a: PrimitiveAttribute) -> Self {
         Attribute::Primitive(a)
     }
 }
 
-impl<'a, R: 'a> From<SpecialAttribute<'a, R>> for Attribute<'a, R> {
+impl<'a, R: 'a + ParserSource> From<SpecialAttribute<'a, R>> for Attribute<'a, R> {
     fn from(a: SpecialAttribute<'a, R>) -> Self {
         Attribute::Special(a)
     }
 }
 
-impl<'a, R: 'a> From<ArrayAttribute<'a, R>> for Attribute<'a, R> {
+impl<'a, R: 'a + ParserSource> From<ArrayAttribute<'a, R>> for Attribute<'a, R> {
     fn from(a: ArrayAttribute<'a, R>) -> Self {
         Attribute::Array(a)
     }
