@@ -21,6 +21,26 @@ macro_rules! impl_read_little_endian_integer {
     }
 }
 
+macro_rules! impl_read_little_endian_integer_array {
+    ($ty:ident, $name:ident, $size:expr) => {
+/// Reads a little-endian values into the given buffer.
+        fn $name(&mut self, buf: &mut [$ty]) -> io::Result<()> {
+            assert_eq!($size, mem::size_of::<$ty>());
+
+            {
+                let mut slice = unsafe {
+                    ::std::slice::from_raw_parts_mut(buf.as_mut_ptr() as *mut u8, $size * buf.len())
+                };
+                try!(self.read_exact(slice));
+            }
+            for elem in buf {
+                *elem = $ty::from_le(*elem);
+            }
+            Ok(())
+        }
+    }
+}
+
 /// The `ReadLittleEndian` trait allows for reading little-endian primitive type values from a
 /// source.
 pub trait ReadLittleEndian: io::Read {
@@ -43,6 +63,23 @@ pub trait ReadLittleEndian: io::Read {
         let integer = try!(self.read_u64());
         let val = unsafe { mem::transmute(integer) };
         Ok(val)
+    }
+
+    impl_read_little_endian_integer_array!(u8, read_u8_arr, 1);
+    impl_read_little_endian_integer_array!(u32, read_u32_arr, 4);
+    impl_read_little_endian_integer_array!(u64, read_u64_arr, 8);
+    impl_read_little_endian_integer_array!(i16, read_i16_arr, 2);
+    impl_read_little_endian_integer_array!(i32, read_i32_arr, 4);
+    impl_read_little_endian_integer_array!(i64, read_i64_arr, 8);
+
+    /// Reads a little-endian values into the given buffer.
+    fn read_f32_arr(&mut self, buf: &mut [f32]) -> io::Result<()> {
+        self.read_u32_arr(unsafe { mem::transmute(buf) })
+    }
+
+    /// Reads a little-endian values into the given buffer.
+    fn read_f64_arr(&mut self, buf: &mut [f64]) -> io::Result<()> {
+        self.read_u64_arr(unsafe { mem::transmute(buf) })
     }
 }
 
