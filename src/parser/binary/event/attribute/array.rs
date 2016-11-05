@@ -20,7 +20,7 @@ pub fn read_array_attribute<R: Read>(
     type_code: u8
 ) -> Result<(ArrayAttribute<R>, u64)> {
     let header = try!(ArrayAttributeHeader::read_from_parser(parser));
-    let current_pos = parser.source.count();
+    let current_pos = parser.source.position();
     let BinaryParser { ref mut source, ref mut warnings, .. } = *parser;
     let reader = try!(ArrayDecoder::new(source, &header));
 

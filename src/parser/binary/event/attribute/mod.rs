@@ -52,7 +52,7 @@ impl<'a, R: 'a + Read> Attributes<'a, R> {
 
         self.rest_attributes -= 1;
         let type_code = try!(self.parser.source.read_u8());
-        let position = self.parser.source.count();
+        let position = self.parser.source.position();
         match type_code {
             // Primitive type attributes.
             b'C' => {

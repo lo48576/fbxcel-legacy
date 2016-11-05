@@ -152,7 +152,7 @@ impl<R: Read> BinaryParser<R> {
 
         // Most recent opened node might ends here without a null node header.
         if let Some(end) = self.open_nodes.last().map(|v| v.end) {
-            if self.source.count() == end {
+            if self.source.position() == end {
                 // Most recent opened node ends here (without a null node header).
                 self.state = Ok(State::NodeEnded);
                 self.open_nodes.pop();
@@ -178,7 +178,7 @@ impl<R: Read> BinaryParser<R> {
         if header.is_node_end() {
             if let Some(last_node) = self.open_nodes.pop() {
                 // There is open nodes, so this is not end of the FBX.
-                let current_pos = self.source.count();
+                let current_pos = self.source.position();
                 if current_pos != last_node.end {
                     // Invalid node header.
                     return Err(Error::WrongNodeEndOffset {
@@ -205,7 +205,7 @@ impl<R: Read> BinaryParser<R> {
             let mut name_vec = vec![0u8; header.bytelen_name as usize];
             try!(self.source.read_exact(&mut name_vec));
             let name = try!(String::from_utf8(name_vec).map_err(Error::node_name_invalid_utf8));
-            let current_pos = self.source.count();
+            let current_pos = self.source.position();
             self.open_nodes.push(OpenNode {
                 begin: current_pos,
                 end: header.end_offset,

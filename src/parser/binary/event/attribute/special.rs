@@ -51,7 +51,7 @@ impl<'a, R: 'a + Read> SpecialAttribute<'a, R> {
 
     /// Returns rest data size.
     pub fn rest_len(&self) -> u64 {
-        self.end_offset - self.parser.source.count()
+        self.end_offset - self.parser.source.position()
     }
 
     /// Read the attribute to the vector.
@@ -81,7 +81,7 @@ pub fn read_special_attribute<R: Read>(
         b'S' => SpecialAttributeType::String,
         _ => unreachable!(),
     };
-    let current_pos = parser.source.count();
+    let current_pos = parser.source.position();
     let end_offset = current_pos + byte_length as u64;
 
     Ok((SpecialAttribute {

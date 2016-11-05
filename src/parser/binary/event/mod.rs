@@ -107,9 +107,9 @@ impl FbxFooter {
         // Note that some exporters (like Blender's "FBX format" plugin version 3.2.0) creates
         // wrong FBX file without padding.
         // For such file without padding, unknown footer 2 would be partially read.
-        let expected_padding_len = ((16 - (parser.source.count() & 0x0f)) & 0x0f) as usize;
+        let expected_padding_len = ((16 - (parser.source.position() & 0x0f)) & 0x0f) as usize;
         debug!("Current position = {}, Expected padding length = {}",
-               parser.source.count(),
+               parser.source.position(),
                expected_padding_len);
 
         const BUF_LEN: usize = 144;

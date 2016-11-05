@@ -5,12 +5,12 @@ use std::io;
 use byteorder::{ReadBytesExt, LittleEndian};
 
 
-/// Reader with read bytes count.
+/// Reader with position info.
 pub struct CountReader<R> {
     /// Source reader.
     source: R,
-    /// Read bytes count.
-    count: u64,
+    /// Current position from the start of the stream..
+    position: u64,
 }
 
 impl<R: io::Read> CountReader<R> {
@@ -18,13 +18,13 @@ impl<R: io::Read> CountReader<R> {
     pub fn new(source: R) -> Self {
         CountReader {
             source: source,
-            count: 0,
+            position: 0,
         }
     }
 
-    /// Returns current count.
-    pub fn count(&self) -> u64 {
-        self.count
+    /// Returns the current position from the start of the stream.
+    pub fn position(&self) -> u64 {
+        self.position
     }
 
     /// Skips to the given position.
@@ -34,18 +34,18 @@ impl<R: io::Read> CountReader<R> {
     pub fn skip_to(&mut self, next_pos: u64) -> io::Result<()> {
         use std::io::Read;
 
-        assert!(next_pos >= self.count(),
+        assert!(next_pos >= self.position(),
                 "Destination position should be after current position");
         const TEMP_BUF_LEN: usize = 256;
         let mut temp_buf = [0u8; TEMP_BUF_LEN];
-        let mut rest_len = next_pos - self.count();
+        let mut rest_len = next_pos - self.position();
         while rest_len > TEMP_BUF_LEN as u64 {
             try!(self.read_exact(&mut temp_buf));
             rest_len -= TEMP_BUF_LEN as u64;
         }
         try!(self.read_exact(&mut temp_buf[0..rest_len as usize]));
 
-        assert_eq!(self.count(), next_pos);
+        assert_eq!(self.position(), next_pos);
         Ok(())
     }
 
@@ -82,13 +82,13 @@ impl_read_primitive!(
 impl<R: io::Read> io::Read for CountReader<R> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let read_len = try!(self.source.read(buf));
-        self.count += read_len as u64;
+        self.position += read_len as u64;
         Ok(read_len)
     }
 
     fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
         try!(self.source.read_exact(buf));
-        self.count += buf.len() as u64;
+        self.position += buf.len() as u64;
         Ok(())
     }
 }
@@ -96,7 +96,7 @@ impl<R: io::Read> io::Read for CountReader<R> {
 impl<R> fmt::Debug for CountReader<R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("CountReader")
-            .field("count", &self.count)
+            .field("position", &self.position)
             .finish()
     }
 }
@@ -112,7 +112,7 @@ mod tests {
         let short_count = {
             let mut reader = CountReader::new(&mut short_buf);
             reader.skip_to(skip_dest).expect("Failed to skip");
-            reader.count()
+            reader.position()
         };
         assert_eq!(short_count, skip_dest);
         assert_eq!(short_count,
