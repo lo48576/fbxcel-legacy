@@ -1,8 +1,52 @@
 //! Wrapper for `std::io::Read`.
 
 use std::fmt;
+use std::mem;
 use std::io;
-use byteorder::{ReadBytesExt, LittleEndian};
+
+
+macro_rules! impl_read_little_endian_integer {
+    ($ty:ident, $name:ident, $size:expr) => {
+/// Reads a little-endian value and returns it.
+        fn $name(&mut self) -> io::Result<$ty> {
+            assert_eq!($size, mem::size_of::<$ty>());
+
+            let mut data: $ty = 0;
+            let mut slice = unsafe {
+                ::std::slice::from_raw_parts_mut(&mut data as *mut $ty as *mut u8, $size)
+            };
+            try!(self.read_exact(slice));
+            Ok($ty::from_le(data))
+        }
+    }
+}
+
+/// The `ReadLittleEndian` trait allows for reading little-endian primitive type values from a
+/// source.
+pub trait ReadLittleEndian: io::Read {
+    impl_read_little_endian_integer!(u8, read_u8, 1);
+    impl_read_little_endian_integer!(u32, read_u32, 4);
+    impl_read_little_endian_integer!(u64, read_u64, 8);
+    impl_read_little_endian_integer!(i16, read_i16, 2);
+    impl_read_little_endian_integer!(i32, read_i32, 4);
+    impl_read_little_endian_integer!(i64, read_i64, 8);
+
+    /// Reads a little-endian value and returns it.
+    fn read_f32(&mut self) -> io::Result<f32> {
+        let integer = try!(self.read_u32());
+        let val = unsafe { mem::transmute(integer) };
+        Ok(val)
+    }
+
+    /// Reads a little-endian value and returns it.
+    fn read_f64(&mut self) -> io::Result<f64> {
+        let integer = try!(self.read_u64());
+        let val = unsafe { mem::transmute(integer) };
+        Ok(val)
+    }
+}
+
+impl<R: io::Read> ReadLittleEndian for R {}
 
 
 /// Source stream for `BinaryParser`.
@@ -15,23 +59,6 @@ pub trait ParserSource: fmt::Debug + io::Read {
     /// # Panics
     /// Panics if a byte at the given position has been already read.
     fn skip_to(&mut self, dest_pos: u64) -> io::Result<()>;
-
-    /// Reads the little-endian value and returns it.
-    fn read_u8(&mut self) -> io::Result<u8>;
-    /// Reads the little-endian value and returns it.
-    fn read_u32(&mut self) -> io::Result<u32>;
-    /// Reads the little-endian value and returns it.
-    fn read_u64(&mut self) -> io::Result<u64>;
-    /// Reads the little-endian value and returns it.
-    fn read_i16(&mut self) -> io::Result<i16>;
-    /// Reads the little-endian value and returns it.
-    fn read_i32(&mut self) -> io::Result<i32>;
-    /// Reads the little-endian value and returns it.
-    fn read_i64(&mut self) -> io::Result<i64>;
-    /// Reads the little-endian value and returns it.
-    fn read_f32(&mut self) -> io::Result<f32>;
-    /// Reads the little-endian value and returns it.
-    fn read_f64(&mut self) -> io::Result<f64>;
 }
 
 
@@ -75,18 +102,6 @@ impl<R> fmt::Debug for BasicSource<R> {
     }
 }
 
-macro_rules! impl_read_primitive {
-    ($name:ident : $t:ty) => {
-        /// Reads the value as little endian and returns it.
-        fn $name(&mut self) -> io::Result<$t> {
-            ReadBytesExt::$name::<LittleEndian>(self)
-        }
-    };
-    ($($name:ident : $t:ty),*,) => {
-        $(impl_read_primitive!($name: $t);)*
-    };
-}
-
 impl<R: io::Read> ParserSource for BasicSource<R> {
     fn position(&self) -> u64 {
         self.position
@@ -109,20 +124,6 @@ impl<R: io::Read> ParserSource for BasicSource<R> {
         assert_eq!(self.position(), dest_pos);
         Ok(())
     }
-
-    fn read_u8(&mut self) -> io::Result<u8> {
-        ReadBytesExt::read_u8(self)
-    }
-
-    impl_read_primitive!(
-        read_i16: i16,
-        read_i32: i32,
-        read_u32: u32,
-        read_i64: i64,
-        read_u64: u64,
-        read_f32: f32,
-        read_f64: f64,
-    );
 }
 
 
@@ -191,20 +192,6 @@ impl<R: io::Read + io::Seek> ParserSource for SeekableSource<R> {
         assert_eq!(self.position(), dest_pos);
         Ok(())
     }
-
-    fn read_u8(&mut self) -> io::Result<u8> {
-        ReadBytesExt::read_u8(self)
-    }
-
-    impl_read_primitive!(
-        read_i16: i16,
-        read_i32: i32,
-        read_u32: u32,
-        read_i64: i64,
-        read_u64: u64,
-        read_f32: f32,
-        read_f64: f64,
-    );
 }
 
 

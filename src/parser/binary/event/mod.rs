@@ -4,7 +4,7 @@ use std::io;
 
 use parser::binary::BinaryParser;
 use parser::binary::error::{Result, Error, Warning};
-use parser::binary::reader::ParserSource;
+use parser::binary::reader::{ParserSource, ReadLittleEndian};
 pub use self::attribute::{Attributes, Attribute, SpecialAttributeType};
 pub use self::attribute::{PrimitiveAttribute, ArrayAttribute, SpecialAttribute};
 pub use self::attribute::ArrayAttributeReader;

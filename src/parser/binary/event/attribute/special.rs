@@ -4,7 +4,7 @@ use std::io;
 use std::io::Read;
 
 use parser::binary::BinaryParser;
-use parser::binary::reader::ParserSource;
+use parser::binary::reader::{ParserSource, ReadLittleEndian};
 
 
 /// Attribute type of special value.
