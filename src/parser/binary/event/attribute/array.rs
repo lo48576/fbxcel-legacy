@@ -121,6 +121,7 @@ impl<'a, R: 'a + Read> Iterator for ArrayAttributeReader<'a, R, bool> {
         if self.rest_elements == 0 {
             return None;
         }
+        self.rest_elements -= 1;
         let raw = match self.reader.read_u8() {
             Ok(val) => val,
             Err(err) => return Some(Err(err)),
@@ -139,6 +140,7 @@ macro_rules! impl_attr_array_iter {
                 if self.rest_elements == 0 {
                     return None;
                 }
+                self.rest_elements -= 1;
                 Some(self.reader.$f::<LittleEndian>())
             }
         }
