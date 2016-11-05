@@ -199,6 +199,107 @@ impl<R: io::Read + io::Seek> ParserSource for SeekableSource<R> {
 }
 
 
+/// Reader which can read and seek limited area of a stream.
+pub struct LimitedSeekReader<R> {
+    /// Source stream.
+    source: R,
+    /// Current position
+    current: u64,
+    /// Start position.
+    begin: u64,
+    /// End position.
+    end: u64,
+}
+
+impl<R: io::Read> LimitedSeekReader<R> {
+    /// Creates a new `LimitedSeekReader`.
+    pub fn new(source: R, current: u64, begin: u64, end: u64) -> Self {
+        assert!(begin <= end);
+        assert!(begin <= current);
+        assert!(current <= end);
+
+        LimitedSeekReader {
+            source: source,
+            current: current,
+            begin: begin,
+            end: end,
+        }
+    }
+}
+
+impl<R> LimitedSeekReader<R> {
+    /// Returns length of region allowed to be read in bytes.
+    pub fn len(&self) -> u64 {
+        assert!(self.begin <= self.end);
+        self.end - self.begin
+    }
+
+    /// Returns rest length of region allowed to be read in bytes.
+    fn rest_len(&self) -> u64 {
+        assert!(self.current <= self.end);
+        self.end - self.current
+    }
+
+    /// Returns the current position relative to the start of the limited region.
+    fn rel_pos(&self) -> u64 {
+        assert!(self.begin <= self.current);
+        self.current - self.begin
+    }
+}
+
+impl<R: io::Read> io::Read for LimitedSeekReader<R> {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        let limit = self.rest_len();
+        let size = try!(self.source.by_ref().take(limit).read(buf));
+        self.current += size as u64;
+        Ok(size)
+    }
+}
+
+impl<R: io::Seek> io::Seek for LimitedSeekReader<R> {
+    fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
+        match pos {
+            io::SeekFrom::Start(val) => {
+                let offset = ::std::cmp::min(self.len(), val);
+                let target = self.begin + offset;
+                assert!(target >= self.begin);
+                assert!(target <= self.end);
+                self.current = try!(self.source.seek(io::SeekFrom::Start(target)));
+            },
+            io::SeekFrom::Current(val) => {
+                let offset = if val < 0 {
+                    ::std::cmp::max(-(self.rel_pos() as i64), val)
+                } else {
+                    ::std::cmp::min(self.rest_len(), val as u64) as i64
+                };
+                let target = self.current as i64 + offset;
+                assert!(target as u64 >= self.begin);
+                assert!(target as u64 <= self.end);
+                self.current = try!(self.source.seek(io::SeekFrom::Current(offset)));
+            },
+            io::SeekFrom::End(val) => {
+                let offset = ::std::cmp::max(-(self.len() as i64), ::std::cmp::min(0, val));
+                let target = (self.end as i64 + offset) as u64;
+                assert!(target >= self.begin);
+                assert!(target <= self.end);
+                self.current = try!(self.source.seek(io::SeekFrom::Start(target)));
+            },
+        }
+        Ok(self.rel_pos())
+    }
+}
+
+impl<R> fmt::Debug for LimitedSeekReader<R> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("LimitedSeekReader")
+            .field("current", &self.current)
+            .field("begin", &self.begin)
+            .field("end", &self.end)
+            .finish()
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use std::io::{Cursor, Seek, SeekFrom};
