@@ -10,7 +10,7 @@ pub use self::event::{PrimitiveAttribute, ArrayAttribute, SpecialAttribute};
 pub use self::event::ArrayAttributeReader;
 use self::event::{EventBuilder, NodeHeader, StartNodeBuilder};
 use self::event::read_fbx_header;
-pub use self::reader::CountReader;
+pub use self::reader::BasicSource;
 use self::reader::ParserSource;
 
 mod error;
@@ -72,11 +72,11 @@ pub struct BinaryParser<R> {
     open_nodes: Vec<OpenNode>,
 }
 
-impl<R: Read> BinaryParser<CountReader<R>> {
+impl<R: Read> BinaryParser<BasicSource<R>> {
     /// Creates a new binary parser.
     pub fn new(source: R) -> Self {
         BinaryParser {
-            source: CountReader::new(source),
+            source: BasicSource::new(source),
             state: Ok(State::Header),
             warnings: Vec::new(),
             fbx_version: None,

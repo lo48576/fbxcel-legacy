@@ -36,24 +36,24 @@ pub trait ParserSource: fmt::Debug + io::Read {
 
 
 /// Reader with position info.
-pub struct CountReader<R> {
+pub struct BasicSource<R> {
     /// Source reader.
     source: R,
     /// Current position from the start of the stream..
     position: u64,
 }
 
-impl<R: io::Read> CountReader<R> {
-    /// Creates a new `CountReader`.
+impl<R: io::Read> BasicSource<R> {
+    /// Creates a new `BasicSource`.
     pub fn new(source: R) -> Self {
-        CountReader {
+        BasicSource {
             source: source,
             position: 0,
         }
     }
 }
 
-impl<R: io::Read> io::Read for CountReader<R> {
+impl<R: io::Read> io::Read for BasicSource<R> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let read_len = try!(self.source.read(buf));
         self.position += read_len as u64;
@@ -67,9 +67,9 @@ impl<R: io::Read> io::Read for CountReader<R> {
     }
 }
 
-impl<R> fmt::Debug for CountReader<R> {
+impl<R> fmt::Debug for BasicSource<R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("CountReader")
+        f.debug_struct("BasicSource")
             .field("position", &self.position)
             .finish()
     }
@@ -87,7 +87,7 @@ macro_rules! impl_read_primitive {
     };
 }
 
-impl<R: io::Read> ParserSource for CountReader<R> {
+impl<R: io::Read> ParserSource for BasicSource<R> {
     fn position(&self) -> u64 {
         self.position
     }
@@ -129,12 +129,12 @@ impl<R: io::Read> ParserSource for CountReader<R> {
 #[cfg(test)]
 mod tests {
     use std::io::{Cursor, Seek, SeekFrom};
-    use super::CountReader;
+    use super::BasicSource;
 
     fn do_test_skip_to(buf_size: usize, skip_dest: u64) {
         let mut short_buf = Cursor::new(vec![0; buf_size]);
         let short_count = {
-            let mut reader = CountReader::new(&mut short_buf);
+            let mut reader = BasicSource::new(&mut short_buf);
             reader.skip_to(skip_dest).expect("Failed to skip");
             reader.position()
         };
