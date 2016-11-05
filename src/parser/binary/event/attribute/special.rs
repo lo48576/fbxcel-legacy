@@ -4,7 +4,7 @@ use std::io;
 use std::io::Read;
 
 use parser::binary::BinaryParser;
-use parser::binary::reader::{ParserSource, ReadLittleEndian};
+use parser::binary::reader::{ParserSource, ReadLittleEndian, LimitedSeekReader};
 
 
 /// Attribute type of special value.
@@ -35,9 +35,10 @@ pub struct SpecialAttribute<'a, R: 'a> {
 
 impl<'a, R: 'a + ParserSource> SpecialAttribute<'a, R> {
     /// Returns reader of the raw attribute value.
-    pub fn reader(&mut self) -> io::Take<&mut R> {
-        let limit = self.rest_len();
-        self.parser.source.by_ref().take(limit)
+    pub fn reader(&mut self) -> LimitedSeekReader<&mut R> {
+        let begin = self.parser.source.position();
+        let end = begin + self.rest_len();
+        LimitedSeekReader::new(self.parser.source.by_ref(), begin, begin, end)
     }
 
     /// Returns attribute value type.
