@@ -129,6 +129,10 @@ impl<'a, R: 'a + Read> Iterator for ArrayAttributeReader<'a, R, bool> {
         let val = (raw & 1) == 1;
         Some(Ok(val))
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.rest_elements as usize, Some(self.rest_elements as usize))
+    }
 }
 
 macro_rules! impl_attr_array_iter {
@@ -142,6 +146,10 @@ macro_rules! impl_attr_array_iter {
                 }
                 self.rest_elements -= 1;
                 Some(self.reader.$f::<LittleEndian>())
+            }
+
+            fn size_hint(&self) -> (usize, Option<usize>) {
+                (self.rest_elements as usize, Some(self.rest_elements as usize))
             }
         }
     }
