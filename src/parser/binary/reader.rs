@@ -111,7 +111,9 @@ impl<R: io::Read> ParserSource for BasicSource<R> {
         use std::io::Read;
 
         assert!(dest_pos >= self.position(),
-                "Destination position should be after current position");
+                "Destination position should be after current position: dest_pos={}, position={}",
+                dest_pos,
+                self.position());
         const TEMP_BUF_LEN: usize = 256;
         let mut temp_buf = [0u8; TEMP_BUF_LEN];
         let mut rest_len = dest_pos - self.position();
@@ -186,7 +188,9 @@ impl<R: io::Read + io::Seek> ParserSource for SeekableSource<R> {
         use std::io::{Seek, SeekFrom};
 
         assert!(dest_pos >= self.position(),
-                "Destination position should be after current position");
+                "Destination position should be after current position: dest_pos={}, position={}",
+                dest_pos,
+                self.position());
         try!(self.seek(SeekFrom::Start(dest_pos)));
 
         assert_eq!(self.position(), dest_pos);
