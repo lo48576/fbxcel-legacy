@@ -4,23 +4,23 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::io;
 use std::io::Read;
-use byteorder::{ReadBytesExt, LittleEndian};
 #[cfg(feature = "flate2")]
 use flate2::read::ZlibDecoder;
 #[cfg(feature = "libflate")]
 use libflate::zlib;
 
-use parser::binary::{BinaryParser, CountReader};
+use parser::binary::BinaryParser;
 use parser::binary::error::{Result, Error, Warning};
+use parser::binary::reader::{ParserSource, ReadLittleEndian};
 
 
 /// Read array type attribute from the given parser.
-pub fn read_array_attribute<R: Read>(
+pub fn read_array_attribute<R: ParserSource>(
     parser: &mut BinaryParser<R>,
     type_code: u8
 ) -> Result<(ArrayAttribute<R>, u64)> {
     let header = try!(ArrayAttributeHeader::read_from_parser(parser));
-    let current_pos = parser.source.count();
+    let current_pos = parser.source.position();
     let BinaryParser { ref mut source, ref mut warnings, .. } = *parser;
     let reader = try!(ArrayDecoder::new(source, &header));
 
@@ -48,7 +48,7 @@ struct ArrayAttributeHeader {
 }
 
 impl ArrayAttributeHeader {
-    fn read_from_parser<R: Read>(parser: &mut BinaryParser<R>) -> io::Result<Self> {
+    fn read_from_parser<R: ParserSource>(parser: &mut BinaryParser<R>) -> io::Result<Self> {
         let num_elements = try!(parser.source.read_u32());
         let encoding = try!(parser.source.read_u32());
         let bytelen_elements = try!(parser.source.read_u32());
@@ -83,7 +83,7 @@ pub enum ArrayAttribute<'a, R: 'a> {
 pub struct ArrayAttributeReader<'a, R: 'a, T> {
     num_elements: u64,
     rest_elements: u64,
-    reader: ArrayDecoder<'a, CountReader<R>>,
+    reader: ArrayDecoder<'a, R>,
     warnings: &'a mut Vec<Warning>,
     _value_type: PhantomData<T>,
 }
@@ -91,7 +91,7 @@ pub struct ArrayAttributeReader<'a, R: 'a, T> {
 impl<'a, R: 'a + Read, T> ArrayAttributeReader<'a, R, T> {
     fn new<'b>(
         header: &'b ArrayAttributeHeader,
-        reader: ArrayDecoder<'a, CountReader<R>>,
+        reader: ArrayDecoder<'a, R>,
         warnings: &'a mut Vec<Warning>
     ) -> Self {
         ArrayAttributeReader {
@@ -141,7 +141,7 @@ macro_rules! impl_attr_array_iter {
                     return None;
                 }
                 self.rest_elements -= 1;
-                Some(self.reader.$f::<LittleEndian>())
+                Some(self.reader.$f())
             }
         }
     }

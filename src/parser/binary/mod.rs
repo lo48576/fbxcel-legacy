@@ -1,6 +1,5 @@
 //! FBX binary parser.
 
-use std::fmt;
 use std::io;
 use std::io::Read;
 
@@ -11,7 +10,8 @@ pub use self::event::{PrimitiveAttribute, ArrayAttribute, SpecialAttribute};
 pub use self::event::ArrayAttributeReader;
 use self::event::{EventBuilder, NodeHeader, StartNodeBuilder};
 use self::event::read_fbx_header;
-pub use self::reader::CountReader;
+pub use self::reader::{BasicSource, SeekableSource};
+use self::reader::ParserSource;
 
 mod error;
 mod event;
@@ -55,13 +55,10 @@ struct OpenNode {
 
 
 /// Pull parser for FBX binary format.
-// I want to use `#[derive(Debug)]` but it causes compile error for rustc-1.12(stable), 1.13(beta),
-// 1.14(nightly).
-// See also: #[derive] is too conservative with field trait bounds · Issue #26925 · rust-lang/rust
-//           ( https://github.com/rust-lang/rust/issues/26925 ).
+#[derive(Debug)]
 pub struct BinaryParser<R> {
     /// Source reader.
-    source: CountReader<R>,
+    source: R,
     /// Parser state.
     ///
     /// `Ok(State)` if the parser is working without critical error,
@@ -75,18 +72,33 @@ pub struct BinaryParser<R> {
     open_nodes: Vec<OpenNode>,
 }
 
-impl<R: Read> BinaryParser<R> {
+impl<R: Read> BinaryParser<BasicSource<R>> {
     /// Creates a new binary parser.
     pub fn new(source: R) -> Self {
         BinaryParser {
-            source: CountReader::new(source),
+            source: BasicSource::new(source),
             state: Ok(State::Header),
             warnings: Vec::new(),
             fbx_version: None,
             open_nodes: Vec::new(),
         }
     }
+}
 
+impl<R: Read + io::Seek> BinaryParser<SeekableSource<R>> {
+    /// Creates a new binary parser.
+    pub fn from_seekable(source: R) -> Self {
+        BinaryParser {
+            source: SeekableSource::new(source),
+            state: Ok(State::Header),
+            warnings: Vec::new(),
+            fbx_version: None,
+            open_nodes: Vec::new(),
+        }
+    }
+}
+
+impl<R: ParserSource> BinaryParser<R> {
     /// Returns FBX version of the reading input.
     ///
     /// Returns `None` if unknown yet.
@@ -152,7 +164,7 @@ impl<R: Read> BinaryParser<R> {
 
         // Most recent opened node might ends here without a null node header.
         if let Some(end) = self.open_nodes.last().map(|v| v.end) {
-            if self.source.count() == end {
+            if self.source.position() == end {
                 // Most recent opened node ends here (without a null node header).
                 self.state = Ok(State::NodeEnded);
                 self.open_nodes.pop();
@@ -178,7 +190,7 @@ impl<R: Read> BinaryParser<R> {
         if header.is_node_end() {
             if let Some(last_node) = self.open_nodes.pop() {
                 // There is open nodes, so this is not end of the FBX.
-                let current_pos = self.source.count();
+                let current_pos = self.source.position();
                 if current_pos != last_node.end {
                     // Invalid node header.
                     return Err(Error::WrongNodeEndOffset {
@@ -205,7 +217,7 @@ impl<R: Read> BinaryParser<R> {
             let mut name_vec = vec![0u8; header.bytelen_name as usize];
             try!(self.source.read_exact(&mut name_vec));
             let name = try!(String::from_utf8(name_vec).map_err(Error::node_name_invalid_utf8));
-            let current_pos = self.source.count();
+            let current_pos = self.source.position();
             self.open_nodes.push(OpenNode {
                 begin: current_pos,
                 end: header.end_offset,
@@ -235,17 +247,5 @@ impl<R: Read> BinaryParser<R> {
             .expect("`BinaryParser::skip_attributes()` is called but no nodes are open")
             .attributes_end;
         self.source.skip_to(attributes_end)
-    }
-}
-
-impl<R> fmt::Debug for BinaryParser<R> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("BinaryParser")
-            .field("source", &self.source)
-            .field("state", &self.state)
-            .field("warnings", &self.warnings)
-            .field("fbx_version", &self.fbx_version)
-            .field("open_nodes", &self.open_nodes)
-            .finish()
     }
 }

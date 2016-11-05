@@ -1,10 +1,9 @@
 //! Node attributes.
 
-use std::io::Read;
-
 use parser::binary::BinaryParser;
 use parser::binary::error::{Result, Error, Warning};
 use parser::binary::event::NodeHeader;
+use parser::binary::reader::{ParserSource, ReadLittleEndian};
 use self::array::read_array_attribute;
 pub use self::array::{ArrayAttribute, ArrayAttributeReader};
 use self::special::read_special_attribute;
@@ -27,7 +26,7 @@ pub struct Attributes<'a, R: 'a> {
     parser: &'a mut BinaryParser<R>,
 }
 
-impl<'a, R: 'a + Read> Attributes<'a, R> {
+impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
     /// Returns number of all attributes.
     pub fn num_attributes(&self) -> u64 {
         self.num_attributes
@@ -52,7 +51,7 @@ impl<'a, R: 'a + Read> Attributes<'a, R> {
 
         self.rest_attributes -= 1;
         let type_code = try!(self.parser.source.read_u8());
-        let position = self.parser.source.count();
+        let position = self.parser.source.position();
         match type_code {
             // Primitive type attributes.
             b'C' => {
@@ -95,19 +94,19 @@ impl<'a, R: 'a + Read> Attributes<'a, R> {
     }
 }
 
-impl<'a, R: 'a> From<PrimitiveAttribute> for Attribute<'a, R> {
+impl<'a, R: 'a + ParserSource> From<PrimitiveAttribute> for Attribute<'a, R> {
     fn from(a: PrimitiveAttribute) -> Self {
         Attribute::Primitive(a)
     }
 }
 
-impl<'a, R: 'a> From<SpecialAttribute<'a, R>> for Attribute<'a, R> {
+impl<'a, R: 'a + ParserSource> From<SpecialAttribute<'a, R>> for Attribute<'a, R> {
     fn from(a: SpecialAttribute<'a, R>) -> Self {
         Attribute::Special(a)
     }
 }
 
-impl<'a, R: 'a> From<ArrayAttribute<'a, R>> for Attribute<'a, R> {
+impl<'a, R: 'a + ParserSource> From<ArrayAttribute<'a, R>> for Attribute<'a, R> {
     fn from(a: ArrayAttribute<'a, R>) -> Self {
         Attribute::Array(a)
     }

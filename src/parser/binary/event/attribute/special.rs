@@ -3,7 +3,8 @@
 use std::io;
 use std::io::Read;
 
-use parser::binary::{BinaryParser, CountReader};
+use parser::binary::BinaryParser;
+use parser::binary::reader::{ParserSource, ReadLittleEndian, LimitedSeekReader};
 
 
 /// Attribute type of special value.
@@ -32,11 +33,12 @@ pub struct SpecialAttribute<'a, R: 'a> {
     end_offset: u64,
 }
 
-impl<'a, R: 'a + Read> SpecialAttribute<'a, R> {
+impl<'a, R: 'a + ParserSource> SpecialAttribute<'a, R> {
     /// Returns reader of the raw attribute value.
-    pub fn reader(&mut self) -> io::Take<&mut CountReader<R>> {
-        let limit = self.rest_len();
-        self.parser.source.by_ref().take(limit)
+    pub fn reader(&mut self) -> LimitedSeekReader<&mut R> {
+        let begin = self.parser.source.position();
+        let end = begin + self.rest_len();
+        LimitedSeekReader::new(self.parser.source.by_ref(), begin, begin, end)
     }
 
     /// Returns attribute value type.
@@ -51,7 +53,7 @@ impl<'a, R: 'a + Read> SpecialAttribute<'a, R> {
 
     /// Returns rest data size.
     pub fn rest_len(&self) -> u64 {
-        self.end_offset - self.parser.source.count()
+        self.end_offset - self.parser.source.position()
     }
 
     /// Read the attribute to the vector.
@@ -71,7 +73,7 @@ impl<'a, R: 'a + Read> SpecialAttribute<'a, R> {
 
 
 /// Read special type attribute from the given parser.
-pub fn read_special_attribute<R: Read>(
+pub fn read_special_attribute<R: ParserSource>(
     parser: &mut BinaryParser<R>,
     type_code: u8
 ) -> io::Result<(SpecialAttribute<R>, u64)> {
@@ -81,7 +83,7 @@ pub fn read_special_attribute<R: Read>(
         b'S' => SpecialAttributeType::String,
         _ => unreachable!(),
     };
-    let current_pos = parser.source.count();
+    let current_pos = parser.source.position();
     let end_offset = current_pos + byte_length as u64;
 
     Ok((SpecialAttribute {
