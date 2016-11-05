@@ -133,6 +133,10 @@ impl<'a, R: 'a + Read> Iterator for ArrayAttributeReader<'a, R, bool> {
     fn size_hint(&self) -> (usize, Option<usize>) {
         (self.rest_elements as usize, Some(self.rest_elements as usize))
     }
+
+    fn count(self) -> usize {
+        self.rest_elements as usize
+    }
 }
 
 macro_rules! impl_attr_array_iter {
@@ -150,6 +154,10 @@ macro_rules! impl_attr_array_iter {
 
             fn size_hint(&self) -> (usize, Option<usize>) {
                 (self.rest_elements as usize, Some(self.rest_elements as usize))
+            }
+
+            fn count(self) -> usize {
+                self.rest_elements as usize
             }
         }
     }
