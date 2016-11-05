@@ -4,6 +4,7 @@ use std::io;
 use std::io::Read;
 
 use parser::binary::{BinaryParser, CountReader};
+use parser::binary::reader::ParserSource;
 
 
 /// Attribute type of special value.

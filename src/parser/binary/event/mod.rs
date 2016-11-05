@@ -5,6 +5,7 @@ use std::io::Read;
 
 use parser::binary::BinaryParser;
 use parser::binary::error::{Result, Error, Warning};
+use parser::binary::reader::ParserSource;
 pub use self::attribute::{Attributes, Attribute, SpecialAttributeType};
 pub use self::attribute::{PrimitiveAttribute, ArrayAttribute, SpecialAttribute};
 pub use self::attribute::ArrayAttributeReader;

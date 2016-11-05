@@ -4,7 +4,6 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::io;
 use std::io::Read;
-use byteorder::{ReadBytesExt, LittleEndian};
 #[cfg(feature = "flate2")]
 use flate2::read::ZlibDecoder;
 #[cfg(feature = "libflate")]
@@ -12,6 +11,7 @@ use libflate::zlib;
 
 use parser::binary::{BinaryParser, CountReader};
 use parser::binary::error::{Result, Error, Warning};
+use parser::binary::reader::ParserSource;
 
 
 /// Read array type attribute from the given parser.
@@ -118,6 +118,8 @@ impl<'a, R: 'a + Read> Iterator for ArrayAttributeReader<'a, R, bool> {
     type Item = io::Result<bool>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        use byteorder::ReadBytesExt;
+
         if self.rest_elements == 0 {
             return None;
         }
@@ -137,6 +139,8 @@ macro_rules! impl_attr_array_iter {
             type Item = io::Result<$ty>;
 
             fn next(&mut self) -> Option<Self::Item> {
+                use byteorder::{ReadBytesExt, LittleEndian};
+
                 if self.rest_elements == 0 {
                     return None;
                 }

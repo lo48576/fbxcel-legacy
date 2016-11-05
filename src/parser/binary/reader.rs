@@ -5,6 +5,36 @@ use std::io;
 use byteorder::{ReadBytesExt, LittleEndian};
 
 
+/// Source stream for `BinaryParser`.
+pub trait ParserSource: fmt::Debug + io::Read {
+    /// Returns the current position from the start of the stream.
+    fn position(&self) -> u64;
+
+    /// Skips to the given position.
+    ///
+    /// # Panics
+    /// Panics if a byte at the given position has been already read.
+    fn skip_to(&mut self, dest_pos: u64) -> io::Result<()>;
+
+    /// Reads the little-endian value and returns it.
+    fn read_u8(&mut self) -> io::Result<u8>;
+    /// Reads the little-endian value and returns it.
+    fn read_u32(&mut self) -> io::Result<u32>;
+    /// Reads the little-endian value and returns it.
+    fn read_u64(&mut self) -> io::Result<u64>;
+    /// Reads the little-endian value and returns it.
+    fn read_i16(&mut self) -> io::Result<i16>;
+    /// Reads the little-endian value and returns it.
+    fn read_i32(&mut self) -> io::Result<i32>;
+    /// Reads the little-endian value and returns it.
+    fn read_i64(&mut self) -> io::Result<i64>;
+    /// Reads the little-endian value and returns it.
+    fn read_f32(&mut self) -> io::Result<f32>;
+    /// Reads the little-endian value and returns it.
+    fn read_f64(&mut self) -> io::Result<f64>;
+}
+
+
 /// Reader with position info.
 pub struct CountReader<R> {
     /// Source reader.
@@ -21,63 +51,7 @@ impl<R: io::Read> CountReader<R> {
             position: 0,
         }
     }
-
-    /// Returns the current position from the start of the stream.
-    pub fn position(&self) -> u64 {
-        self.position
-    }
-
-    /// Skips to the given position.
-    ///
-    /// # Panics
-    /// Panics if a byte at the given position has been already read.
-    pub fn skip_to(&mut self, next_pos: u64) -> io::Result<()> {
-        use std::io::Read;
-
-        assert!(next_pos >= self.position(),
-                "Destination position should be after current position");
-        const TEMP_BUF_LEN: usize = 256;
-        let mut temp_buf = [0u8; TEMP_BUF_LEN];
-        let mut rest_len = next_pos - self.position();
-        while rest_len > TEMP_BUF_LEN as u64 {
-            try!(self.read_exact(&mut temp_buf));
-            rest_len -= TEMP_BUF_LEN as u64;
-        }
-        try!(self.read_exact(&mut temp_buf[0..rest_len as usize]));
-
-        assert_eq!(self.position(), next_pos);
-        Ok(())
-    }
-
-    /// Reads and returns `u8` value.
-    pub fn read_u8(&mut self) -> io::Result<u8> {
-        ReadBytesExt::read_u8(self)
-    }
 }
-
-macro_rules! impl_read_primitive {
-    ($name:ident : $t:ty) => {
-        /// Reads the value as little endian and returns it.
-        pub fn $name(&mut self) -> io::Result<$t> {
-            ReadBytesExt::$name::<LittleEndian>(self)
-        }
-    };
-    ($($name:ident : $t:ty),*,) => {
-        impl<R: io::Read> CountReader<R> {
-            $(impl_read_primitive!($name: $t);)*
-        }
-    };
-}
-
-impl_read_primitive!(
-    read_i16: i16,
-    read_i32: i32,
-    read_u32: u32,
-    read_i64: i64,
-    read_u64: u64,
-    read_f32: f32,
-    read_f64: f64,
-);
 
 impl<R: io::Read> io::Read for CountReader<R> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
@@ -99,6 +73,56 @@ impl<R> fmt::Debug for CountReader<R> {
             .field("position", &self.position)
             .finish()
     }
+}
+
+macro_rules! impl_read_primitive {
+    ($name:ident : $t:ty) => {
+        /// Reads the value as little endian and returns it.
+        fn $name(&mut self) -> io::Result<$t> {
+            ReadBytesExt::$name::<LittleEndian>(self)
+        }
+    };
+    ($($name:ident : $t:ty),*,) => {
+        $(impl_read_primitive!($name: $t);)*
+    };
+}
+
+impl<R: io::Read> ParserSource for CountReader<R> {
+    fn position(&self) -> u64 {
+        self.position
+    }
+
+    fn skip_to(&mut self, dest_pos: u64) -> io::Result<()> {
+        use std::io::Read;
+
+        assert!(dest_pos >= self.position(),
+                "Destination position should be after current position");
+        const TEMP_BUF_LEN: usize = 256;
+        let mut temp_buf = [0u8; TEMP_BUF_LEN];
+        let mut rest_len = dest_pos - self.position();
+        while rest_len > TEMP_BUF_LEN as u64 {
+            try!(self.read_exact(&mut temp_buf));
+            rest_len -= TEMP_BUF_LEN as u64;
+        }
+        try!(self.read_exact(&mut temp_buf[0..rest_len as usize]));
+
+        assert_eq!(self.position(), dest_pos);
+        Ok(())
+    }
+
+    fn read_u8(&mut self) -> io::Result<u8> {
+        ReadBytesExt::read_u8(self)
+    }
+
+    impl_read_primitive!(
+        read_i16: i16,
+        read_i32: i32,
+        read_u32: u32,
+        read_i64: i64,
+        read_u64: u64,
+        read_f32: f32,
+        read_f64: f64,
+    );
 }
 
 
