@@ -114,6 +114,51 @@ impl<'a, R: 'a + Read, T> ArrayAttributeReader<'a, R, T> {
     }
 }
 
+impl<'a, R: 'a + Read> ArrayAttributeReader<'a, R, bool> {
+    /// Reads elements into the given buffer.
+    pub fn read_into_buf(&mut self, buf: &mut [bool]) -> io::Result<usize> {
+        let size = ::std::cmp::min(buf.len(), self.rest_elements as usize);
+        for elem in &mut buf[0..size] {
+            self.rest_elements -= 1;
+            *elem = (try!(self.reader.read_u8()) & 1) == 1;
+        }
+        Ok(size)
+    }
+
+    /// Reads all elements into `Vec`.
+    pub fn into_vec(mut self) -> io::Result<Vec<bool>> {
+        let mut vec = vec![false; self.rest_elements as usize];
+        try!(self.read_into_buf(&mut vec[..]));
+        Ok(vec)
+    }
+}
+
+macro_rules! impl_attr_array_read {
+    ($ty:ty, $f:ident) => {
+        impl<'a, R: 'a + Read> ArrayAttributeReader<'a, R, $ty> {
+            /// Reads elements into the given buffer.
+            pub fn read_into_buf(&mut self, buf: &mut [$ty]) -> io::Result<usize> {
+                let size = ::std::cmp::min(buf.len(), self.rest_elements as usize);
+                self.rest_elements -= size as u64;
+                try!(self.reader.$f(&mut buf[0..size]));
+                Ok(size)
+            }
+
+            /// Reads all elements into `Vec`.
+            pub fn into_vec(mut self) -> io::Result<Vec<$ty>> {
+                let mut vec = vec![0 as $ty; self.rest_elements as usize];
+                try!(self.read_into_buf(&mut vec[..]));
+                Ok(vec)
+            }
+        }
+    }
+}
+
+impl_attr_array_read!(i32, read_i32_arr);
+impl_attr_array_read!(i64, read_i64_arr);
+impl_attr_array_read!(f32, read_f32_arr);
+impl_attr_array_read!(f64, read_f64_arr);
+
 impl<'a, R: 'a + Read> Iterator for ArrayAttributeReader<'a, R, bool> {
     type Item = io::Result<bool>;
 
