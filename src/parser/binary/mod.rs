@@ -129,6 +129,11 @@ impl<R: ParserSource> BinaryParser<R> {
         Ok(try!(builder).build(self))
     }
 
+    /// Returns the number of the opened (and not closed) node.
+    pub fn num_open_nodes(&self) -> usize {
+        self.open_nodes.len()
+    }
+
     /// Set the parser state as finished parsing.
     fn set_finish(&mut self) {
         self.state = Err(Error::Finished);
