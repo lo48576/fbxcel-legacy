@@ -271,6 +271,11 @@ impl<R> LimitedSeekReader<R> {
         self.end - self.begin
     }
 
+    /// Returns `true` if the reader can read no data.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     /// Returns rest length of region allowed to be read in bytes.
     fn rest_len(&self) -> u64 {
         assert!(self.current <= self.end);
