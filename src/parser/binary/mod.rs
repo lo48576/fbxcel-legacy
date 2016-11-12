@@ -10,8 +10,7 @@ pub use self::event::{PrimitiveAttribute, ArrayAttribute, SpecialAttribute};
 pub use self::event::ArrayAttributeReader;
 use self::event::{EventBuilder, NodeHeader, StartNodeBuilder};
 use self::event::read_fbx_header;
-pub use self::reader::{BasicSource, SeekableSource, LimitedSeekReader};
-use self::reader::ParserSource;
+pub use self::reader::{ParserSource, BasicSource, SeekableSource, LimitedSeekReader};
 
 mod error;
 mod event;
