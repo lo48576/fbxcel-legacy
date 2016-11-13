@@ -345,9 +345,14 @@ impl<R> fmt::Debug for LimitedSeekReader<R> {
 #[cfg(test)]
 mod tests {
     use std::io::{Cursor, Seek, SeekFrom};
-    use super::BasicSource;
+    use super::{ParserSource, BasicSource, SeekableSource};
 
     fn do_test_skip_to(buf_size: usize, skip_dest: u64) {
+        do_test_basic_skip_to(buf_size, skip_dest);
+        do_test_seekable_skip_to(buf_size, skip_dest);
+    }
+
+    fn do_test_basic_skip_to(buf_size: usize, skip_dest: u64) {
         let mut short_buf = Cursor::new(vec![0; buf_size]);
         let short_count = {
             let mut reader = BasicSource::new(&mut short_buf);
@@ -357,6 +362,17 @@ mod tests {
         assert_eq!(short_count, skip_dest);
         assert_eq!(short_count,
                    short_buf.seek(SeekFrom::Current(0)).expect("Failed to seek"));
+    }
+
+    fn do_test_seekable_skip_to(buf_size: usize, skip_dest: u64) {
+        let mut short_buf = Cursor::new(vec![0; buf_size]);
+        let mut reader = SeekableSource::new(&mut short_buf);
+        reader.skip_to(skip_dest).expect("Failed to skip");
+        assert_eq!(reader.position(), skip_dest);
+        reader.seek(SeekFrom::End(0)).expect("Failed to seek");;
+        assert_eq!(reader.position(), buf_size as u64);
+        reader.seek(SeekFrom::Start(0)).expect("Failed to seek");
+        assert_eq!(reader.position(), 0);
     }
 
     #[test]
