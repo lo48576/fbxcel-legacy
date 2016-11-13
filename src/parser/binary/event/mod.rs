@@ -61,7 +61,7 @@ pub fn read_fbx_header<R: ParserSource>(parser: &mut BinaryParser<R>) -> Result<
         const MAGIC_LEN: usize = 21;
         const MAGIC: &'static [u8; MAGIC_LEN] = b"Kaydara FBX Binary  \x00";
         let mut buf = [0u8; MAGIC_LEN];
-        try!(parser.source.read_exact(&mut buf));
+        parser.source.read_exact(&mut buf)?;
         if buf != *MAGIC {
             return Err(Error::MagicNotDetected(buf));
         }
@@ -71,13 +71,13 @@ pub fn read_fbx_header<R: ParserSource>(parser: &mut BinaryParser<R>) -> Result<
         const UNKNOWN_BYTES_LEN: usize = 2;
         const UNKNOWN_BYTES: &'static [u8; UNKNOWN_BYTES_LEN] = b"\x1a\x00";
         let mut buf = [0u8; UNKNOWN_BYTES_LEN];
-        try!(parser.source.read_exact(&mut buf));
+        parser.source.read_exact(&mut buf)?;
         if buf != *UNKNOWN_BYTES {
             parser.warn(Warning::UnexpectedBytesAfterMagic(buf));
         }
     }
     // Get FBX version.
-    let fbx_version = try!(parser.source.read_u32());
+    let fbx_version = parser.source.read_u32()?;
 
     info!("FBX header is successfully read, FBX version: {}",
           fbx_version);
@@ -101,7 +101,7 @@ impl FbxFooter {
     pub fn read_from_parser<R: ParserSource>(parser: &mut BinaryParser<R>) -> Result<Self> {
         // Read unknown 16 bytes footer.
         let mut unknown1 = [0u8; 16];
-        try!(parser.source.read_exact(&mut unknown1));
+        parser.source.read_exact(&mut unknown1)?;
         // Read padding (0--15 bytes), zeroes (4 bytes), FBX version (4 bytes), zeroes (120 bytes),
         // and optionally partial unknown footer 2 (16 bytes).
         // Note that some exporters (like Blender's "FBX format" plugin version 3.2.0) creates
@@ -114,7 +114,7 @@ impl FbxFooter {
 
         const BUF_LEN: usize = 144;
         let mut buf = [0u8; BUF_LEN];
-        try!(parser.source.read_exact(&mut buf));
+        parser.source.read_exact(&mut buf)?;
         // If there is no padding before the footer, unknown footer 2 is partially read into the
         // buf.
         // Count length of partially read unknown footer 2.
@@ -136,7 +136,7 @@ impl FbxFooter {
         unknown2[0..partial_footer2_len]
             .clone_from_slice(&buf[BUF_LEN - partial_footer2_len..BUF_LEN]);
         // Read the rest of the unknown footer 2 (max 16 bytes).
-        try!(parser.source.read_exact(&mut unknown2[partial_footer2_len..]));
+        parser.source.read_exact(&mut unknown2[partial_footer2_len..])?;
 
         // Check whether padding before the footer exists.
         if 16 - partial_footer2_len == expected_padding_len {
@@ -275,17 +275,17 @@ impl NodeHeader {
         let fbx_version = parser.fbx_version
             .expect("Attempt to read FBX node header but the parser doesn't know FBX version");
         let (end_offset, num_attributes, bytelen_attributes) = if fbx_version < 7500 {
-            let eo = try!(parser.source.read_u32()) as u64;
-            let na = try!(parser.source.read_u32()) as u64;
-            let bla = try!(parser.source.read_u32()) as u64;
+            let eo = parser.source.read_u32()? as u64;
+            let na = parser.source.read_u32()? as u64;
+            let bla = parser.source.read_u32()? as u64;
             (eo, na, bla)
         } else {
-            let eo = try!(parser.source.read_u64());
-            let na = try!(parser.source.read_u64());
-            let bla = try!(parser.source.read_u64());
+            let eo = parser.source.read_u64()?;
+            let na = parser.source.read_u64()?;
+            let bla = parser.source.read_u64()?;
             (eo, na, bla)
         };
-        let bytelen_name = try!(parser.source.read_u8());
+        let bytelen_name = parser.source.read_u8()?;
         Ok(NodeHeader {
             end_offset: end_offset,
             num_attributes: num_attributes,

@@ -59,14 +59,14 @@ impl<'a, R: 'a + ParserSource> SpecialAttribute<'a, R> {
     /// Read the attribute to the vector.
     pub fn into_vec(mut self) -> io::Result<Vec<u8>> {
         let mut buf = Vec::with_capacity(self.rest_len() as usize);
-        try!(self.reader().read_to_end(&mut buf));
+        self.reader().read_to_end(&mut buf)?;
         Ok(buf)
     }
 
     /// Read the attribute to the string.
     pub fn into_string(mut self) -> io::Result<String> {
         let mut buf = String::with_capacity(self.rest_len() as usize);
-        try!(self.reader().read_to_string(&mut buf));
+        self.reader().read_to_string(&mut buf)?;
         Ok(buf)
     }
 }
@@ -77,7 +77,7 @@ pub fn read_special_attribute<R: ParserSource>(
     parser: &mut BinaryParser<R>,
     type_code: u8
 ) -> io::Result<(SpecialAttribute<R>, u64)> {
-    let byte_length = try!(parser.source.read_u32());
+    let byte_length = parser.source.read_u32()?;
     let value_type = match type_code {
         b'R' => SpecialAttributeType::Binary,
         b'S' => SpecialAttributeType::String,

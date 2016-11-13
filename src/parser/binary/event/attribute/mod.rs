@@ -45,17 +45,17 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
 
         // Skip unread part of the previous attribute if available.
         if let Some(prev_attr_end) = self.prev_attr_end {
-            try!(self.parser.source.skip_to(prev_attr_end));
+            self.parser.source.skip_to(prev_attr_end)?;
             self.prev_attr_end = None;
         }
 
         self.rest_attributes -= 1;
-        let type_code = try!(self.parser.source.read_u8());
+        let type_code = self.parser.source.read_u8()?;
         let position = self.parser.source.position();
         match type_code {
             // Primitive type attributes.
             b'C' => {
-                let raw = try!(self.parser.source.read_u8());
+                let raw = self.parser.source.read_u8()?;
                 let val = (raw & 0x01) == 1;
                 if raw != b'T' && raw != b'Y' {
                     self.parser.warn(Warning::InvalidBooleanAttributeValue {
@@ -66,20 +66,20 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
                 }
                 Ok(Some(PrimitiveAttribute::Bool(val).into()))
             },
-            b'Y' => Ok(Some(PrimitiveAttribute::I16(try!(self.parser.source.read_i16())).into())),
-            b'I' => Ok(Some(PrimitiveAttribute::I32(try!(self.parser.source.read_i32())).into())),
-            b'L' => Ok(Some(PrimitiveAttribute::I64(try!(self.parser.source.read_i64())).into())),
-            b'F' => Ok(Some(PrimitiveAttribute::F32(try!(self.parser.source.read_f32())).into())),
-            b'D' => Ok(Some(PrimitiveAttribute::F64(try!(self.parser.source.read_f64())).into())),
+            b'Y' => Ok(Some(PrimitiveAttribute::I16(self.parser.source.read_i16()?).into())),
+            b'I' => Ok(Some(PrimitiveAttribute::I32(self.parser.source.read_i32()?).into())),
+            b'L' => Ok(Some(PrimitiveAttribute::I64(self.parser.source.read_i64()?).into())),
+            b'F' => Ok(Some(PrimitiveAttribute::F32(self.parser.source.read_f32()?).into())),
+            b'D' => Ok(Some(PrimitiveAttribute::F64(self.parser.source.read_f64()?).into())),
             // Special type attributes.
             b'R' | b'S' => {
-                let (attr, end_offset) = try!(read_special_attribute(self.parser, type_code));
+                let (attr, end_offset) = read_special_attribute(self.parser, type_code)?;
                 self.prev_attr_end = Some(end_offset);
                 Ok(Some(attr.into()))
             },
             // Array type attributes.
             b'b' | b'i' | b'l' | b'f' | b'd' => {
-                let (attr, end_offset) = try!(read_array_attribute(self.parser, type_code));
+                let (attr, end_offset) = read_array_attribute(self.parser, type_code)?;
                 self.prev_attr_end = Some(end_offset);
                 Ok(Some(attr.into()))
             },

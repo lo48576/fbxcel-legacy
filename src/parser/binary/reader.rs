@@ -15,7 +15,7 @@ macro_rules! impl_read_little_endian_integer {
             let mut slice = unsafe {
                 ::std::slice::from_raw_parts_mut(&mut data as *mut $ty as *mut u8, $size)
             };
-            try!(self.read_exact(slice));
+            self.read_exact(slice)?;
             Ok($ty::from_le(data))
         }
     }
@@ -31,7 +31,7 @@ macro_rules! impl_read_little_endian_integer_array {
                 let mut slice = unsafe {
                     ::std::slice::from_raw_parts_mut(buf.as_mut_ptr() as *mut u8, $size * buf.len())
                 };
-                try!(self.read_exact(slice));
+                self.read_exact(slice)?;
             }
             for elem in buf {
                 *elem = $ty::from_le(*elem);
@@ -53,14 +53,14 @@ pub trait ReadLittleEndian: io::Read {
 
     /// Reads a little-endian value and returns it.
     fn read_f32(&mut self) -> io::Result<f32> {
-        let integer = try!(self.read_u32());
+        let integer = self.read_u32()?;
         let val = unsafe { mem::transmute(integer) };
         Ok(val)
     }
 
     /// Reads a little-endian value and returns it.
     fn read_f64(&mut self) -> io::Result<f64> {
-        let integer = try!(self.read_u64());
+        let integer = self.read_u64()?;
         let val = unsafe { mem::transmute(integer) };
         Ok(val)
     }
@@ -119,13 +119,13 @@ impl<R: io::Read> BasicSource<R> {
 
 impl<R: io::Read> io::Read for BasicSource<R> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let read_len = try!(self.source.read(buf));
+        let read_len = self.source.read(buf)?;
         self.position += read_len as u64;
         Ok(read_len)
     }
 
     fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        try!(self.source.read_exact(buf));
+        self.source.read_exact(buf)?;
         self.position += buf.len() as u64;
         Ok(())
     }
@@ -155,10 +155,10 @@ impl<R: io::Read> ParserSource for BasicSource<R> {
         let mut temp_buf = [0u8; TEMP_BUF_LEN];
         let mut rest_len = dest_pos - self.position();
         while rest_len > TEMP_BUF_LEN as u64 {
-            try!(self.read_exact(&mut temp_buf));
+            self.read_exact(&mut temp_buf)?;
             rest_len -= TEMP_BUF_LEN as u64;
         }
-        try!(self.read_exact(&mut temp_buf[0..rest_len as usize]));
+        self.read_exact(&mut temp_buf[0..rest_len as usize])?;
 
         assert_eq!(self.position(), dest_pos);
         Ok(())
@@ -189,13 +189,13 @@ impl<R: io::Read + io::Seek> SeekableSource<R> {
 
 impl<R: io::Read> io::Read for SeekableSource<R> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        let read_len = try!(self.source.read(buf));
+        let read_len = self.source.read(buf)?;
         self.position += read_len as u64;
         Ok(read_len)
     }
 
     fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        try!(self.source.read_exact(buf));
+        self.source.read_exact(buf)?;
         self.position += buf.len() as u64;
         Ok(())
     }
@@ -203,7 +203,7 @@ impl<R: io::Read> io::Read for SeekableSource<R> {
 
 impl<R: io::Read + io::Seek> io::Seek for SeekableSource<R> {
     fn seek(&mut self, pos: io::SeekFrom) -> io::Result<u64> {
-        self.position = try!(self.source.seek(pos));
+        self.position = self.source.seek(pos)?;
         Ok(self.position)
     }
 }
@@ -228,7 +228,7 @@ impl<R: io::Read + io::Seek> ParserSource for SeekableSource<R> {
                 "Destination position should be after current position: dest_pos={}, position={}",
                 dest_pos,
                 self.position());
-        try!(self.seek(SeekFrom::Start(dest_pos)));
+        self.seek(SeekFrom::Start(dest_pos))?;
 
         assert_eq!(self.position(), dest_pos);
         Ok(())
@@ -292,7 +292,7 @@ impl<R> LimitedSeekReader<R> {
 impl<R: io::Read> io::Read for LimitedSeekReader<R> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let limit = self.rest_len();
-        let size = try!(self.source.by_ref().take(limit).read(buf));
+        let size = self.source.by_ref().take(limit).read(buf)?;
         self.current += size as u64;
         Ok(size)
     }
@@ -306,7 +306,7 @@ impl<R: io::Seek> io::Seek for LimitedSeekReader<R> {
                 let target = self.begin + offset;
                 assert!(target >= self.begin);
                 assert!(target <= self.end);
-                self.current = try!(self.source.seek(io::SeekFrom::Start(target)));
+                self.current = self.source.seek(io::SeekFrom::Start(target))?;
             },
             io::SeekFrom::Current(val) => {
                 let offset = if val < 0 {
@@ -317,14 +317,14 @@ impl<R: io::Seek> io::Seek for LimitedSeekReader<R> {
                 let target = self.current as i64 + offset;
                 assert!(target as u64 >= self.begin);
                 assert!(target as u64 <= self.end);
-                self.current = try!(self.source.seek(io::SeekFrom::Current(offset)));
+                self.current = self.source.seek(io::SeekFrom::Current(offset))?;
             },
             io::SeekFrom::End(val) => {
                 let offset = ::std::cmp::max(-(self.len() as i64), ::std::cmp::min(0, val));
                 let target = (self.end as i64 + offset) as u64;
                 assert!(target >= self.begin);
                 assert!(target <= self.end);
-                self.current = try!(self.source.seek(io::SeekFrom::Start(target)));
+                self.current = self.source.seek(io::SeekFrom::Start(target))?;
             },
         }
         Ok(self.rel_pos())

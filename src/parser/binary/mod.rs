@@ -117,7 +117,7 @@ impl<R: ParserSource> BinaryParser<R> {
 
     /// Parses FBX from the given stream and returns the next event.
     pub fn next_event(&mut self) -> Result<Event<R>> {
-        let builder = match try!(self.state.clone()) {
+        let builder = match self.state.clone()? {
             State::Header => self.read_fbx_header(),
             State::NodeStarted => self.read_after_node_start(),
             State::NodeEnded => self.read_after_node_end(),
@@ -125,7 +125,7 @@ impl<R: ParserSource> BinaryParser<R> {
         if let Err(ref err) = builder {
             self.set_error(err);
         }
-        Ok(try!(builder).build(self))
+        Ok(builder?.build(self))
     }
 
     /// Returns the number of the opened (and not closed) node.
@@ -154,7 +154,7 @@ impl<R: ParserSource> BinaryParser<R> {
 
     /// Reads FBX header.
     fn read_fbx_header(&mut self) -> Result<EventBuilder> {
-        let header = try!(read_fbx_header(self));
+        let header = read_fbx_header(self)?;
         self.fbx_version = Some(header.version);
         self.state = Ok(State::NodeEnded);
         Ok(header.into())
@@ -164,7 +164,7 @@ impl<R: ParserSource> BinaryParser<R> {
     fn read_after_node_start(&mut self) -> Result<EventBuilder> {
         // Attributes of recent opened node might remain partially unread.
         // They should be skipped before getting a next node event.
-        try!(self.skip_attributes());
+        self.skip_attributes()?;
 
         // Most recent opened node might ends here without a null node header.
         if let Some(end) = self.open_nodes.last().map(|v| v.end) {
@@ -176,7 +176,7 @@ impl<R: ParserSource> BinaryParser<R> {
             }
         }
 
-        let builder = try!(self.read_node_event());
+        let builder = self.read_node_event()?;
         Ok(builder)
     }
 
@@ -190,7 +190,7 @@ impl<R: ParserSource> BinaryParser<R> {
     /// This always returns `Ok(EventBuilder::StartNode)`, `Ok(EventBuilder::EndNode)`,
     /// `Ok(EventBuilder::EndFbx)` or `Err(_)`.
     fn read_node_event(&mut self) -> Result<EventBuilder> {
-        let header = try!(NodeHeader::read_from_parser(self));
+        let header = NodeHeader::read_from_parser(self)?;
         if header.is_node_end() {
             if let Some(last_node) = self.open_nodes.pop() {
                 // There is open nodes, so this is not end of the FBX.
@@ -219,8 +219,8 @@ impl<R: ParserSource> BinaryParser<R> {
             Ok(EventBuilder::EndNode)
         } else {
             let mut name_vec = vec![0u8; header.bytelen_name as usize];
-            try!(self.source.read_exact(&mut name_vec));
-            let name = try!(String::from_utf8(name_vec).map_err(Error::node_name_invalid_utf8));
+            self.source.read_exact(&mut name_vec)?;
+            let name = String::from_utf8(name_vec).map_err(Error::node_name_invalid_utf8)?;
             let current_pos = self.source.position();
             self.open_nodes.push(OpenNode {
                 begin: current_pos,
