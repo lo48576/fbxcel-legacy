@@ -19,10 +19,10 @@ pub fn read_array_attribute<R: ParserSource>(
     parser: &mut BinaryParser<R>,
     type_code: u8
 ) -> Result<(ArrayAttribute<R>, u64)> {
-    let header = try!(ArrayAttributeHeader::read_from_parser(parser));
+    let header = ArrayAttributeHeader::read_from_parser(parser)?;
     let current_pos = parser.source.position();
     let BinaryParser { ref mut source, ref mut warnings, .. } = *parser;
-    let reader = try!(ArrayDecoder::new(source, &header));
+    let reader = ArrayDecoder::new(source, &header)?;
 
     let value = match type_code {
         b'b' => ArrayAttribute::Bool(ArrayAttributeReader::new(&header, reader, warnings)),
@@ -49,9 +49,9 @@ struct ArrayAttributeHeader {
 
 impl ArrayAttributeHeader {
     fn read_from_parser<R: ParserSource>(parser: &mut BinaryParser<R>) -> io::Result<Self> {
-        let num_elements = try!(parser.source.read_u32());
-        let encoding = try!(parser.source.read_u32());
-        let bytelen_elements = try!(parser.source.read_u32());
+        let num_elements = parser.source.read_u32()?;
+        let encoding = parser.source.read_u32()?;
+        let bytelen_elements = parser.source.read_u32()?;
 
         Ok(ArrayAttributeHeader {
             num_elements: num_elements,
@@ -120,7 +120,7 @@ impl<'a, R: 'a + Read> ArrayAttributeReader<'a, R, bool> {
         let size = ::std::cmp::min(buf.len(), self.rest_elements as usize);
         for elem in &mut buf[0..size] {
             self.rest_elements -= 1;
-            *elem = (try!(self.reader.read_u8()) & 1) == 1;
+            *elem = (self.reader.read_u8()? & 1) == 1;
         }
         Ok(size)
     }
@@ -128,7 +128,7 @@ impl<'a, R: 'a + Read> ArrayAttributeReader<'a, R, bool> {
     /// Reads all elements into `Vec`.
     pub fn into_vec(mut self) -> io::Result<Vec<bool>> {
         let mut vec = vec![false; self.rest_elements as usize];
-        try!(self.read_into_buf(&mut vec[..]));
+        self.read_into_buf(&mut vec[..])?;
         Ok(vec)
     }
 }
@@ -140,14 +140,14 @@ macro_rules! impl_attr_array_read {
             pub fn read_into_buf(&mut self, buf: &mut [$ty]) -> io::Result<usize> {
                 let size = ::std::cmp::min(buf.len(), self.rest_elements as usize);
                 self.rest_elements -= size as u64;
-                try!(self.reader.$f(&mut buf[0..size]));
+                self.reader.$f(&mut buf[0..size])?;
                 Ok(size)
             }
 
             /// Reads all elements into `Vec`.
             pub fn into_vec(mut self) -> io::Result<Vec<$ty>> {
                 let mut vec = vec![0 as $ty; self.rest_elements as usize];
-                try!(self.read_into_buf(&mut vec[..]));
+                self.read_into_buf(&mut vec[..])?;
                 Ok(vec)
             }
         }
@@ -239,7 +239,7 @@ impl<'a, R: 'a + Read> ArrayDecoder<'a, R> {
             #[cfg(feature = "flate2")]
             1 => Ok(ArrayDecoder::Zlib(ZlibDecoder::new(reader.take(header.bytelen_elements as u64)))),
             #[cfg(feature = "libflate")]
-            1 => Ok(ArrayDecoder::Zlib(try!(zlib::Decoder::new(reader.take(header.bytelen_elements as u64))))),
+            1 => Ok(ArrayDecoder::Zlib(zlib::Decoder::new(reader.take(header.bytelen_elements as u64))?)),
             _ => Err(Error::UnknownArrayAttributeEncoding(header.encoding)),
         }
     }
