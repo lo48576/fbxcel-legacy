@@ -1,10 +1,16 @@
 # fbxcel
 `fbxcel` is an FBX parser and loader for Rust programming language.
 
-# License
+## License
 
-`fbxcel` is primarily distributed under the terms of both the MIT license and
-the Apache License (Version 2.0), with portions covered by various BSD-like
-licenses.
+Licensed under either of
 
-See LICENSE-APACHE, and LICENSE-MIT for details.
+* Apache License, Version 2.0, ([LICENSE-APACHE.txt](LICENSE-APACHE.txt) or https://www.apache.org/licenses/LICENSE-2.0 )
+* MIT license ([LICENSE-MIT.txt](LICENSE-MIT.txt) or https://opensource.org/licenses/MIT )
+
+at your option.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you,
+as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
