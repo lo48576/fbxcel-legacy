@@ -345,7 +345,7 @@ impl<R> fmt::Debug for LimitedSeekReader<R> {
 #[cfg(test)]
 mod tests {
     use std::io::{Cursor, Seek, SeekFrom};
-    use super::BasicSource;
+    use super::{ParserSource, BasicSource};
 
     fn do_test_skip_to(buf_size: usize, skip_dest: u64) {
         let mut short_buf = Cursor::new(vec![0; buf_size]);
