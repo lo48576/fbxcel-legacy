@@ -128,6 +128,20 @@ impl<R: ParserSource> BinaryParser<R> {
         Ok(builder?.build(self))
     }
 
+    /// Skip to the end of the current node.
+    ///
+    /// Returns `Ok(true)` if the current node is skipped and closed,
+    /// `Ok(false)` if no nodes are open (i.e. the parser is reading under implicit root node),
+    /// `Err(err)` if error happened.
+    pub fn skip_current_node(&mut self) -> Result<bool> {
+        if let Some(end) = self.open_nodes.pop().map(|v| v.end) {
+            self.source.skip_to(end)?;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+
     /// Returns the number of the opened (and not closed) node.
     pub fn num_open_nodes(&self) -> usize {
         self.open_nodes.len()
