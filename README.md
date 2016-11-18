@@ -1,6 +1,9 @@
 # fbxcel
 `fbxcel` is an FBX parser and loader for Rust programming language.
 
+## Versions
+Versions before `0.1.0` are unstable and API compatibility will be broken.
+
 ## License
 
 Licensed under either of
