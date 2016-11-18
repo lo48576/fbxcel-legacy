@@ -115,7 +115,7 @@ impl<'a, R: 'a + Read, T> ArrayAttributeReader<'a, R, T> {
 }
 
 impl<'a, R: 'a + Read> ArrayAttributeReader<'a, R, bool> {
-    /// Reads elements into the given buffer.
+    /// Reads elements into the given buffer and returns the read byte length.
     pub fn read_into_buf(&mut self, buf: &mut [bool]) -> io::Result<usize> {
         let size = ::std::cmp::min(buf.len(), self.rest_elements as usize);
         for elem in &mut buf[0..size] {
@@ -136,7 +136,7 @@ impl<'a, R: 'a + Read> ArrayAttributeReader<'a, R, bool> {
 macro_rules! impl_attr_array_read {
     ($ty:ty, $f:ident) => {
         impl<'a, R: 'a + Read> ArrayAttributeReader<'a, R, $ty> {
-            /// Reads elements into the given buffer.
+            /// Reads elements into the given buffer and returns the read byte length.
             pub fn read_into_buf(&mut self, buf: &mut [$ty]) -> io::Result<usize> {
                 let size = ::std::cmp::min(buf.len(), self.rest_elements as usize);
                 self.rest_elements -= size as u64;
