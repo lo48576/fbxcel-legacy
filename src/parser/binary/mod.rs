@@ -136,6 +136,7 @@ impl<R: ParserSource> BinaryParser<R> {
     pub fn skip_current_node(&mut self) -> Result<bool> {
         if let Some(end) = self.open_nodes.pop().map(|v| v.end) {
             self.source.skip_to(end)?;
+            self.state = Ok(State::NodeEnded);
             Ok(true)
         } else {
             Ok(false)
