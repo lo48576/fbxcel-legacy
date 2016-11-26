@@ -15,6 +15,7 @@ pub use self::reader::{ParserSource, BasicSource, SeekableSource, LimitedSeekRea
 mod error;
 mod event;
 mod reader;
+pub mod utils;
 
 
 /// Parser state without error.
