@@ -4,6 +4,7 @@ use parser::binary::BinaryParser;
 use parser::binary::error::{Result, Error, Warning};
 use parser::binary::event::NodeHeader;
 use parser::binary::reader::{ParserSource, ReadLittleEndian};
+use parser::binary::utils::{AttributeValues, AttributeValue};
 use self::array::read_array_attribute;
 pub use self::array::{ArrayAttribute, ArrayAttributeReader};
 use self::special::read_special_attribute;
@@ -92,6 +93,11 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
             },
         }
     }
+
+    /// Converts some attributes into values of specific types.
+    pub fn convert_into<A: AttributeValues>(&mut self) -> Result<Option<A>> {
+        A::from_attributes(self)
+    }
 }
 
 impl<'a, R: 'a + ParserSource> From<PrimitiveAttribute> for Attribute<'a, R> {
@@ -136,6 +142,13 @@ pub enum Attribute<'a, R: 'a> {
     Array(ArrayAttribute<'a, R>),
     /// Special type value.
     Special(SpecialAttribute<'a, R>),
+}
+
+impl<'a, R: 'a + ParserSource> Attribute<'a, R> {
+    /// Converts the attribute into a value of a specific type.
+    pub fn convert_into<A: AttributeValue>(self) -> Result<Option<A>> {
+        A::from_attribute(self)
+    }
 }
 
 
