@@ -2,7 +2,7 @@
 
 use std::io::Result as IoResult;
 
-use parser::binary::{Result, ParserSource, Attribute};
+use parser::binary::{Result, ParserSource, Attributes, Attribute};
 use parser::binary::{PrimitiveAttribute, ArrayAttribute, SpecialAttributeType};
 
 
@@ -245,4 +245,96 @@ impl AttributeValue for Vec<u8> {
             Ok(None)
         }
     }
+}
+
+
+/// Attribute values list (tuple).
+pub trait AttributeValues: Sized {
+    /// Construct `Self` via a conversion if possible.
+    ///
+    /// Returns `Ok(Some(values))` if successfully converted,
+    /// `Ok(None)` if the parsing is successfully done but types are incompatible,
+    /// `Err(_)` if the parsing failed.
+    fn from_attributes<R: ParserSource>(attrs: &mut Attributes<R>) -> Result<Option<Self>>;
+}
+
+macro_rules! impl_attribute_values {
+    ($($name:ident: $t:ident),+,) => {
+        impl<$($t: AttributeValue),+> AttributeValues for ($($t),+) {
+            fn from_attributes<R: ParserSource>(attrs: &mut Attributes<R>) -> Result<Option<Self>> {
+                $(
+                    let $name = {
+                        let attr = match attrs.next_attribute()? {
+                            Some(attr) => attr,
+                            None => return Ok(None),
+                        };
+                        match $t::from_attribute(attr)? {
+                            Some(val) => val,
+                            None => return Ok(None),
+                        }
+                    };
+                )+
+                Ok(Some(($($name),+)))
+            }
+        }
+    }
+}
+
+impl<T: AttributeValue> AttributeValues for (T,) {
+    fn from_attributes<R: ParserSource>(attrs: &mut Attributes<R>) -> Result<Option<Self>> {
+        T::from_attributes(attrs).map(|v_opt| v_opt.map(|v| (v,)))
+    }
+}
+
+impl_attribute_values! {
+    t1: T1,
+}
+impl_attribute_values! {
+    t1: T1,
+    t2: T2,
+}
+impl_attribute_values! {
+    t1: T1,
+    t2: T2,
+    t3: T3,
+}
+impl_attribute_values! {
+    t1: T1,
+    t2: T2,
+    t3: T3,
+    t4: T4,
+}
+impl_attribute_values! {
+    t1: T1,
+    t2: T2,
+    t3: T3,
+    t4: T4,
+    t5: T5,
+}
+impl_attribute_values! {
+    t1: T1,
+    t2: T2,
+    t3: T3,
+    t4: T4,
+    t5: T5,
+    t6: T6,
+}
+impl_attribute_values! {
+    t1: T1,
+    t2: T2,
+    t3: T3,
+    t4: T4,
+    t5: T5,
+    t6: T6,
+    t7: T7,
+}
+impl_attribute_values! {
+    t1: T1,
+    t2: T2,
+    t3: T3,
+    t4: T4,
+    t5: T5,
+    t6: T6,
+    t7: T7,
+    t8: T8,
 }
