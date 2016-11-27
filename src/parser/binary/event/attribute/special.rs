@@ -87,10 +87,10 @@ pub fn read_special_attribute<R: ParserSource>(
     let end_offset = current_pos + byte_length as u64;
 
     Ok((SpecialAttribute {
-        parser: parser,
-        value_type: value_type,
-        byte_length: byte_length,
-        end_offset: end_offset,
-    },
+            parser: parser,
+            value_type: value_type,
+            byte_length: byte_length,
+            end_offset: end_offset,
+        },
         end_offset))
 }
