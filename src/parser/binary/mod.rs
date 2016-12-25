@@ -129,7 +129,7 @@ impl<R: ParserSource> RootParser<R> {
         Ok(builder?.build(self))
     }
 
-    /// Skip to the end of the current node.
+    /// Skips to the end of the current node.
     ///
     /// Returns `Ok(true)` if the current node is skipped and closed,
     /// `Ok(false)` if no nodes are open (i.e. the parser is reading under implicit root node),
