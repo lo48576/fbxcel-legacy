@@ -9,19 +9,19 @@ use flate2::read::ZlibDecoder;
 #[cfg(feature = "libflate")]
 use libflate::zlib;
 
-use parser::binary::BinaryParser;
+use parser::binary::RootParser;
 use parser::binary::error::{Result, Error, Warning};
 use parser::binary::reader::{ParserSource, ReadLittleEndian};
 
 
 /// Read array type attribute from the given parser.
 pub fn read_array_attribute<R: ParserSource>(
-    parser: &mut BinaryParser<R>,
+    parser: &mut RootParser<R>,
     type_code: u8
 ) -> Result<(ArrayAttribute<R>, u64)> {
     let header = ArrayAttributeHeader::read_from_parser(parser)?;
     let current_pos = parser.source.position();
-    let BinaryParser { ref mut source, ref mut warnings, .. } = *parser;
+    let RootParser { ref mut source, ref mut warnings, .. } = *parser;
     let reader = ArrayDecoder::new(source, &header)?;
 
     let value = match type_code {
@@ -48,7 +48,7 @@ struct ArrayAttributeHeader {
 }
 
 impl ArrayAttributeHeader {
-    fn read_from_parser<R: ParserSource>(parser: &mut BinaryParser<R>) -> io::Result<Self> {
+    fn read_from_parser<R: ParserSource>(parser: &mut RootParser<R>) -> io::Result<Self> {
         let num_elements = parser.source.read_u32()?;
         let encoding = parser.source.read_u32()?;
         let bytelen_elements = parser.source.read_u32()?;

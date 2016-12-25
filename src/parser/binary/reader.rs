@@ -86,7 +86,7 @@ pub trait ReadLittleEndian: io::Read {
 impl<R: io::Read> ReadLittleEndian for R {}
 
 
-/// Source stream for `BinaryParser`.
+/// Source stream for `RootParser`.
 pub trait ParserSource: fmt::Debug + io::Read {
     /// Returns the current position from the start of the stream.
     fn position(&self) -> u64;

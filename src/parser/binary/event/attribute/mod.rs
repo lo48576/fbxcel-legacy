@@ -1,6 +1,6 @@
 //! Node attributes.
 
-use parser::binary::BinaryParser;
+use parser::binary::RootParser;
 use parser::binary::error::{Result, Error, Warning};
 use parser::binary::event::NodeHeader;
 use parser::binary::reader::{ParserSource, ReadLittleEndian};
@@ -24,7 +24,7 @@ pub struct Attributes<'a, R: 'a> {
     /// End offset of the previous attribute.
     prev_attr_end: Option<u64>,
     /// Parser.
-    parser: &'a mut BinaryParser<R>,
+    parser: &'a mut RootParser<R>,
 }
 
 impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
@@ -121,7 +121,7 @@ impl<'a, R: 'a + ParserSource> From<ArrayAttribute<'a, R>> for Attribute<'a, R> 
 
 /// Creates a new `Attributes`.
 pub fn new_attributes<'a, R: 'a>(
-    parser: &'a mut BinaryParser<R>,
+    parser: &'a mut RootParser<R>,
     header: &NodeHeader
 ) -> Attributes<'a, R> {
     Attributes {

@@ -3,7 +3,7 @@
 use std::io;
 use std::io::Read;
 
-use parser::binary::BinaryParser;
+use parser::binary::RootParser;
 use parser::binary::reader::{ParserSource, ReadLittleEndian, LimitedSeekReader};
 
 
@@ -24,7 +24,7 @@ pub enum SpecialAttributeType {
 #[derive(Debug)]
 pub struct SpecialAttribute<'a, R: 'a> {
     /// Parser.
-    parser: &'a mut BinaryParser<R>,
+    parser: &'a mut RootParser<R>,
     /// Value type.
     value_type: SpecialAttributeType,
     /// Length of the value in bytes.
@@ -78,7 +78,7 @@ impl<'a, R: 'a + ParserSource> SpecialAttribute<'a, R> {
 
 /// Read special type attribute from the given parser.
 pub fn read_special_attribute<R: ParserSource>(
-    parser: &mut BinaryParser<R>,
+    parser: &mut RootParser<R>,
     type_code: u8
 ) -> io::Result<(SpecialAttribute<R>, u64)> {
     let byte_length = parser.source.read_u32()?;

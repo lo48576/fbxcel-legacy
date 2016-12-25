@@ -54,9 +54,9 @@ struct OpenNode {
 }
 
 
-/// Pull parser for FBX binary format.
+/// Pull parser for whole FBX with binary format.
 #[derive(Debug)]
-pub struct BinaryParser<R> {
+pub struct RootParser<R> {
     /// Source reader.
     source: R,
     /// Parser state.
@@ -72,10 +72,10 @@ pub struct BinaryParser<R> {
     open_nodes: Vec<OpenNode>,
 }
 
-impl<R: Read> BinaryParser<BasicSource<R>> {
+impl<R: Read> RootParser<BasicSource<R>> {
     /// Creates a new binary parser.
     pub fn new(source: R) -> Self {
-        BinaryParser {
+        RootParser {
             source: BasicSource::new(source),
             state: Ok(State::Header),
             warnings: Vec::new(),
@@ -85,10 +85,10 @@ impl<R: Read> BinaryParser<BasicSource<R>> {
     }
 }
 
-impl<R: Read + io::Seek> BinaryParser<SeekableSource<R>> {
+impl<R: Read + io::Seek> RootParser<SeekableSource<R>> {
     /// Creates a new binary parser.
     pub fn from_seekable(source: R) -> Self {
-        BinaryParser {
+        RootParser {
             source: SeekableSource::new(source),
             state: Ok(State::Header),
             warnings: Vec::new(),
@@ -98,7 +98,7 @@ impl<R: Read + io::Seek> BinaryParser<SeekableSource<R>> {
     }
 }
 
-impl<R: ParserSource> BinaryParser<R> {
+impl<R: ParserSource> RootParser<R> {
     /// Returns FBX version of the reading input.
     ///
     /// Returns `None` if unknown yet.
@@ -264,7 +264,7 @@ impl<R: ParserSource> BinaryParser<R> {
     fn skip_attributes(&mut self) -> io::Result<()> {
         let attributes_end = self.open_nodes
             .last()
-            .expect("`BinaryParser::skip_attributes()` is called but no nodes are open")
+            .expect("`RootParser::skip_attributes()` is called but no nodes are open")
             .attributes_end;
         self.source.skip_to(attributes_end)
     }
