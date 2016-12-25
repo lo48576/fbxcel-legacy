@@ -136,6 +136,11 @@ impl<R: ParserSource> RootParser<R> {
         self.open_nodes.len()
     }
 
+    /// Creates subtree parser for the current node.
+    pub fn subtree_parser(&mut self) -> SubtreeParser<R> {
+        SubtreeParser::new(self)
+    }
+
     /// Set the parser state as finished parsing.
     fn set_finish(&mut self) {
         self.state = Err(Error::Finished);
