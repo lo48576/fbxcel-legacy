@@ -16,7 +16,7 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 pub enum Error {
     /// FBX footer is broken.
     BrokenFbxFooter,
-    /// Successfully finished parsing FBX data.
+    /// Successfully finished parsing the target FBX node(s).
     Finished,
     /// Specified FBX versions mismatched in header and footer.
     HeaderFooterVersionMismatch {

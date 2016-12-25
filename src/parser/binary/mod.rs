@@ -18,6 +18,21 @@ mod reader;
 pub mod utils;
 
 
+/// Parser of a FBX binary node.
+pub trait Parser<R: ParserSource> {
+    /// Returns the root parser.
+    fn root_parser(&self) -> &RootParser<R>;
+    /// Parses FBX from the given stream and returns the next event.
+    fn next_event(&mut self) -> Result<Event<R>>;
+    /// Skips to the end of the current node.
+    ///
+    /// Returns `Ok(true)` if the current node is skipped and closed,
+    /// `Ok(false)` if no nodes are open (i.e. the parser is reading under implicit root node),
+    /// `Err(err)` if error happened.
+    fn skip_current_node(&mut self) -> Result<bool>;
+}
+
+
 /// Parser state without error.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum State {
@@ -54,9 +69,9 @@ struct OpenNode {
 }
 
 
-/// Pull parser for FBX binary format.
+/// Pull parser for whole FBX with binary format.
 #[derive(Debug)]
-pub struct BinaryParser<R> {
+pub struct RootParser<R> {
     /// Source reader.
     source: R,
     /// Parser state.
@@ -72,10 +87,10 @@ pub struct BinaryParser<R> {
     open_nodes: Vec<OpenNode>,
 }
 
-impl<R: Read> BinaryParser<BasicSource<R>> {
+impl<R: Read> RootParser<BasicSource<R>> {
     /// Creates a new binary parser.
     pub fn new(source: R) -> Self {
-        BinaryParser {
+        RootParser {
             source: BasicSource::new(source),
             state: Ok(State::Header),
             warnings: Vec::new(),
@@ -85,10 +100,10 @@ impl<R: Read> BinaryParser<BasicSource<R>> {
     }
 }
 
-impl<R: Read + io::Seek> BinaryParser<SeekableSource<R>> {
+impl<R: Read + io::Seek> RootParser<SeekableSource<R>> {
     /// Creates a new binary parser.
     pub fn from_seekable(source: R) -> Self {
-        BinaryParser {
+        RootParser {
             source: SeekableSource::new(source),
             state: Ok(State::Header),
             warnings: Vec::new(),
@@ -98,7 +113,7 @@ impl<R: Read + io::Seek> BinaryParser<SeekableSource<R>> {
     }
 }
 
-impl<R: ParserSource> BinaryParser<R> {
+impl<R: ParserSource> RootParser<R> {
     /// Returns FBX version of the reading input.
     ///
     /// Returns `None` if unknown yet.
@@ -116,37 +131,14 @@ impl<R: ParserSource> BinaryParser<R> {
         &self.warnings
     }
 
-    /// Parses FBX from the given stream and returns the next event.
-    pub fn next_event(&mut self) -> Result<Event<R>> {
-        let builder = match self.state.clone()? {
-            State::Header => self.read_fbx_header(),
-            State::NodeStarted => self.read_after_node_start(),
-            State::NodeEnded => self.read_after_node_end(),
-        };
-        if let Err(ref err) = builder {
-            self.set_error(err);
-        }
-        Ok(builder?.build(self))
-    }
-
-    /// Skip to the end of the current node.
-    ///
-    /// Returns `Ok(true)` if the current node is skipped and closed,
-    /// `Ok(false)` if no nodes are open (i.e. the parser is reading under implicit root node),
-    /// `Err(err)` if error happened.
-    pub fn skip_current_node(&mut self) -> Result<bool> {
-        if let Some(end) = self.open_nodes.pop().map(|v| v.end) {
-            self.source.skip_to(end)?;
-            self.state = Ok(State::NodeEnded);
-            Ok(true)
-        } else {
-            Ok(false)
-        }
-    }
-
     /// Returns the number of the opened (and not closed) node.
     pub fn num_open_nodes(&self) -> usize {
         self.open_nodes.len()
+    }
+
+    /// Creates subtree parser for the current node.
+    pub fn subtree_parser(&mut self) -> SubtreeParser<R> {
+        SubtreeParser::new(self)
     }
 
     /// Set the parser state as finished parsing.
@@ -264,8 +256,89 @@ impl<R: ParserSource> BinaryParser<R> {
     fn skip_attributes(&mut self) -> io::Result<()> {
         let attributes_end = self.open_nodes
             .last()
-            .expect("`BinaryParser::skip_attributes()` is called but no nodes are open")
+            .expect("`RootParser::skip_attributes()` is called but no nodes are open")
             .attributes_end;
         self.source.skip_to(attributes_end)
+    }
+}
+
+impl<R: ParserSource> Parser<R> for RootParser<R> {
+    fn root_parser(&self) -> &RootParser<R> {
+        self
+    }
+
+    fn next_event(&mut self) -> Result<Event<R>> {
+        let builder = match self.state.clone()? {
+            State::Header => self.read_fbx_header(),
+            State::NodeStarted => self.read_after_node_start(),
+            State::NodeEnded => self.read_after_node_end(),
+        };
+        if let Err(ref err) = builder {
+            self.set_error(err);
+        }
+        Ok(builder?.build(self))
+    }
+
+    fn skip_current_node(&mut self) -> Result<bool> {
+        if let Some(end) = self.open_nodes.pop().map(|v| v.end) {
+            self.source.skip_to(end)?;
+            self.state = Ok(State::NodeEnded);
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+}
+
+
+/// Pull parser for a subtree of the FBX binary.
+pub struct SubtreeParser<'a, R: 'a> {
+    /// Root parser.
+    root_parser: &'a mut RootParser<R>,
+    /// Initial depth.
+    ///
+    /// Depth of the implicit root node is `0`.
+    initial_depth: usize,
+}
+
+impl<'a, R: 'a + ParserSource> SubtreeParser<'a, R> {
+    /// Creates a new `SubtreeParser`.
+    pub fn new(root_parser: &'a mut RootParser<R>) -> Self {
+        let initial_depth = root_parser.num_open_nodes();
+        SubtreeParser {
+            root_parser: root_parser,
+            initial_depth: initial_depth,
+        }
+    }
+
+    /// Checks if the subtree parser can emit more events.
+    ///
+    /// Returns `Ok(())` if more events can be read,
+    /// `Err(Error::Finished)` if the subtree is all read,
+    /// `Err(_)` if error happened.
+    fn check_finished(&self) -> Result<()> {
+        if let Some(err) = self.root_parser.error() {
+            return Err(err.clone());
+        }
+        if self.root_parser.num_open_nodes() < self.initial_depth {
+            return Err(Error::Finished);
+        }
+        Ok(())
+    }
+}
+
+impl<'a, R: 'a + ParserSource> Parser<R> for SubtreeParser<'a, R> {
+    fn root_parser(&self) -> &RootParser<R> {
+        self.root_parser
+    }
+
+    fn next_event(&mut self) -> Result<Event<R>> {
+        self.check_finished()?;
+        self.root_parser.next_event()
+    }
+
+    fn skip_current_node(&mut self) -> Result<bool> {
+        self.check_finished()?;
+        self.root_parser.skip_current_node()
     }
 }
