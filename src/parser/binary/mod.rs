@@ -269,3 +269,56 @@ impl<R: ParserSource> RootParser<R> {
         self.source.skip_to(attributes_end)
     }
 }
+
+
+/// Pull parser for a subtree of the FBX binary.
+pub struct SubtreeParser<'a, R: 'a> {
+    /// Root parser.
+    root_parser: &'a mut RootParser<R>,
+    /// Initial depth.
+    ///
+    /// Depth of the implicit root node is `0`.
+    initial_depth: usize,
+}
+
+impl<'a, R: 'a + ParserSource> SubtreeParser<'a, R> {
+    /// Creates a new `SubtreeParser`.
+    pub fn new(root_parser: &'a mut RootParser<R>) -> Self {
+        let initial_depth = root_parser.num_open_nodes();
+        SubtreeParser {
+            root_parser: root_parser,
+            initial_depth: initial_depth,
+        }
+    }
+
+    /// Checks if the subtree parser can emit more events.
+    ///
+    /// Returns `Ok(())` if more events can be read,
+    /// `Err(Error::Finished)` if the subtree is all read,
+    /// `Err(_)` if error happened.
+    fn check_finished(&self) -> Result<()> {
+        if let Some(err) = self.root_parser.error() {
+            return Err(err.clone());
+        }
+        if self.root_parser.num_open_nodes() < self.initial_depth {
+            return Err(Error::Finished);
+        }
+        Ok(())
+    }
+
+    /// Parses FBX from the given stream and returns the next event.
+    pub fn next_event(&mut self) -> Result<Event<R>> {
+        self.check_finished()?;
+        self.root_parser.next_event()
+    }
+
+    /// Skips to the end of the current node.
+    ///
+    /// Returns `Ok(true)` if the current node is skipped and closed,
+    /// `Ok(false)` if no nodes are open (i.e. the parser is reading under implicit root node),
+    /// `Err(err)` if error happened.
+    pub fn skip_current_node(&mut self) -> Result<bool> {
+        self.check_finished()?;
+        self.root_parser.skip_current_node()
+    }
+}
