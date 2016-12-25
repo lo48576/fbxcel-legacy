@@ -36,9 +36,13 @@ pub struct SpecialAttribute<'a, R: 'a> {
 impl<'a, R: 'a + ParserSource> SpecialAttribute<'a, R> {
     /// Returns reader of the raw attribute value.
     pub fn reader(&mut self) -> LimitedSeekReader<&mut R> {
-        let begin = self.parser.source.position();
-        let end = begin + self.rest_len();
-        LimitedSeekReader::new(self.parser.source.by_ref(), begin, begin, end)
+        let current = self.parser.source.position();
+        let begin = self.begin_offset();
+        LimitedSeekReader::new(self.parser.source.by_ref(), current, begin, self.end_offset)
+    }
+
+    fn begin_offset(&self) -> u64 {
+        self.end_offset - self.total_len()
     }
 
     /// Returns attribute value type.
