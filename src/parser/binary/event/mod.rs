@@ -242,9 +242,10 @@ pub struct StartNodeBuilder {
 impl StartNodeBuilder {
     /// Creates `StartNode` from the `StartNodeBuilder` and the given parser.
     pub fn build<R: ParserSource>(self, parser: &mut RootParser<R>) -> StartNode<R> {
+        let RootParser { ref mut source, ref mut warnings, .. } = *parser;
         StartNode {
             name: self.name,
-            attributes: attribute::new_attributes(parser, &self.header),
+            attributes: attribute::new_attributes(source, warnings, &self.header),
         }
     }
 }
