@@ -275,7 +275,8 @@ impl<R: ParserSource> RootParser<R> {
                 // Take node name buffer without consuming it and take inner `Vec<u8>` buffer.
                 // Note that empty `String` doesn't allocate.
                 // `std::mem::uninitialized()` can be used instead of empty `String` but it is `unsafe`.
-                let mut vecbuf = ::std::mem::replace(&mut self.recent_node_name, String::new()).into_bytes();
+                let mut vecbuf = ::std::mem::replace(&mut self.recent_node_name, String::new())
+                    .into_bytes();
                 // Resize buffer.
                 // This reallocates only if the buffer is too small.
                 vecbuf.resize(header.bytelen_name as usize, 0);
@@ -297,10 +298,7 @@ impl<R: ParserSource> RootParser<R> {
 
             // Zero or more attributes come after node start.
             self.state = Ok(State::NodeStarted);
-            Ok(StartNodeBuilder {
-                header: header,
-            }
-            .into())
+            Ok(StartNodeBuilder { header: header }.into())
         }
     }
 
