@@ -274,7 +274,8 @@ impl<R: ParserSource> RootParser<R> {
             self.recent_node_name = {
                 // Take node name buffer without consuming it and take inner `Vec<u8>` buffer.
                 // Note that empty `String` doesn't allocate.
-                // `std::mem::uninitialized()` can be used instead of empty `String` but it is `unsafe`.
+                // `std::mem::uninitialized()` can be used instead of empty `String`
+                // but it is `unsafe`.
                 let mut vecbuf = ::std::mem::replace(&mut self.recent_node_name, String::new())
                     .into_bytes();
                 // Resize buffer.
