@@ -80,7 +80,7 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
             },
             // Array type attributes.
             b'b' | b'i' | b'l' | b'f' | b'd' => {
-                let (attr, end_offset) = read_array_attribute(self.parser, type_code)?;
+                let (attr, end_offset) = read_array_attribute(&mut self.parser.source, &mut self.parser.warnings, type_code)?;
                 self.prev_attr_end = Some(end_offset);
                 Ok(Some(attr.into()))
             },
