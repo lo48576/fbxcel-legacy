@@ -9,8 +9,8 @@ use flate2::read::ZlibDecoder;
 #[cfg(feature = "libflate")]
 use libflate::zlib;
 
-use parser::binary::RootParser;
-use parser::binary::error::{Result, Error, Warning};
+use parser::binary::{RootParser, Warnings};
+use parser::binary::error::{Result, Error};
 use parser::binary::reader::{ParserSource, ReadLittleEndian};
 
 
@@ -84,7 +84,7 @@ pub struct ArrayAttributeReader<'a, R: 'a, T> {
     num_elements: u64,
     rest_elements: u64,
     reader: ArrayDecoder<'a, R>,
-    warnings: &'a mut Vec<Warning>,
+    warnings: &'a mut Warnings,
     _value_type: PhantomData<T>,
 }
 
@@ -92,7 +92,7 @@ impl<'a, R: 'a + Read, T> ArrayAttributeReader<'a, R, T> {
     fn new<'b>(
         header: &'b ArrayAttributeHeader,
         reader: ArrayDecoder<'a, R>,
-        warnings: &'a mut Vec<Warning>
+        warnings: &'a mut Warnings
     ) -> Self {
         ArrayAttributeReader {
             num_elements: header.num_elements as u64,
