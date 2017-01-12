@@ -9,19 +9,19 @@ use flate2::read::ZlibDecoder;
 #[cfg(feature = "libflate")]
 use libflate::zlib;
 
-use parser::binary::RootParser;
-use parser::binary::error::{Result, Error, Warning};
+use parser::binary::Warnings;
+use parser::binary::error::{Result, Error};
 use parser::binary::reader::{ParserSource, ReadLittleEndian};
 
 
 /// Read array type attribute from the given parser.
-pub fn read_array_attribute<R: ParserSource>(
-    parser: &mut RootParser<R>,
+pub fn read_array_attribute<'a, R: ParserSource>(
+    source: &'a mut R,
+    warnings: &'a mut Warnings,
     type_code: u8
-) -> Result<(ArrayAttribute<R>, u64)> {
-    let header = ArrayAttributeHeader::read_from_parser(parser)?;
-    let current_pos = parser.source.position();
-    let RootParser { ref mut source, ref mut warnings, .. } = *parser;
+) -> Result<(ArrayAttribute<'a, R>, u64)> {
+    let header = ArrayAttributeHeader::read_from_parser_source(source)?;
+    let current_pos = source.position();
     let reader = ArrayDecoder::new(source, &header)?;
 
     let value = match type_code {
@@ -48,10 +48,10 @@ struct ArrayAttributeHeader {
 }
 
 impl ArrayAttributeHeader {
-    fn read_from_parser<R: ParserSource>(parser: &mut RootParser<R>) -> io::Result<Self> {
-        let num_elements = parser.source.read_u32()?;
-        let encoding = parser.source.read_u32()?;
-        let bytelen_elements = parser.source.read_u32()?;
+    fn read_from_parser_source<R: ParserSource>(source: &mut R) -> io::Result<Self> {
+        let num_elements = source.read_u32()?;
+        let encoding = source.read_u32()?;
+        let bytelen_elements = source.read_u32()?;
 
         Ok(ArrayAttributeHeader {
             num_elements: num_elements,
@@ -84,7 +84,7 @@ pub struct ArrayAttributeReader<'a, R: 'a, T> {
     num_elements: u64,
     rest_elements: u64,
     reader: ArrayDecoder<'a, R>,
-    warnings: &'a mut Vec<Warning>,
+    warnings: &'a mut Warnings,
     _value_type: PhantomData<T>,
 }
 
@@ -92,7 +92,7 @@ impl<'a, R: 'a + Read, T> ArrayAttributeReader<'a, R, T> {
     fn new<'b>(
         header: &'b ArrayAttributeHeader,
         reader: ArrayDecoder<'a, R>,
-        warnings: &'a mut Vec<Warning>
+        warnings: &'a mut Warnings
     ) -> Self {
         ArrayAttributeReader {
             num_elements: header.num_elements as u64,

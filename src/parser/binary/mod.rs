@@ -18,6 +18,37 @@ mod reader;
 pub mod utils;
 
 
+/// Warnings store.
+#[derive(Default, Debug, Clone)]
+pub struct Warnings(Vec<Warning>);
+
+impl Warnings {
+    /// Creates a new `Warnings`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Add a warning.
+    pub fn warn(&mut self, warning: Warning) {
+        warn!("FBX binary parser warning: {}", warning);
+        self.0.push(warning);
+    }
+
+    /// Returns the inner vector.
+    pub fn inner(self) -> Vec<Warning> {
+        self.0
+    }
+}
+
+impl ::std::ops::Deref for Warnings {
+    type Target = [Warning];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+
 /// Parser of a FBX binary node.
 pub trait Parser<R: ParserSource> {
     /// Returns the root parser.
@@ -80,7 +111,7 @@ pub struct RootParser<R> {
     /// `Err(Error)` if the parsing failed and cannot be continued.
     state: Result<State>,
     /// Warnings.
-    warnings: Vec<Warning>,
+    warnings: Warnings,
     /// FBX version.
     fbx_version: Option<u32>,
     /// Open nodes stack.
@@ -93,7 +124,7 @@ impl<R: Read> RootParser<BasicSource<R>> {
         RootParser {
             source: BasicSource::new(source),
             state: Ok(State::Header),
-            warnings: Vec::new(),
+            warnings: Warnings::new(),
             fbx_version: None,
             open_nodes: Vec::new(),
         }
@@ -106,7 +137,7 @@ impl<R: Read + io::Seek> RootParser<SeekableSource<R>> {
         RootParser {
             source: SeekableSource::new(source),
             state: Ok(State::Header),
-            warnings: Vec::new(),
+            warnings: Warnings::new(),
             fbx_version: None,
             open_nodes: Vec::new(),
         }
@@ -127,7 +158,7 @@ impl<R: ParserSource> RootParser<R> {
     }
 
     /// Returns reference to the warnings.
-    pub fn warnings(&self) -> &Vec<Warning> {
+    pub fn warnings(&self) -> &[Warning] {
         &self.warnings
     }
 
@@ -155,9 +186,8 @@ impl<R: ParserSource> RootParser<R> {
 
     /// Add warning.
     fn warn(&mut self, warning: Warning) {
-        warn!("FBX binary parser warning: {}", warning);
+        self.warnings.warn(warning);
         debug!("Parser: {:#?}", self);
-        self.warnings.push(warning);
     }
 
     /// Reads FBX header.
