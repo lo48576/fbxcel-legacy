@@ -260,7 +260,7 @@ pub trait AttributeValues: Sized {
 
 macro_rules! impl_attribute_values {
     ($($name:ident: $t:ident),+,) => {
-        impl<$($t: AttributeValue),+> AttributeValues for ($($t),+) {
+        impl<$($t: AttributeValue),+> AttributeValues for ($($t),+,) {
             fn from_attributes<R: ParserSource>(attrs: &mut Attributes<R>) -> Result<Option<Self>> {
                 $(
                     let $name = {
@@ -274,15 +274,15 @@ macro_rules! impl_attribute_values {
                         }
                     };
                 )+
-                Ok(Some(($($name),+)))
+                Ok(Some(($($name),+,)))
             }
         }
     }
 }
 
-impl<T: AttributeValue> AttributeValues for (T,) {
+impl<T: AttributeValue> AttributeValues for T {
     fn from_attributes<R: ParserSource>(attrs: &mut Attributes<R>) -> Result<Option<Self>> {
-        T::from_attributes(attrs).map(|v_opt| v_opt.map(|v| (v,)))
+        <(T,)>::from_attributes(attrs).map(|v_opt| v_opt.map(|v| v.0))
     }
 }
 
