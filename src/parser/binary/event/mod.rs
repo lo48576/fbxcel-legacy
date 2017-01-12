@@ -180,7 +180,7 @@ impl FbxFooter {
 #[derive(Debug)]
 pub struct StartNode<'a, R: 'a> {
     /// Node name.
-    pub name: String,
+    pub name: &'a str,
     /// Node attributes.
     pub attributes: Attributes<'a, R>,
 }
@@ -233,8 +233,6 @@ impl From<StartNodeBuilder> for EventBuilder {
 /// `StartNode` without reference to a parser.
 #[derive(Debug, Clone)]
 pub struct StartNodeBuilder {
-    /// Node name.
-    pub name: String,
     /// Node header.
     pub header: NodeHeader,
 }
@@ -242,9 +240,9 @@ pub struct StartNodeBuilder {
 impl StartNodeBuilder {
     /// Creates `StartNode` from the `StartNodeBuilder` and the given parser.
     pub fn build<R: ParserSource>(self, parser: &mut RootParser<R>) -> StartNode<R> {
-        let RootParser { ref mut source, ref mut warnings, .. } = *parser;
+        let RootParser { ref mut source, ref mut warnings, ref recent_node_name, .. } = *parser;
         StartNode {
-            name: self.name,
+            name: recent_node_name,
             attributes: attribute::new_attributes(source, warnings, &self.header),
         }
     }

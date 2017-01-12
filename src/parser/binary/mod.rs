@@ -293,7 +293,6 @@ impl<R: ParserSource> RootParser<R> {
             // Zero or more attributes come after node start.
             self.state = Ok(State::NodeStarted);
             Ok(StartNodeBuilder {
-                name: self.recent_node_name.clone(),
                 header: header,
             }
             .into())
