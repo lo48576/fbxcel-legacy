@@ -74,7 +74,7 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
             b'D' => Ok(Some(PrimitiveAttribute::F64(self.parser.source.read_f64()?).into())),
             // Special type attributes.
             b'R' | b'S' => {
-                let (attr, end_offset) = read_special_attribute(self.parser, type_code)?;
+                let (attr, end_offset) = read_special_attribute(&mut self.parser.source, type_code)?;
                 self.prev_attr_end = Some(end_offset);
                 Ok(Some(attr.into()))
             },
