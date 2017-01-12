@@ -176,6 +176,11 @@ impl<R: ParserSource> RootParser<R> {
         &self.recent_node_name
     }
 
+    /// Returns the node name of the recent opened node with ownership.
+    pub fn take_recent_node_name(&mut self) -> String {
+        ::std::mem::replace(&mut self.recent_node_name, String::new())
+    }
+
     /// Creates subtree parser for the current node.
     pub fn subtree_parser(&mut self) -> SubtreeParser<R> {
         SubtreeParser::new(self)
