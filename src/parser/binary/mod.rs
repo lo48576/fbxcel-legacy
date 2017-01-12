@@ -116,6 +116,8 @@ pub struct RootParser<R> {
     fbx_version: Option<u32>,
     /// Open nodes stack.
     open_nodes: Vec<OpenNode>,
+    /// Node name of the recent opened node.
+    recent_node_name: String,
 }
 
 impl<R: Read> RootParser<BasicSource<R>> {
@@ -127,6 +129,7 @@ impl<R: Read> RootParser<BasicSource<R>> {
             warnings: Warnings::new(),
             fbx_version: None,
             open_nodes: Vec::new(),
+            recent_node_name: String::new(),
         }
     }
 }
@@ -140,6 +143,7 @@ impl<R: Read + io::Seek> RootParser<SeekableSource<R>> {
             warnings: Warnings::new(),
             fbx_version: None,
             open_nodes: Vec::new(),
+            recent_node_name: String::new(),
         }
     }
 }
@@ -165,6 +169,16 @@ impl<R: ParserSource> RootParser<R> {
     /// Returns the number of the opened (and not closed) node.
     pub fn num_open_nodes(&self) -> usize {
         self.open_nodes.len()
+    }
+
+    /// Returns the node name of the recent opened node.
+    pub fn recent_node_name(&self) -> &str {
+        &self.recent_node_name
+    }
+
+    /// Returns the node name of the recent opened node with ownership.
+    pub fn take_recent_node_name(&mut self) -> String {
+        ::std::mem::replace(&mut self.recent_node_name, String::new())
     }
 
     /// Creates subtree parser for the current node.
@@ -256,9 +270,26 @@ impl<R: ParserSource> RootParser<R> {
             self.state = Ok(State::NodeEnded);
             Ok(EventBuilder::EndNode)
         } else {
-            let mut name_vec = vec![0u8; header.bytelen_name as usize];
-            self.source.read_exact(&mut name_vec)?;
-            let name = String::from_utf8(name_vec).map_err(Error::node_name_invalid_utf8)?;
+            // Reuse node name buffer.
+            self.recent_node_name = {
+                // Take node name buffer without consuming it and take inner `Vec<u8>` buffer.
+                // Note that empty `String` doesn't allocate.
+                // `std::mem::uninitialized()` can be used instead of empty `String`
+                // but it is `unsafe`.
+                let mut vecbuf = ::std::mem::replace(&mut self.recent_node_name, String::new())
+                    .into_bytes();
+                // Resize buffer.
+                // This reallocates only if the buffer is too small.
+                vecbuf.resize(header.bytelen_name as usize, 0);
+                // Read the node name into the buffer
+                self.source.read_exact(&mut vecbuf)?;
+                // Covert the name into `String`.
+                // If conversion failed, the buffer can be left empty.
+                // This is because no more nodes would be loaded and
+                // the buffer would no longer be used.
+                String::from_utf8(vecbuf).map_err(Error::node_name_invalid_utf8)?
+            };
+
             let current_pos = self.source.position();
             self.open_nodes.push(OpenNode {
                 begin: current_pos,
@@ -268,11 +299,7 @@ impl<R: ParserSource> RootParser<R> {
 
             // Zero or more attributes come after node start.
             self.state = Ok(State::NodeStarted);
-            Ok(StartNodeBuilder {
-                name: name,
-                header: header,
-            }
-            .into())
+            Ok(StartNodeBuilder { header: header }.into())
         }
     }
 

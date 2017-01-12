@@ -1,6 +1,6 @@
 //! Node attributes.
 
-use parser::binary::{RootParser, Warnings};
+use parser::binary::Warnings;
 use parser::binary::error::{Result, Error, Warning};
 use parser::binary::event::NodeHeader;
 use parser::binary::reader::{ParserSource, ReadLittleEndian};
@@ -82,7 +82,8 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
             },
             // Array type attributes.
             b'b' | b'i' | b'l' | b'f' | b'd' => {
-                let (attr, end_offset) = read_array_attribute(self.source, self.warnings, type_code)?;
+                let (attr, end_offset) =
+                    read_array_attribute(self.source, self.warnings, type_code)?;
                 self.prev_attr_end = Some(end_offset);
                 Ok(Some(attr.into()))
             },
@@ -123,14 +124,10 @@ impl<'a, R: 'a + ParserSource> From<ArrayAttribute<'a, R>> for Attribute<'a, R> 
 
 /// Creates a new `Attributes`.
 pub fn new_attributes<'a, R: 'a>(
-    parser: &'a mut RootParser<R>,
+    source: &'a mut R,
+    warnings: &'a mut Warnings,
     header: &NodeHeader
 ) -> Attributes<'a, R> {
-    let RootParser {
-        ref mut source,
-        ref mut warnings,
-        ..
-    } = *parser;
     Attributes {
         num_attributes: header.num_attributes,
         rest_attributes: header.num_attributes,
