@@ -1,6 +1,6 @@
 //! Node attributes.
 
-use parser::binary::RootParser;
+use parser::binary::{RootParser, Warnings};
 use parser::binary::error::{Result, Error, Warning};
 use parser::binary::event::NodeHeader;
 use parser::binary::reader::{ParserSource, ReadLittleEndian};
@@ -23,8 +23,10 @@ pub struct Attributes<'a, R: 'a> {
     rest_attributes: u64,
     /// End offset of the previous attribute.
     prev_attr_end: Option<u64>,
-    /// Parser.
-    parser: &'a mut RootParser<R>,
+    /// Parser source.
+    source: &'a mut R,
+    /// Parser warnings.
+    warnings: &'a mut Warnings,
 }
 
 impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
@@ -46,20 +48,20 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
 
         // Skip unread part of the previous attribute if available.
         if let Some(prev_attr_end) = self.prev_attr_end {
-            self.parser.source.skip_to(prev_attr_end)?;
+            self.source.skip_to(prev_attr_end)?;
             self.prev_attr_end = None;
         }
 
         self.rest_attributes -= 1;
-        let type_code = self.parser.source.read_u8()?;
-        let position = self.parser.source.position();
+        let type_code = self.source.read_u8()?;
+        let position = self.source.position();
         match type_code {
             // Primitive type attributes.
             b'C' => {
-                let raw = self.parser.source.read_u8()?;
+                let raw = self.source.read_u8()?;
                 let val = (raw & 0x01) == 1;
                 if raw != b'T' && raw != b'Y' {
-                    self.parser.warn(Warning::InvalidBooleanAttributeValue {
+                    self.warnings.warn(Warning::InvalidBooleanAttributeValue {
                         got: raw,
                         assumed: val,
                         position: position,
@@ -67,20 +69,20 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
                 }
                 Ok(Some(PrimitiveAttribute::Bool(val).into()))
             },
-            b'Y' => Ok(Some(PrimitiveAttribute::I16(self.parser.source.read_i16()?).into())),
-            b'I' => Ok(Some(PrimitiveAttribute::I32(self.parser.source.read_i32()?).into())),
-            b'L' => Ok(Some(PrimitiveAttribute::I64(self.parser.source.read_i64()?).into())),
-            b'F' => Ok(Some(PrimitiveAttribute::F32(self.parser.source.read_f32()?).into())),
-            b'D' => Ok(Some(PrimitiveAttribute::F64(self.parser.source.read_f64()?).into())),
+            b'Y' => Ok(Some(PrimitiveAttribute::I16(self.source.read_i16()?).into())),
+            b'I' => Ok(Some(PrimitiveAttribute::I32(self.source.read_i32()?).into())),
+            b'L' => Ok(Some(PrimitiveAttribute::I64(self.source.read_i64()?).into())),
+            b'F' => Ok(Some(PrimitiveAttribute::F32(self.source.read_f32()?).into())),
+            b'D' => Ok(Some(PrimitiveAttribute::F64(self.source.read_f64()?).into())),
             // Special type attributes.
             b'R' | b'S' => {
-                let (attr, end_offset) = read_special_attribute(&mut self.parser.source, type_code)?;
+                let (attr, end_offset) = read_special_attribute(self.source, type_code)?;
                 self.prev_attr_end = Some(end_offset);
                 Ok(Some(attr.into()))
             },
             // Array type attributes.
             b'b' | b'i' | b'l' | b'f' | b'd' => {
-                let (attr, end_offset) = read_array_attribute(&mut self.parser.source, &mut self.parser.warnings, type_code)?;
+                let (attr, end_offset) = read_array_attribute(self.source, self.warnings, type_code)?;
                 self.prev_attr_end = Some(end_offset);
                 Ok(Some(attr.into()))
             },
@@ -124,11 +126,17 @@ pub fn new_attributes<'a, R: 'a>(
     parser: &'a mut RootParser<R>,
     header: &NodeHeader
 ) -> Attributes<'a, R> {
+    let RootParser {
+        ref mut source,
+        ref mut warnings,
+        ..
+    } = *parser;
     Attributes {
         num_attributes: header.num_attributes,
         rest_attributes: header.num_attributes,
         prev_attr_end: None,
-        parser: parser,
+        source: source,
+        warnings: warnings,
     }
 }
 
