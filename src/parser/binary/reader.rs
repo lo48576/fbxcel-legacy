@@ -98,6 +98,16 @@ pub trait ParserSource: fmt::Debug + io::Read {
     fn skip_to(&mut self, dest_pos: u64) -> io::Result<()>;
 }
 
+impl<'a, R: ParserSource> ParserSource for &'a mut R {
+    fn position(&self) -> u64 {
+        (**self).position()
+    }
+
+    fn skip_to(&mut self, dest_pos: u64) -> io::Result<()> {
+        (**self).skip_to(dest_pos)
+    }
+}
+
 
 /// Reader with position info.
 pub struct BasicSource<R> {
