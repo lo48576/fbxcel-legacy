@@ -1,6 +1,59 @@
 //! Simple binary loader.
 
-use parser::binary::{Result, ParserSource, Attributes, Attribute};
+use parser::binary::{Result, Parser, ParserSource, Event, Attributes, Attribute, FbxFooter};
+
+
+/// Generic FBX node.
+#[derive(Default, Debug, Clone, PartialEq, PartialOrd)]
+pub struct GenericNode {
+    /// Node name.
+    pub name: String,
+    /// Node attributes.
+    pub attributes: Vec<OwnedAttribute>,
+    /// Child nodes.
+    pub children: Vec<GenericNode>,
+}
+
+impl GenericNode {
+    /// Creates a new `GenericNode`.
+    pub fn new() -> Self {
+        Default::default()
+    }
+
+    /// Loads all sibling nodes from the given parser.
+    ///
+    /// This reads N `StartNode` and N+1 { `EndNode` or `EndFbx` }.
+    pub fn load_from_parser<R: ParserSource, P: Parser<R>>(
+        parser: &mut P)
+        -> Result<(Vec<GenericNode>, Option<FbxFooter>)> {
+        let mut nodes = Vec::new();
+        let mut footer = None;
+        loop {
+            let (name, attrs) = match parser.next_event()? {
+                Event::StartFbx(_) => continue,
+                Event::EndFbx(f) => {
+                    footer = f.ok();
+                    break;
+                },
+                Event::EndNode => break,
+                Event::StartNode(node) => {
+                    let name = node.name.to_owned();
+                    let attrs = OwnedAttribute::load_attrs_from_parser_event(node.attributes)?;
+                    (name, attrs)
+                },
+            };
+            let children = GenericNode::load_from_parser(parser)?.0;
+            let node = GenericNode {
+                name: name,
+                attributes: attrs,
+                children: children,
+            };
+            nodes.push(node);
+        }
+        nodes.shrink_to_fit();
+        Ok((nodes, footer))
+    }
+}
 
 
 /// Owned node attribute.
