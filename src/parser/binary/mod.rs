@@ -117,7 +117,7 @@ pub struct RootParser<R> {
     /// Open nodes stack.
     open_nodes: Vec<OpenNode>,
     /// Node name of the recent opened node.
-    recent_node_name: String,
+    recent_node_name: Option<String>,
 }
 
 impl<R: Read> RootParser<BasicSource<R>> {
@@ -129,7 +129,7 @@ impl<R: Read> RootParser<BasicSource<R>> {
             warnings: Warnings::new(),
             fbx_version: None,
             open_nodes: Vec::new(),
-            recent_node_name: String::new(),
+            recent_node_name: None,
         }
     }
 }
@@ -143,7 +143,7 @@ impl<R: Read + io::Seek> RootParser<SeekableSource<R>> {
             warnings: Warnings::new(),
             fbx_version: None,
             open_nodes: Vec::new(),
-            recent_node_name: String::new(),
+            recent_node_name: None,
         }
     }
 }
@@ -172,13 +172,13 @@ impl<R: ParserSource> RootParser<R> {
     }
 
     /// Returns the node name of the recent opened node.
-    pub fn recent_node_name(&self) -> &str {
-        &self.recent_node_name
+    pub fn recent_node_name(&self) -> Option<&str> {
+        self.recent_node_name.as_ref().map(String::as_str)
     }
 
     /// Returns the node name of the recent opened node with ownership.
-    pub fn take_recent_node_name(&mut self) -> String {
-        ::std::mem::replace(&mut self.recent_node_name, String::new())
+    pub fn take_recent_node_name(&mut self) -> Option<String> {
+        self.recent_node_name.take()
     }
 
     /// Creates subtree parser for the current node.
@@ -272,22 +272,26 @@ impl<R: ParserSource> RootParser<R> {
         } else {
             // Reuse node name buffer.
             self.recent_node_name = {
-                // Take node name buffer without consuming it and take inner `Vec<u8>` buffer.
-                // Note that empty `String` doesn't allocate.
-                // `std::mem::uninitialized()` can be used instead of empty `String`
-                // but it is `unsafe`.
-                let mut vecbuf = ::std::mem::replace(&mut self.recent_node_name, String::new())
-                    .into_bytes();
-                // Resize buffer.
-                // This reallocates only if the buffer is too small.
-                vecbuf.resize(header.bytelen_name as usize, 0);
-                // Read the node name into the buffer
+                // Take node name buffer inside the string if the buffer remains.
+                // Create a new buffer if the buffer was already taken.
+                let mut vecbuf = self.recent_node_name
+                    .take()
+                    .map(|s| {
+                        // Get inner `Vec` of the string.
+                        let mut v = s.into_bytes();
+                        // Resize buffer.
+                        // This reallocates only if the buffer is too small.
+                        v.resize(header.bytelen_name as usize, 0);
+                        v
+                    })
+                    .unwrap_or_else(|| vec![0; header.bytelen_name as usize]);
+                // Read the node name into the buffer.
                 self.source.read_exact(&mut vecbuf)?;
                 // Covert the name into `String`.
-                // If conversion failed, the buffer can be left empty.
-                // This is because no more nodes would be loaded and
+                // If conversion failed, the buffer will be left empty.
+                // This is ok because no more node events would be loaded and
                 // the buffer would no longer be used.
-                String::from_utf8(vecbuf).map_err(Error::node_name_invalid_utf8)?
+                Some(String::from_utf8(vecbuf).map_err(Error::node_name_invalid_utf8)?)
             };
 
             let current_pos = self.source.position();
