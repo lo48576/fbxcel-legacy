@@ -403,3 +403,17 @@ impl<'a, R: 'a + ParserSource> Parser<R> for SubtreeParser<'a, R> {
         self.root_parser.skip_current_node()
     }
 }
+
+impl<'a, R: ParserSource, P: Parser<R>> Parser<R> for &'a mut P {
+    fn root_parser(&self) -> &RootParser<R> {
+        (**self).root_parser()
+    }
+
+    fn next_event(&mut self) -> Result<Event<R>> {
+        (**self).next_event()
+    }
+
+    fn skip_current_node(&mut self) -> Result<bool> {
+        (**self).skip_current_node()
+    }
+}
