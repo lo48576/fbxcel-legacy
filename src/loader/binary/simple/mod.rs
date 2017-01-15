@@ -18,6 +18,10 @@ pub enum Fbx {
 
 impl Fbx {
     /// Loads FBX structure from the given parser.
+    ///
+    /// # Panics
+    /// Panics if the parser has already emitted some event (i.e. if the given parser didn't return
+    /// the `StartFbx` first).
     pub fn load_from_parser<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
         let version = match parser.next_event()? {
             Event::StartFbx(header) => header.version,
