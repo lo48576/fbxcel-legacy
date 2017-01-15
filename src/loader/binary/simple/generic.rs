@@ -5,7 +5,7 @@ use parser::binary::Result as ParseResult;
 
 
 /// Generic FBX node.
-#[derive(Default, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct GenericNode {
     /// Node name.
     pub name: String,
