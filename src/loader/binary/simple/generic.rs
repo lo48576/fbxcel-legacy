@@ -1,6 +1,7 @@
 //! Generic node and node attribute.
 
-use parser::binary::{Result, Parser, ParserSource, Event, Attributes, Attribute, FbxFooter};
+use parser::binary::{Parser, ParserSource, Event, Attributes, Attribute, FbxFooter};
+use parser::binary::Result as ParseResult;
 
 
 /// Generic FBX node.
@@ -25,7 +26,7 @@ impl GenericNode {
     /// This reads N `StartNode` and N+1 { `EndNode` or `EndFbx` }.
     pub fn load_from_parser<R: ParserSource, P: Parser<R>>(
         parser: &mut P)
-        -> Result<(Vec<GenericNode>, Option<FbxFooter>)> {
+        -> ParseResult<(Vec<GenericNode>, Option<FbxFooter>)> {
         let mut nodes = Vec::new();
         let mut footer = None;
         loop {
@@ -90,7 +91,7 @@ pub enum OwnedAttribute {
 impl OwnedAttribute {
     /// Loads `OwnedAttribute`s from `parser::binary::Attributes`.
     pub fn load_attrs_from_parser_event<R: ParserSource>(mut attrs: Attributes<R>)
-        -> Result<Vec<Self>> {
+        -> ParseResult<Vec<Self>> {
         let mut result = Vec::with_capacity(attrs.num_attributes() as usize);
         while let Some(attr) = attrs.next_attribute()? {
             result.push(Self::load_from_parser_event(attr)?);

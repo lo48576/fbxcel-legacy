@@ -1,8 +1,10 @@
 //! Simple binary loader.
 
-use parser::binary::{Result, Parser, ParserSource, Event};
+use parser::binary::{Parser, ParserSource, Event};
+pub use self::error::{Result, Error};
 pub use self::generic::{GenericNode, OwnedAttribute};
 
+pub mod error;
 pub mod generic;
 pub mod fbx7400;
 
