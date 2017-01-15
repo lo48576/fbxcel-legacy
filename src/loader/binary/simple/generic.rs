@@ -42,7 +42,7 @@ impl GenericNode {
                     (name, attrs)
                 },
             };
-            let children = GenericNode::load_from_parser(parser)?.0;
+            let children = GenericNode::load_from_parser(&mut parser.subtree_parser())?.0;
             let node = GenericNode {
                 name: name,
                 attributes: attrs,
