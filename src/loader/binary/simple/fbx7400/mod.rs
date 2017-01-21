@@ -2,6 +2,9 @@
 
 use parser::binary::{Parser, ParserSource, FbxFooter, Event, Attributes};
 use loader::binary::simple::{Result, Error, GenericNode};
+pub use self::connections::{Connections, Connection};
+
+pub mod connections;
 
 
 /// FBX 7.4 or later.
@@ -306,22 +309,6 @@ impl Objects {
     pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
         let nodes = GenericNode::load_from_parser(&mut parser)?.0;
         Ok(Objects { nodes: nodes })
-    }
-}
-
-
-/// `Connections`.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Connections {
-    /// Child nodes.
-    pub nodes: Vec<GenericNode>,
-}
-
-impl Connections {
-    /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
-        let nodes = GenericNode::load_from_parser(&mut parser)?.0;
-        Ok(Connections { nodes: nodes })
     }
 }
 
