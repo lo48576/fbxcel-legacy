@@ -3,8 +3,10 @@
 use parser::binary::{Parser, ParserSource, FbxFooter, Event, Attributes};
 use loader::binary::simple::{Result, Error, GenericNode};
 pub use self::connections::{Connections, Connection};
+pub use self::properties70::{Properties70, PropertyMap, PropertyValue};
 
 pub mod connections;
+pub mod properties70;
 
 
 /// FBX 7.4 or later.
