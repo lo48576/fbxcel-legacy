@@ -3,9 +3,11 @@
 use parser::binary::{Parser, ParserSource, FbxFooter, Event, Attributes};
 use loader::binary::simple::{Result, Error, GenericNode};
 pub use self::connections::{Connections, Connection};
+pub use self::definitions::{Definitions, ObjectType};
 pub use self::properties70::{Properties70, PropertyMap, PropertyValue};
 
 pub mod connections;
+pub mod definitions;
 pub mod properties70;
 
 
@@ -279,22 +281,6 @@ impl References {
     pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
         let nodes = GenericNode::load_from_parser(&mut parser)?.0;
         Ok(References { nodes: nodes })
-    }
-}
-
-
-/// `Definitions`.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Definitions {
-    /// Child nodes.
-    pub nodes: Vec<GenericNode>,
-}
-
-impl Definitions {
-    /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
-        let nodes = GenericNode::load_from_parser(&mut parser)?.0;
-        Ok(Definitions { nodes: nodes })
     }
 }
 
