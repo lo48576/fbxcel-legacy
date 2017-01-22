@@ -2,7 +2,7 @@
 
 use std::io;
 
-use parser::binary::BinaryParser;
+use parser::binary::RootParser;
 use parser::binary::error::{Result, Error, Warning};
 use parser::binary::reader::{ParserSource, ReadLittleEndian};
 pub use self::attribute::{Attributes, Attribute, SpecialAttributeType};
@@ -53,7 +53,7 @@ pub struct FbxHeader {
 
 
 /// Read FBX header.
-pub fn read_fbx_header<R: ParserSource>(parser: &mut BinaryParser<R>) -> Result<FbxHeader> {
+pub fn read_fbx_header<R: ParserSource>(parser: &mut RootParser<R>) -> Result<FbxHeader> {
     assert!(parser.fbx_version.is_none(),
             "Parser should read FBX header only once");
     // Check magic binary.
@@ -98,7 +98,7 @@ pub struct FbxFooter {
 
 impl FbxFooter {
     /// Reads node header from the given parser and returns it.
-    pub fn read_from_parser<R: ParserSource>(parser: &mut BinaryParser<R>) -> Result<Self> {
+    pub fn read_from_parser<R: ParserSource>(parser: &mut RootParser<R>) -> Result<Self> {
         // Read unknown 16 bytes footer.
         let mut unknown1 = [0u8; 16];
         parser.source.read_exact(&mut unknown1)?;
@@ -180,7 +180,7 @@ impl FbxFooter {
 #[derive(Debug)]
 pub struct StartNode<'a, R: 'a> {
     /// Node name.
-    pub name: String,
+    pub name: &'a str,
     /// Node attributes.
     pub attributes: Attributes<'a, R>,
 }
@@ -201,7 +201,7 @@ pub enum EventBuilder {
 
 impl EventBuilder {
     /// Creates `Event` from the `EventBuilder` and the given parser.
-    pub fn build<R: ParserSource>(self, parser: &mut BinaryParser<R>) -> Event<R> {
+    pub fn build<R: ParserSource>(self, parser: &mut RootParser<R>) -> Event<R> {
         match self {
             EventBuilder::StartFbx(header) => header.into(),
             EventBuilder::EndFbx(footer) => footer.into(),
@@ -233,18 +233,18 @@ impl From<StartNodeBuilder> for EventBuilder {
 /// `StartNode` without reference to a parser.
 #[derive(Debug, Clone)]
 pub struct StartNodeBuilder {
-    /// Node name.
-    pub name: String,
     /// Node header.
     pub header: NodeHeader,
 }
 
 impl StartNodeBuilder {
     /// Creates `StartNode` from the `StartNodeBuilder` and the given parser.
-    pub fn build<R: ParserSource>(self, parser: &mut BinaryParser<R>) -> StartNode<R> {
+    pub fn build<R: ParserSource>(self, parser: &mut RootParser<R>) -> StartNode<R> {
+        let RootParser { ref mut source, ref mut warnings, ref recent_node_name, .. } = *parser;
         StartNode {
-            name: self.name,
-            attributes: attribute::new_attributes(parser, &self.header),
+            name: recent_node_name.as_ref()
+                .expect("`RootParser::recent_node_name` must not be empty"),
+            attributes: attribute::new_attributes(source, warnings, &self.header),
         }
     }
 }
@@ -271,7 +271,7 @@ impl NodeHeader {
     }
 
     /// Reads node header from the given parser and returns it.
-    pub fn read_from_parser<R: ParserSource>(parser: &mut BinaryParser<R>) -> io::Result<Self> {
+    pub fn read_from_parser<R: ParserSource>(parser: &mut RootParser<R>) -> io::Result<Self> {
         let fbx_version = parser.fbx_version
             .expect("Attempt to read FBX node header but the parser doesn't know FBX version");
         let (end_offset, num_attributes, bytelen_attributes) = if fbx_version < 7500 {

@@ -1,2 +1,6 @@
 target
 Cargo.lock
+
+# RustFmt backups
+**/*.rs.bk
+**/.*.rs.rustfmt

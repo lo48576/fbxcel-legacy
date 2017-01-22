@@ -9,19 +9,19 @@ use flate2::read::ZlibDecoder;
 #[cfg(feature = "libflate")]
 use libflate::zlib;
 
-use parser::binary::BinaryParser;
-use parser::binary::error::{Result, Error, Warning};
+use parser::binary::Warnings;
+use parser::binary::error::{Result, Error};
 use parser::binary::reader::{ParserSource, ReadLittleEndian};
 
 
 /// Read array type attribute from the given parser.
-pub fn read_array_attribute<R: ParserSource>(
-    parser: &mut BinaryParser<R>,
+pub fn read_array_attribute<'a, R: ParserSource>(
+    source: &'a mut R,
+    warnings: &'a mut Warnings,
     type_code: u8
-) -> Result<(ArrayAttribute<R>, u64)> {
-    let header = ArrayAttributeHeader::read_from_parser(parser)?;
-    let current_pos = parser.source.position();
-    let BinaryParser { ref mut source, ref mut warnings, .. } = *parser;
+) -> Result<(ArrayAttribute<'a, R>, u64)> {
+    let header = ArrayAttributeHeader::read_from_parser_source(source)?;
+    let current_pos = source.position();
     let reader = ArrayDecoder::new(source, &header)?;
 
     let value = match type_code {
@@ -48,10 +48,10 @@ struct ArrayAttributeHeader {
 }
 
 impl ArrayAttributeHeader {
-    fn read_from_parser<R: ParserSource>(parser: &mut BinaryParser<R>) -> io::Result<Self> {
-        let num_elements = parser.source.read_u32()?;
-        let encoding = parser.source.read_u32()?;
-        let bytelen_elements = parser.source.read_u32()?;
+    fn read_from_parser_source<R: ParserSource>(source: &mut R) -> io::Result<Self> {
+        let num_elements = source.read_u32()?;
+        let encoding = source.read_u32()?;
+        let bytelen_elements = source.read_u32()?;
 
         Ok(ArrayAttributeHeader {
             num_elements: num_elements,
@@ -84,7 +84,7 @@ pub struct ArrayAttributeReader<'a, R: 'a, T> {
     num_elements: u64,
     rest_elements: u64,
     reader: ArrayDecoder<'a, R>,
-    warnings: &'a mut Vec<Warning>,
+    warnings: &'a mut Warnings,
     _value_type: PhantomData<T>,
 }
 
@@ -92,7 +92,7 @@ impl<'a, R: 'a + Read, T> ArrayAttributeReader<'a, R, T> {
     fn new<'b>(
         header: &'b ArrayAttributeHeader,
         reader: ArrayDecoder<'a, R>,
-        warnings: &'a mut Vec<Warning>
+        warnings: &'a mut Warnings
     ) -> Self {
         ArrayAttributeReader {
             num_elements: header.num_elements as u64,
@@ -115,7 +115,7 @@ impl<'a, R: 'a + Read, T> ArrayAttributeReader<'a, R, T> {
 }
 
 impl<'a, R: 'a + Read> ArrayAttributeReader<'a, R, bool> {
-    /// Reads elements into the given buffer.
+    /// Reads elements into the given buffer and returns the read byte length.
     pub fn read_into_buf(&mut self, buf: &mut [bool]) -> io::Result<usize> {
         let size = ::std::cmp::min(buf.len(), self.rest_elements as usize);
         for elem in &mut buf[0..size] {
@@ -136,7 +136,7 @@ impl<'a, R: 'a + Read> ArrayAttributeReader<'a, R, bool> {
 macro_rules! impl_attr_array_read {
     ($ty:ty, $f:ident) => {
         impl<'a, R: 'a + Read> ArrayAttributeReader<'a, R, $ty> {
-            /// Reads elements into the given buffer.
+            /// Reads elements into the given buffer and returns the read byte length.
             pub fn read_into_buf(&mut self, buf: &mut [$ty]) -> io::Result<usize> {
                 let size = ::std::cmp::min(buf.len(), self.rest_elements as usize);
                 self.rest_elements -= size as u64;
@@ -237,9 +237,11 @@ impl<'a, R: 'a + Read> ArrayDecoder<'a, R> {
         match header.encoding {
             0 => Ok(ArrayDecoder::Raw(reader.take(header.bytelen_elements as u64))),
             #[cfg(feature = "flate2")]
-            1 => Ok(ArrayDecoder::Zlib(ZlibDecoder::new(reader.take(header.bytelen_elements as u64)))),
+            1 => Ok(ArrayDecoder::Zlib(ZlibDecoder::new(
+                        reader.take(header.bytelen_elements as u64)))),
             #[cfg(feature = "libflate")]
-            1 => Ok(ArrayDecoder::Zlib(zlib::Decoder::new(reader.take(header.bytelen_elements as u64))?)),
+            1 => Ok(ArrayDecoder::Zlib(zlib::Decoder::new(
+                        reader.take(header.bytelen_elements as u64))?)),
             _ => Err(Error::UnknownArrayAttributeEncoding(header.encoding)),
         }
     }

@@ -86,7 +86,7 @@ pub trait ReadLittleEndian: io::Read {
 impl<R: io::Read> ReadLittleEndian for R {}
 
 
-/// Source stream for `BinaryParser`.
+/// Source stream for `RootParser`.
 pub trait ParserSource: fmt::Debug + io::Read {
     /// Returns the current position from the start of the stream.
     fn position(&self) -> u64;
@@ -96,6 +96,16 @@ pub trait ParserSource: fmt::Debug + io::Read {
     /// # Panics
     /// Panics if a byte at the given position has been already read.
     fn skip_to(&mut self, dest_pos: u64) -> io::Result<()>;
+}
+
+impl<'a, R: ParserSource> ParserSource for &'a mut R {
+    fn position(&self) -> u64 {
+        (**self).position()
+    }
+
+    fn skip_to(&mut self, dest_pos: u64) -> io::Result<()> {
+        (**self).skip_to(dest_pos)
+    }
 }
 
 
@@ -128,6 +138,17 @@ impl<R: io::Read> io::Read for BasicSource<R> {
         self.source.read_exact(buf)?;
         self.position += buf.len() as u64;
         Ok(())
+    }
+}
+
+impl<R: io::BufRead> io::BufRead for BasicSource<R> {
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        self.source.fill_buf()
+    }
+
+    fn consume(&mut self, amt: usize) {
+        self.position += amt as u64;
+        self.source.consume(amt);
     }
 }
 
@@ -235,6 +256,17 @@ impl<R: io::Read + io::Seek> ParserSource for SeekableSource<R> {
     }
 }
 
+impl<R: io::BufRead> io::BufRead for SeekableSource<R> {
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        self.source.fill_buf()
+    }
+
+    fn consume(&mut self, amt: usize) {
+        self.position += amt as u64;
+        self.source.consume(amt);
+    }
+}
+
 
 /// Reader which can read and seek limited area of a stream.
 pub struct LimitedSeekReader<R> {
@@ -295,6 +327,17 @@ impl<R: io::Read> io::Read for LimitedSeekReader<R> {
         let size = self.source.by_ref().take(limit).read(buf)?;
         self.current += size as u64;
         Ok(size)
+    }
+}
+
+impl<R: io::BufRead> io::BufRead for LimitedSeekReader<R> {
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        self.source.fill_buf()
+    }
+
+    fn consume(&mut self, amt: usize) {
+        self.current += amt as u64;
+        self.source.consume(amt);
     }
 }
 

@@ -16,7 +16,7 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 pub enum Error {
     /// FBX footer is broken.
     BrokenFbxFooter,
-    /// Successfully finished parsing FBX data.
+    /// Successfully finished parsing the target FBX node(s).
     Finished,
     /// Specified FBX versions mismatched in header and footer.
     HeaderFooterVersionMismatch {
@@ -140,7 +140,8 @@ impl Clone for Error {
             Error::MagicNotDetected(v) => Error::MagicNotDetected(v),
             Error::NodeNameInvalidUtf8(ref err) => Error::NodeNameInvalidUtf8(err.clone()),
             Error::Io(ref err) => {
-                // To clone `io::Error`, convert inner error into string and use it as new inner error.
+                // To clone `io::Error`, convert inner error into string and use it
+                // as a new inner error.
                 Error::Io(io::Error::new(err.kind(), error::Error::description(err)))
             },
             Error::UnknownArrayAttributeEncoding(v) => Error::UnknownArrayAttributeEncoding(v),
