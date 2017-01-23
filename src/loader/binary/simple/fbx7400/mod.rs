@@ -6,6 +6,24 @@ pub use self::connections::{Connections, Connection};
 pub use self::definitions::{Definitions, ObjectType};
 pub use self::properties70::{Properties70, PropertyMap, PropertyValue};
 
+
+/// Tries to load the node attributes for parsing a child node.
+///
+/// The type of `$parser` should be `P: Parser<R> where R: ParserSource`, and
+/// the type of `$load_attr` should be `F: FnOnce(&str, &mut Attributes) -> Result<T, _>`.
+///
+/// This will returns from the parent function on errors.
+macro_rules! try_get_node_attrs {
+    ($parser:expr, $load_attr:expr) => {
+        match $parser.next_event()? {
+            Event::StartNode(info) => $load_attr(info.name, info.attributes)?,
+            Event::EndNode => break,
+            ev => panic!("Unexpected node event: {:?}", ev),
+        }
+    }
+}
+
+
 pub mod connections;
 pub mod definitions;
 pub mod properties70;

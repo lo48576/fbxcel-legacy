@@ -81,19 +81,12 @@ fn load_properties70<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Pro
     let mut props = Properties70::new();
 
     loop {
-        match parser.next_event()? {
-            Event::StartNode(start) => {
-                if start.name == "P" {
-                    load_property(&mut props, start.attributes)?;
-                } else {
-                    warn!("Expected `P` node but got `{}` in `Properties70`",
-                          start.name);
-                    return Err(Error::UnexpectedNode(start.name.to_owned()));
-                }
-            },
-            Event::EndNode => break,
-            _ => unreachable!(),
-        };
+        try_get_node_attrs!(parser, |name: &str, attrs| if name == "P" {
+            load_property(&mut props, attrs)
+        } else {
+            warn!("Expected `P` node but got `{}` in `Properties70`", name);
+            Err(Error::UnexpectedNode(name.to_owned()))
+        });
         parser.skip_current_node()?;
     }
     Ok(props)

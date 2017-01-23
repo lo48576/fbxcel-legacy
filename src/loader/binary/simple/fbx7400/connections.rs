@@ -14,12 +14,7 @@ impl Connections {
         let mut connections = Vec::new();
 
         loop {
-            let attrs = match parser.next_event()? {
-                Event::StartFbx(_) |
-                Event::EndFbx(_) => unreachable!(),
-                Event::StartNode(info) => ConnectionAttrs::load(info.name, info.attributes)?,
-                Event::EndNode => break,
-            };
+            let attrs = try_get_node_attrs!(parser, ConnectionAttrs::load);
             connections.push(Connection::load(parser.subtree_parser(), attrs)?);
         }
         Ok(Connections(connections))

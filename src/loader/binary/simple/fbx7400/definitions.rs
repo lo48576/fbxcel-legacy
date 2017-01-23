@@ -25,12 +25,7 @@ impl Definitions {
         let mut object_types = Vec::new();
 
         loop {
-            let node_type = match parser.next_event()? {
-                Event::StartFbx(_) |
-                Event::EndFbx(_) => unreachable!(),
-                Event::StartNode(info) => DefinitionsChildAttrs::load(info.name, info.attributes)?,
-                Event::EndNode => break,
-            };
+            let node_type = try_get_node_attrs!(parser, DefinitionsChildAttrs::load);
             match node_type {
                 DefinitionsChildAttrs::Version(v) => {
                     version = Some(v);
@@ -109,12 +104,7 @@ impl ObjectType {
         let mut property_template = FnvHashMap::default();
 
         loop {
-            let node_type = match parser.next_event()? {
-                Event::StartFbx(_) |
-                Event::EndFbx(_) => unreachable!(),
-                Event::StartNode(info) => ObjectTypeChildAttrs::load(info.name, info.attributes)?,
-                Event::EndNode => break,
-            };
+            let node_type = try_get_node_attrs!(parser, ObjectTypeChildAttrs::load);
             match node_type {
                 ObjectTypeChildAttrs::Count(v) => {
                     count = Some(v);
@@ -169,16 +159,11 @@ fn load_property_template<R: ParserSource, P: Parser<R>>(mut parser: P) -> Resul
     let mut props = None;
 
     loop {
-        match parser.next_event()? {
-            Event::StartFbx(_) |
-            Event::EndFbx(_) => unreachable!(),
-            Event::StartNode(info) => {
-                if info.name != "Properties70" {
-                    return Err(Error::UnexpectedNode(info.name.to_owned()));
-                }
-            },
-            Event::EndNode => break,
-        }
+        try_get_node_attrs!(parser, |name: &str, _| if name == "Properties70" {
+            Ok(())
+        } else {
+            Err(Error::UnexpectedNode(name.to_owned()))
+        });
         props = Some(Properties70::load(parser.subtree_parser())?);
     }
     Ok(props.ok_or_else(|| Error::MissingNode("PropertyTemplate".to_owned()))?)
