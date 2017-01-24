@@ -4,6 +4,7 @@ use parser::binary::{Parser, ParserSource, FbxFooter, Event, Attributes};
 use loader::binary::simple::{Result, Error, GenericNode};
 pub use self::connections::{Connections, Connection};
 pub use self::definitions::{Definitions, ObjectType};
+pub use self::global_settings::GlobalSettings;
 pub use self::properties70::{Properties70, PropertyMap, PropertyValue};
 
 
@@ -34,6 +35,7 @@ macro_rules! ensure_node_exists {
 
 pub mod connections;
 pub mod definitions;
+pub mod global_settings;
 pub mod properties70;
 
 
@@ -259,22 +261,6 @@ impl Creator {
     pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P, attrs: String) -> Result<Self> {
         parser.skip_current_node()?;
         Ok(Creator(attrs))
-    }
-}
-
-
-/// `GlobalSettings`.
-#[derive(Debug, Clone, PartialEq)]
-pub struct GlobalSettings {
-    /// Child nodes.
-    pub nodes: Vec<GenericNode>,
-}
-
-impl GlobalSettings {
-    /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
-        let nodes = GenericNode::load_from_parser(&mut parser)?.0;
-        Ok(GlobalSettings { nodes: nodes })
     }
 }
 
