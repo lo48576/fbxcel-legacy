@@ -34,6 +34,44 @@ macro_rules! ensure_node_exists {
 }
 
 
+macro_rules! child_attr_loader {
+    (@load $enum_name:ident; $_name:ident; $_attrs:ident; $variant:ident($content:ty);
+        => $load:block $(=> $_rest_load:block)*) => {
+        $load
+    };
+    (@load $enum_name:ident; $name:ident; $attrs:ident; $variant:ident($content:ty);) => {
+        <$content>::from_attributes(&mut $attrs)
+            ?
+            .ok_or_else(|| Error::InvalidAttribute($name.to_owned()))
+            .map($enum_name::$variant)
+    };
+    (@load $enum_name:ident; $name:ident; $attrs:ident; $variant:ident;) => {
+        Ok($enum_name::$variant)
+    };
+    ($enum_name:ident {
+        $($node_name:expr => $variant:ident$(($content:ty))* $(=> $load:block)*),*,
+    }) => {
+        #[derive(Debug)]
+        enum $enum_name {
+            $($variant$(($content))*),*,
+        }
+        impl $enum_name {
+            pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>)
+                -> $crate::loader::binary::simple::Result<Self> {
+                use parser::binary::utils::AttributeValues;
+
+                match name {
+                    $($node_name => child_attr_loader!{
+                        @load $enum_name; name; attrs; $variant$(($content))*; $(=> $load)*
+                    }),*,
+                    _ => Err(Error::UnexpectedNode(name.to_owned())),
+                }
+            }
+        }
+    };
+}
+
+
 pub mod connections;
 pub mod definitions;
 pub mod fbx_header_extension;
