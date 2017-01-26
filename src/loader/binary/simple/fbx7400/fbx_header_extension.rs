@@ -71,57 +71,14 @@ impl FbxHeaderExtension {
 }
 
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum FbxHeaderExtensionChildAttrs {
-    FbxHeaderVersion(i32),
-    FbxVersion(i32),
-    EncryptionType(i32),
-    CreationTimeStamp,
-    Creator(String),
-    SceneInfo((String, String)),
-}
-
-impl FbxHeaderExtensionChildAttrs {
-    /// Creates a `FbxHeaderExtensionChildAttrs` from the given node name.
-    pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>) -> Result<Self> {
-        use parser::binary::utils::AttributeValues;
-
-        match name {
-            "FBXVersion" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(FbxHeaderExtensionChildAttrs::FbxVersion)
-            },
-            "FBXHeaderVersion" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(FbxHeaderExtensionChildAttrs::FbxHeaderVersion)
-            },
-            "EncryptionType" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(FbxHeaderExtensionChildAttrs::EncryptionType)
-            },
-            "CreationTimeStamp" => Ok(FbxHeaderExtensionChildAttrs::CreationTimeStamp),
-            "Creator" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(FbxHeaderExtensionChildAttrs::Creator)
-            },
-            "SceneInfo" => {
-                <(String, String)>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(FbxHeaderExtensionChildAttrs::SceneInfo)
-            },
-            _ => Err(Error::UnexpectedNode(name.to_owned())),
-        }
-    }
-}
+child_attr_loader! { FbxHeaderExtensionChildAttrs {
+    "FBXHeaderVersion" => FbxHeaderVersion(i32),
+    "FBXVersion" => FbxVersion(i32),
+    "EncryptionType" => EncryptionType(i32),
+    "CreationTimeStamp" => CreationTimeStamp,
+    "Creator" => Creator(String),
+    "SceneInfo" => SceneInfo((String, String)),
+}}
 
 
 /// Creation time stamp.
@@ -201,76 +158,16 @@ impl CreationTimeStamp {
 }
 
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum CreationTimeStampChildAttrs {
-    Version(i32),
-    Year(i32),
-    Month(i32),
-    Day(i32),
-    Hour(i32),
-    Minute(i32),
-    Second(i32),
-    Millisecond(i32),
-}
-
-impl CreationTimeStampChildAttrs {
-    /// Creates a `CreationTimeStampChildAttrs` from the given node name.
-    pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>) -> Result<Self> {
-        use parser::binary::utils::AttributeValues;
-
-        match name {
-            "Version" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(CreationTimeStampChildAttrs::Version)
-            },
-            "Year" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(CreationTimeStampChildAttrs::Year)
-            },
-            "Month" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(CreationTimeStampChildAttrs::Month)
-            },
-            "Day" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(CreationTimeStampChildAttrs::Day)
-            },
-            "Hour" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(CreationTimeStampChildAttrs::Hour)
-            },
-            "Minute" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(CreationTimeStampChildAttrs::Minute)
-            },
-            "Second" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(CreationTimeStampChildAttrs::Second)
-            },
-            "Millisecond" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(CreationTimeStampChildAttrs::Millisecond)
-            },
-            _ => Err(Error::UnexpectedNode(name.to_owned())),
-        }
-    }
-}
+child_attr_loader! { CreationTimeStampChildAttrs {
+    "Version" => Version(i32),
+    "Year" => Year(i32),
+    "Month" => Month(i32),
+    "Day" => Day(i32),
+    "Hour" => Hour(i32),
+    "Minute" => Minute(i32),
+    "Second" => Second(i32),
+    "Millisecond" => Millisecond(i32),
+}}
 
 
 /// Scene info.
@@ -347,38 +244,12 @@ impl SceneInfo {
 }
 
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum SceneInfoChildAttrs {
-    Type(String),
-    Version(i32),
-    MetaData,
-    Properties,
-}
-
-impl SceneInfoChildAttrs {
-    /// Creates a `SceneInfoChildAttr` from the given node name.
-    pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>) -> Result<Self> {
-        use parser::binary::utils::AttributeValues;
-
-        match name {
-            "Type" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(SceneInfoChildAttrs::Type)
-            },
-            "Version" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(SceneInfoChildAttrs::Version)
-            },
-            "MetaData" => Ok(SceneInfoChildAttrs::MetaData),
-            "Properties70" => Ok(SceneInfoChildAttrs::Properties),
-            _ => Err(Error::UnexpectedNode(name.to_owned())),
-        }
-    }
-}
+child_attr_loader! { SceneInfoChildAttrs {
+    "Type" => Type(String),
+    "Version" => Version(i32),
+    "MetaData" => MetaData,
+    "Properties70" => Properties,
+}}
 
 
 /// FBX metadata.
@@ -451,69 +322,15 @@ impl MetaData {
 }
 
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum MetaDataChildAttrs {
-    Version(i32),
-    Title(String),
-    Subject(String),
-    Author(String),
-    Keywords(String),
-    Revision(String),
-    Comment(String),
-}
-
-impl MetaDataChildAttrs {
-    /// Creates a `MetaDataChildAttr` from the given node name.
-    pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>) -> Result<Self> {
-        use parser::binary::utils::AttributeValues;
-
-        match name {
-            "Version" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(MetaDataChildAttrs::Version)
-            },
-            "Title" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(MetaDataChildAttrs::Title)
-            },
-            "Subject" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(MetaDataChildAttrs::Subject)
-            },
-            "Author" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(MetaDataChildAttrs::Author)
-            },
-            "Keywords" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(MetaDataChildAttrs::Keywords)
-            },
-            "Revision" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(MetaDataChildAttrs::Revision)
-            },
-            "Comment" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(MetaDataChildAttrs::Comment)
-            },
-            _ => Err(Error::UnexpectedNode(name.to_owned())),
-        }
-    }
-}
+child_attr_loader! { MetaDataChildAttrs {
+    "Version" => Version(i32),
+    "Title" => Title(String),
+    "Subject" => Subject(String),
+    "Author" => Author(String),
+    "Keywords" => Keywords(String),
+    "Revision" => Revision(String),
+    "Comment" => Comment(String),
+}}
 
 
 /// Returns `Option<(name: &'a str, class: &'a str)>`

@@ -49,41 +49,11 @@ impl Definitions {
 }
 
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum DefinitionsChildAttrs {
-    Version(i32),
-    Count(i32),
-    ObjectType(String),
-}
-
-impl DefinitionsChildAttrs {
-    /// Creates a `DefinitionsChildAttrs` from the given node name.
-    pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>) -> Result<Self> {
-        use parser::binary::utils::AttributeValues;
-
-        match name {
-            "Version" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(DefinitionsChildAttrs::Version)
-            },
-            "Count" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(DefinitionsChildAttrs::Count)
-            },
-            "ObjectType" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(DefinitionsChildAttrs::ObjectType)
-            },
-            _ => Err(Error::UnexpectedNode(name.to_owned())),
-        }
-    }
-}
+child_attr_loader! { DefinitionsChildAttrs {
+    "Count" => Count(i32),
+    "Version" => Version(i32),
+    "ObjectType" => ObjectType(String),
+}}
 
 
 /// An object type and property template for it.
@@ -125,34 +95,11 @@ impl ObjectType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum ObjectTypeChildAttrs {
-    Count(i32),
-    PropertyTemplate(String),
-}
 
-impl ObjectTypeChildAttrs {
-    /// Creates an `ObjectTypeChildAttrs` from the given node name.
-    pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>) -> Result<Self> {
-        use parser::binary::utils::AttributeValues;
-
-        match name {
-            "Count" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(ObjectTypeChildAttrs::Count)
-            },
-            "PropertyTemplate" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(ObjectTypeChildAttrs::PropertyTemplate)
-            },
-            _ => Err(Error::UnexpectedNode(name.to_owned())),
-        }
-    }
-}
+child_attr_loader! { ObjectTypeChildAttrs {
+    "Count" => Count(i32),
+    "PropertyTemplate" => PropertyTemplate(String),
+}}
 
 
 fn load_property_template<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Properties70> {

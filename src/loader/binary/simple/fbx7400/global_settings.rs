@@ -40,26 +40,7 @@ impl GlobalSettings {
 }
 
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum GlobalSettingsChildAttrs {
-    Version(i32),
-    Properties70,
-}
-
-impl GlobalSettingsChildAttrs {
-    /// Creates an `ObjectTypeChildAttrs` from the given node name.
-    pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>) -> Result<Self> {
-        use parser::binary::utils::AttributeValues;
-
-        match name {
-            "Version" => {
-                <i32>::from_attributes(&mut attrs)
-                    ?
-                    .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
-                    .map(GlobalSettingsChildAttrs::Version)
-            },
-            "Properties70" => Ok(GlobalSettingsChildAttrs::Properties70),
-            _ => Err(Error::UnexpectedNode(name.to_owned())),
-        }
-    }
-}
+child_attr_loader! { GlobalSettingsChildAttrs {
+    "Version" => Version(i32),
+    "Properties70" => Properties70,
+}}
