@@ -1,8 +1,13 @@
 //! `Objects` node and its children.
 
+use fnv::FnvHashMap;
 use parser::binary::{Parser, ParserSource, Event, Attributes};
-use loader::binary::simple::{Result, Error};
+use loader::binary::simple::{Result, Error, GenericNode};
 use loader::binary::simple::fbx7400::separate_name_class;
+
+
+/// Map type with key = `i64`.
+pub type ObjectMap<T> = FnvHashMap<i64, T>;
 
 
 /// Properties common to object nodes.
@@ -40,14 +45,17 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
 
 /// `Objects`.
 #[derive(Default, Debug, Clone, PartialEq)]
-pub struct Objects {}
+pub struct Objects {
+    /// Unknown type.
+    pub unknown: ObjectMap<UnknownObject>,
+}
 
 impl Objects {
     /// Loads node contents from the parser.
     pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
         use parser::binary::utils::AttributeValues;
 
-        let objects: Objects = Default::default();
+        let mut objects: Objects = Default::default();
 
         loop {
             let obj_props = match parser.next_event()? {
@@ -58,9 +66,41 @@ impl Objects {
                 Event::EndNode => break,
                 ev => panic!("Unexpected node event: {:?}", ev),
             };
-            debug!("obj_props: {:?}", obj_props);
-            parser.skip_current_node()?;
+            // Node name is inferable from object class, therefor the code here only requires
+            // object properties to decide node type.
+            match (obj_props.class.as_str(), obj_props.subclass.as_str()) {
+                _ => {
+                    warn!("Unknown object type: {:?}", obj_props);
+                    let id = obj_props.id;
+                    let obj = UnknownObject::load(parser.subtree_parser(), obj_props)?;
+                    objects.unknown.insert(id, obj);
+                },
+            }
         }
         Ok(objects)
+    }
+}
+
+
+/// An object node of unknown type.
+#[derive(Debug, Clone, PartialEq)]
+pub struct UnknownObject {
+    /// Object properties.
+    pub properties: ObjectProperties,
+    /// Child nodes.
+    pub nodes: Vec<GenericNode>,
+}
+
+impl UnknownObject {
+    /// Loads node contents from the parser.
+    pub fn load<R: ParserSource, P: Parser<R>>(
+        mut parser: P,
+        attrs: ObjectProperties
+    ) -> Result<Self> {
+        let nodes = GenericNode::load_from_parser(&mut parser)?.0;
+        Ok(UnknownObject {
+            properties: attrs,
+            nodes: nodes,
+        })
     }
 }
