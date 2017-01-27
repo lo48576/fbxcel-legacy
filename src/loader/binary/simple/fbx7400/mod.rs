@@ -323,3 +323,10 @@ impl References {
         Ok(References { nodes: nodes })
     }
 }
+
+
+/// Returns `Option<(name: &'a str, class: &'a str)>`
+fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
+    name_class.find("\u{0}\u{1}")
+        .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
+}

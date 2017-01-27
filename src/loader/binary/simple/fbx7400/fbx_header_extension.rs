@@ -2,6 +2,7 @@
 
 use parser::binary::{Parser, ParserSource, Event, Attributes};
 use loader::binary::simple::{Result, Error};
+use loader::binary::simple::fbx7400::separate_name_class;
 use loader::binary::simple::fbx7400::Properties70;
 
 
@@ -331,10 +332,3 @@ child_attr_loader! { MetaDataChildAttrs {
     "Revision" => Revision(String),
     "Comment" => Comment(String),
 }}
-
-
-/// Returns `Option<(name: &'a str, class: &'a str)>`
-fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
-    name_class.find("\u{0}\u{1}")
-        .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
-}
