@@ -6,6 +6,7 @@ pub use self::connections::{Connections, Connection};
 pub use self::definitions::{Definitions, ObjectType};
 pub use self::fbx_header_extension::{FbxHeaderExtension, CreationTimeStamp, SceneInfo};
 pub use self::global_settings::GlobalSettings;
+pub use self::objects::Objects;
 pub use self::properties70::{Properties70, PropertyMap, PropertyValue};
 pub use self::takes::{Takes, Take};
 
@@ -77,6 +78,7 @@ pub mod connections;
 pub mod definitions;
 pub mod fbx_header_extension;
 pub mod global_settings;
+pub mod objects;
 pub mod properties70;
 pub mod takes;
 
@@ -319,21 +321,5 @@ impl References {
     pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
         let nodes = GenericNode::load_from_parser(&mut parser)?.0;
         Ok(References { nodes: nodes })
-    }
-}
-
-
-/// `Objects`.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Objects {
-    /// Child nodes.
-    pub nodes: Vec<GenericNode>,
-}
-
-impl Objects {
-    /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
-        let nodes = GenericNode::load_from_parser(&mut parser)?.0;
-        Ok(Objects { nodes: nodes })
     }
 }
