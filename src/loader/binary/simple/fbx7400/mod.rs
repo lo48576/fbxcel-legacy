@@ -7,6 +7,7 @@ pub use self::definitions::{Definitions, ObjectType};
 pub use self::fbx_header_extension::{FbxHeaderExtension, CreationTimeStamp, SceneInfo};
 pub use self::global_settings::GlobalSettings;
 pub use self::properties70::{Properties70, PropertyMap, PropertyValue};
+pub use self::takes::{Takes, Take};
 
 
 /// Tries to load the node attributes for parsing a child node.
@@ -77,6 +78,7 @@ pub mod definitions;
 pub mod fbx_header_extension;
 pub mod global_settings;
 pub mod properties70;
+pub mod takes;
 
 
 /// FBX 7.4 or later.
@@ -333,21 +335,5 @@ impl Objects {
     pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
         let nodes = GenericNode::load_from_parser(&mut parser)?.0;
         Ok(Objects { nodes: nodes })
-    }
-}
-
-
-/// `Takes`.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Takes {
-    /// Child nodes.
-    pub nodes: Vec<GenericNode>,
-}
-
-impl Takes {
-    /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
-        let nodes = GenericNode::load_from_parser(&mut parser)?.0;
-        Ok(Takes { nodes: nodes })
     }
 }
