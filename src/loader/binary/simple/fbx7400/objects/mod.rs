@@ -1,7 +1,7 @@
 //! `Objects` node and its children.
 
-use parser::binary::{Parser, ParserSource, Attributes};
-use loader::binary::simple::{Result, GenericNode};
+use parser::binary::{Parser, ParserSource, Event, Attributes};
+use loader::binary::simple::{Result, Error};
 use loader::binary::simple::fbx7400::separate_name_class;
 
 
@@ -39,16 +39,28 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
 
 
 /// `Objects`.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Objects {
-    /// Child nodes.
-    pub nodes: Vec<GenericNode>,
-}
+#[derive(Default, Debug, Clone, PartialEq)]
+pub struct Objects {}
 
 impl Objects {
     /// Loads node contents from the parser.
     pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
-        let nodes = GenericNode::load_from_parser(&mut parser)?.0;
-        Ok(Objects { nodes: nodes })
+        use parser::binary::utils::AttributeValues;
+
+        let objects: Objects = Default::default();
+
+        loop {
+            let obj_props = match parser.next_event()? {
+                Event::StartNode(mut info) => {
+                    <ObjectProperties>::from_attributes(&mut info.attributes)?
+                        .ok_or_else(|| Error::InvalidAttribute(info.name.to_owned()))?
+                },
+                Event::EndNode => break,
+                ev => panic!("Unexpected node event: {:?}", ev),
+            };
+            debug!("obj_props: {:?}", obj_props);
+            parser.skip_current_node()?;
+        }
+        Ok(objects)
     }
 }
