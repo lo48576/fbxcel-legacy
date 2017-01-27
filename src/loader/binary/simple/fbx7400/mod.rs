@@ -58,9 +58,12 @@ macro_rules! child_attr_loader {
             $($variant$(($content))*),*,
         }
         impl $enum_name {
-            pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>)
-                -> $crate::loader::binary::simple::Result<Self> {
-                use parser::binary::utils::AttributeValues;
+            pub fn load<R: $crate::parser::binary::ParserSource>(
+                name: &str,
+                mut attrs: $crate::parser::binary::Attributes<R>
+            ) -> $crate::loader::binary::simple::Result<Self> {
+                use $crate::parser::binary::utils::AttributeValues;
+                use $crate::loader::binary::simple::Error;
 
                 match name {
                     $($node_name => child_attr_loader!{
