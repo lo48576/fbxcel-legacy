@@ -1,6 +1,6 @@
 //! `GlobalSettings` node and its children.
 
-use parser::binary::{Parser, ParserSource, Event};
+use parser::binary::{Parser, ParserSource};
 use loader::binary::simple::Result;
 use loader::binary::simple::fbx7400::Properties70;
 

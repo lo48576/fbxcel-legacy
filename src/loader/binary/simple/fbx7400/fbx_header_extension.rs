@@ -1,6 +1,6 @@
 //! `Definitions` node and its children.
 
-use parser::binary::{Parser, ParserSource, Event};
+use parser::binary::{Parser, ParserSource};
 use loader::binary::simple::{Result, Error};
 use loader::binary::simple::fbx7400::separate_name_class;
 use loader::binary::simple::fbx7400::Properties70;

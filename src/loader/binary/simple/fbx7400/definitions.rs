@@ -1,7 +1,7 @@
 //! `Definitions` node and its children.
 
 use fnv::FnvHashMap;
-use parser::binary::{Parser, ParserSource, Event};
+use parser::binary::{Parser, ParserSource};
 use loader::binary::simple::{Result, Error};
 use loader::binary::simple::fbx7400::Properties70;
 

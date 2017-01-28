@@ -18,13 +18,14 @@ pub use self::takes::{Takes, Take};
 ///
 /// This will returns from the parent function on errors.
 macro_rules! try_get_node_attrs {
-    ($parser:expr, $load_attr:expr) => {
+    ($parser:expr, $load_attr:expr) => {{
+        use $crate::parser::binary::Event;
         match $parser.next_event()? {
             Event::StartNode(info) => $load_attr(info.name, info.attributes)?,
             Event::EndNode => break,
             ev => panic!("Unexpected node event: {:?}", ev),
         }
-    }
+    }}
 }
 
 
