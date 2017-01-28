@@ -1,5 +1,6 @@
 //! `Properties70` node and its children.
 
+use std::fmt;
 use fnv::{FnvHashSet, FnvHashMap};
 use parser::binary::{Parser, ParserSource, Event, Attributes};
 use parser::binary::{Attribute, PrimitiveAttribute};
@@ -11,7 +12,7 @@ pub type PropertyMap<T> = FnvHashMap<String, PropertyValue<T>>;
 
 
 /// Struct to store `Properties70` node data.
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Clone, PartialEq)]
 pub struct Properties70 {
     /// Properties without values.
     values_empty: FnvHashSet<String>,
@@ -42,6 +43,29 @@ impl Properties70 {
     /// Loads a node from the parser.
     pub fn load<R: ParserSource, P: Parser<R>>(parser: P) -> Result<Self> {
         load_properties70(parser)
+    }
+}
+
+impl fmt::Debug for Properties70 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut format = f.debug_struct("Properties70");
+        macro_rules! show {
+            ($field:ident) => {
+                if !self.$field.is_empty() {
+                    format.field(stringify!($field), &self.$field);
+                }
+            }
+        }
+        show!(values_empty);
+        show!(values_i64);
+        show!(values_f64);
+        show!(values_f64_2);
+        show!(values_f64_3);
+        show!(values_f64_4);
+        show!(values_f64_4x4);
+        show!(values_string);
+        show!(values_binary);
+        format.finish()
     }
 }
 
