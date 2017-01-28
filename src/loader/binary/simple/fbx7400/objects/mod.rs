@@ -1,7 +1,7 @@
 //! `Objects` node and its children.
 
 use fnv::FnvHashMap;
-use parser::binary::{Parser, ParserSource, Event, Attributes};
+use parser::binary::{Parser, ParserSource, Attributes};
 use loader::binary::simple::{Result, Error, GenericNode};
 use loader::binary::simple::fbx7400::separate_name_class;
 
@@ -58,6 +58,7 @@ impl Objects {
         let mut objects: Objects = Default::default();
 
         loop {
+            use parser::binary::Event;
             let obj_props = match parser.next_event()? {
                 Event::StartNode(mut info) => {
                     <ObjectProperties>::from_attributes(&mut info.attributes)?
