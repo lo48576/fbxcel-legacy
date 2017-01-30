@@ -14,7 +14,9 @@ pub struct Definitions {
     /// Reference count?
     pub count: i32,
     /// Property templates for object types.
-    pub object_types: Vec<ObjectType>,
+    ///
+    /// Key is target object type (in C++ typename).
+    pub object_types: FnvHashMap<String, ObjectType>,
 }
 
 impl Definitions {
@@ -22,7 +24,7 @@ impl Definitions {
     pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
         let mut version = None;
         let mut count = None;
-        let mut object_types = Vec::new();
+        let mut object_types = FnvHashMap::default();
 
         loop {
             let node_type = try_get_node_attrs!(parser, DefinitionsChildAttrs::load);
@@ -36,7 +38,8 @@ impl Definitions {
                     parser.skip_current_node()?;
                 },
                 DefinitionsChildAttrs::ObjectType(attrs) => {
-                    object_types.push(ObjectType::load(parser.subtree_parser(), attrs)?);
+                    let obj = ObjectType::load(parser.subtree_parser())?;
+                    object_types.insert(attrs, obj);
                 },
             }
         }
@@ -59,8 +62,6 @@ child_attr_loader! { DefinitionsChildAttrs {
 /// An object type and property template for it.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ObjectType {
-    /// Target object type.
-    pub object_type: String,
     /// Reference count?
     pub count: i32,
     /// Property templates.
@@ -69,7 +70,7 @@ pub struct ObjectType {
 
 impl ObjectType {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P, attrs: String) -> Result<Self> {
+    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
         let mut count = None;
         let mut property_template = FnvHashMap::default();
 
@@ -88,7 +89,6 @@ impl ObjectType {
         }
 
         Ok(ObjectType {
-            object_type: attrs,
             count: ensure_node_exists!(count, "ObjectType"),
             property_template: property_template,
         })
