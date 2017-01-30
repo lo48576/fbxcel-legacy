@@ -28,6 +28,7 @@ macro_rules! get_property {
 }
 
 
+pub mod deformer;
 pub mod node_attribute;
 
 
@@ -75,6 +76,8 @@ pub struct Objects {
     pub node_attribute_limbnode: ObjectMap<node_attribute::NodeAttributeLimbNode>,
     /// `NodeAttribute` node with class=`NodeAttribute`, subclass=`Null`.
     pub node_attribute_null: ObjectMap<node_attribute::NodeAttributeNull>,
+    /// `Deformer` node with class=`SubDeformer`, subclass=`Cluster`.
+    pub subdeformer_cluster: ObjectMap<deformer::SubDeformerCluster>,
     /// Unknown type.
     pub unknown: ObjectMap<UnknownObject>,
 }
@@ -101,6 +104,13 @@ impl Objects {
                     let obj = node_attribute::NodeAttributeNull::load(parser.subtree_parser(),
                                                                       obj_props)?;
                     objects.node_attribute_null.insert(id, obj);
+                },
+                // `Deformer`.
+                ("SubDeformer", "Cluster") => {
+                    let id = obj_props.id;
+                    let obj = deformer::SubDeformerCluster::load(parser.subtree_parser(),
+                                                                 obj_props)?;
+                    objects.subdeformer_cluster.insert(id, obj);
                 },
                 _ => {
                     warn!("Unknown object type: {:?}", obj_props);
