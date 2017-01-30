@@ -11,7 +11,7 @@ use loader::binary::simple::fbx7400::objects::ObjectProperties;
 ///
 /// `FbxCluster` of FBX SDK (2017).
 #[derive(Debug, Clone, PartialEq)]
-pub struct SubDeformerCluster {
+pub struct Cluster {
     /// Object id.
     pub id: i64,
     /// `Version`.
@@ -29,7 +29,7 @@ pub struct SubDeformerCluster {
     pub transform_link: [[f64; 4]; 4],
 }
 
-impl SubDeformerCluster {
+impl Cluster {
     /// Loads node contents from the parser.
     pub fn load<R: ParserSource, P: Parser<R>>(
         mut parser: P,
@@ -43,28 +43,28 @@ impl SubDeformerCluster {
         let mut transform_link = None;
 
         loop {
-            let node_type = try_get_node_attrs!(parser, SubDeformerClusterChildAttrs::load);
+            let node_type = try_get_node_attrs!(parser, ClusterChildAttrs::load);
             match node_type {
-                SubDeformerClusterChildAttrs::Version(v) => {
+                ClusterChildAttrs::Version(v) => {
                     version = Some(v);
                 },
-                SubDeformerClusterChildAttrs::UserData(v) => {
+                ClusterChildAttrs::UserData(v) => {
                     user_data = Some(v);
                 },
-                SubDeformerClusterChildAttrs::Indexes(v) => {
+                ClusterChildAttrs::Indexes(v) => {
                     indexes = Some(v);
                 },
-                SubDeformerClusterChildAttrs::Weights(v) => {
+                ClusterChildAttrs::Weights(v) => {
                     weights = Some(v);
                 },
-                SubDeformerClusterChildAttrs::Transform(v) => {
+                ClusterChildAttrs::Transform(v) => {
                     let mat = arr16_to_mat4x4(v);
                     if mat.is_none() {
                         return Err(Error::InvalidAttribute("Transform".to_owned()));
                     }
                     transform = mat;
                 },
-                SubDeformerClusterChildAttrs::TransformLink(v) => {
+                ClusterChildAttrs::TransformLink(v) => {
                     let mat = arr16_to_mat4x4(v);
                     if mat.is_none() {
                         return Err(Error::InvalidAttribute("TransformLink".to_owned()));
@@ -94,7 +94,7 @@ impl SubDeformerCluster {
             },
             (None, None) => None,
         };
-        Ok(SubDeformerCluster {
+        Ok(Cluster {
             id: obj_props.id,
             version: ensure_node_exists!(version, node_msg!(Deformer, SubDeformer, Cluster)),
             user_data: ensure_node_exists!(user_data, node_msg!(Deformer, SubDeformer, Cluster)),
@@ -114,7 +114,7 @@ impl SubDeformerCluster {
 }
 
 
-child_attr_loader! { SubDeformerClusterChildAttrs {
+child_attr_loader! { ClusterChildAttrs {
     "Version" => Version(i32),
     "UserData" => UserData((String, String)),
     "Indexes" => Indexes(Vec<i32>),
