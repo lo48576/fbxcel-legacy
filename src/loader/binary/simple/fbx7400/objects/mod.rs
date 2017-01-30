@@ -2,7 +2,7 @@
 
 use fnv::FnvHashMap;
 use parser::binary::{Parser, ParserSource, Attributes};
-use loader::binary::simple::{Result, Error, GenericNode};
+use loader::binary::simple::{Result, GenericNode};
 use loader::binary::simple::fbx7400::separate_name_class;
 
 
@@ -53,20 +53,10 @@ pub struct Objects {
 impl Objects {
     /// Loads node contents from the parser.
     pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
-        use parser::binary::utils::AttributeValues;
-
         let mut objects: Objects = Default::default();
 
         loop {
-            use parser::binary::Event;
-            let obj_props = match parser.next_event()? {
-                Event::StartNode(mut info) => {
-                    <ObjectProperties>::from_attributes(&mut info.attributes)?
-                        .ok_or_else(|| Error::InvalidAttribute(info.name.to_owned()))?
-                },
-                Event::EndNode => break,
-                ev => panic!("Unexpected node event: {:?}", ev),
-            };
+            let obj_props = try_get_node_attrs!(parser, load_object_property);
             // Node name is inferable from object class, therefor the code here only requires
             // object properties to decide node type.
             match (obj_props.class.as_str(), obj_props.subclass.as_str()) {
@@ -80,6 +70,20 @@ impl Objects {
         }
         Ok(objects)
     }
+}
+
+
+/// Loads `ObjectProperties` in the same manner as usual child node attributes.
+fn load_object_property<R: ParserSource>(
+    name: &str,
+    mut attrs: Attributes<R>
+) -> Result<ObjectProperties> {
+    use parser::binary::utils::AttributeValues;
+    use loader::binary::simple::Error;
+
+    <ObjectProperties>::from_attributes(&mut attrs)
+        ?
+        .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
 }
 
 
