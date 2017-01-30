@@ -334,3 +334,17 @@ fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
     name_class.find("\u{0}\u{1}")
         .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
 }
+
+
+/// Converts `[T; 16]` into `[[T; 4]; 4]`.
+fn arr16_to_mat4x4<T: Copy, V: AsRef<[T]>>(v: V) -> Option<[[T; 4]; 4]> {
+    let v = v.as_ref();
+    if v.len() == 16 {
+        Some([[v[0], v[1], v[2], v[3]],
+              [v[4], v[5], v[6], v[7]],
+              [v[8], v[9], v[10], v[11]],
+              [v[12], v[13], v[14], v[15]]])
+    } else {
+        None
+    }
+}
