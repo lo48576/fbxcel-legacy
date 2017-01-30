@@ -29,8 +29,8 @@ macro_rules! get_property {
 
 
 pub mod deformer;
-pub mod node_attribute;
 pub mod null;
+pub mod skeleton;
 
 
 /// Map type with key = `i64`.
@@ -73,10 +73,10 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
 /// `Objects`.
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct Objects {
-    /// `NodeAttribute` node with class=`NodeAttribute`, subclass=`LimbNode`.
-    pub node_attribute_limbnode: ObjectMap<node_attribute::NodeAttributeLimbNode>,
     /// `Null`.
     pub null: ObjectMap<null::Null>,
+    /// `Skeleton`.
+    pub skeleton: ObjectMap<skeleton::Skeleton>,
     /// `Deformer` node with class=`SubDeformer`, subclass=`Cluster`.
     pub subdeformer_cluster: ObjectMap<deformer::SubDeformerCluster>,
     /// Unknown type.
@@ -96,9 +96,8 @@ impl Objects {
                 // `NodeAttribute`.
                 ("NodeAttribute", "LimbNode") => {
                     let id = obj_props.id;
-                    let obj = node_attribute::NodeAttributeLimbNode::load(parser.subtree_parser(),
-                                                                          obj_props)?;
-                    objects.node_attribute_limbnode.insert(id, obj);
+                    let obj = skeleton::Skeleton::load(parser.subtree_parser(), obj_props)?;
+                    objects.skeleton.insert(id, obj);
                 },
                 ("NodeAttribute", "Null") => {
                     let id = obj_props.id;

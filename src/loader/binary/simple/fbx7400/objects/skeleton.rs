@@ -1,4 +1,4 @@
-//! `NodeAttribute` nodes.
+//! `Skeleton` object.
 
 use parser::binary::{Parser, ParserSource};
 use loader::binary::simple::Result;
@@ -10,7 +10,7 @@ use loader::binary::simple::fbx7400::objects::ObjectProperties;
 ///
 /// `FbxSkeleton` of FBX SDK (2017).
 #[derive(Debug, Clone, PartialEq)]
-pub struct NodeAttributeLimbNode {
+pub struct Skeleton {
     /// Object id.
     pub id: i64,
     /// `TypeFlags`.
@@ -21,7 +21,7 @@ pub struct NodeAttributeLimbNode {
     pub properties: Properties70,
 }
 
-impl NodeAttributeLimbNode {
+impl Skeleton {
     /// Loads node contents from the parser.
     pub fn load<R: ParserSource, P: Parser<R>>(
         mut parser: P,
@@ -31,18 +31,18 @@ impl NodeAttributeLimbNode {
         let mut properties = None;
 
         loop {
-            let node_type = try_get_node_attrs!(parser, NodeAttributeLimbNodeChildAttrs::load);
+            let node_type = try_get_node_attrs!(parser, SkeletonChildAttrs::load);
             match node_type {
-                NodeAttributeLimbNodeChildAttrs::TypeFlags(v) => {
+                SkeletonChildAttrs::TypeFlags(v) => {
                     type_flags = Some(v);
                     parser.skip_current_node()?;
                 },
-                NodeAttributeLimbNodeChildAttrs::Properties70 => {
+                SkeletonChildAttrs::Properties70 => {
                     properties = Some(Properties70::load(parser.subtree_parser())?);
                 },
             }
         }
-        Ok(NodeAttributeLimbNode {
+        Ok(Skeleton {
             id: obj_props.id,
             type_flags: ensure_node_exists!(type_flags,
                                             node_msg!(NodeAttribute, NodeAttribute, LimbNode)),
@@ -65,7 +65,7 @@ impl NodeAttributeLimbNode {
 }
 
 
-child_attr_loader! { NodeAttributeLimbNodeChildAttrs {
+child_attr_loader! { SkeletonChildAttrs {
     "TypeFlags" => TypeFlags(String),
     "Properties70" => Properties70,
 }}
