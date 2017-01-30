@@ -71,6 +71,8 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
 /// `Objects`.
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct Objects {
+    /// `NodeAttribute` node with class=`NodeAttribute`, subclass=`LimbNode`.
+    pub node_attribute_limbnode: ObjectMap<node_attribute::NodeAttributeLimbNode>,
     /// `NodeAttribute` node with class=`NodeAttribute`, subclass=`Null`.
     pub node_attribute_null: ObjectMap<node_attribute::NodeAttributeNull>,
     /// Unknown type.
@@ -88,6 +90,12 @@ impl Objects {
             // object properties to decide node type.
             match (obj_props.class.as_str(), obj_props.subclass.as_str()) {
                 // `NodeAttribute`.
+                ("NodeAttribute", "LimbNode") => {
+                    let id = obj_props.id;
+                    let obj = node_attribute::NodeAttributeLimbNode::load(parser.subtree_parser(),
+                                                                          obj_props)?;
+                    objects.node_attribute_limbnode.insert(id, obj);
+                },
                 ("NodeAttribute", "Null") => {
                     let id = obj_props.id;
                     let obj = node_attribute::NodeAttributeNull::load(parser.subtree_parser(),
