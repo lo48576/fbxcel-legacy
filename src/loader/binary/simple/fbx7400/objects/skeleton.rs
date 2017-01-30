@@ -25,7 +25,7 @@ impl Skeleton {
     /// Loads node contents from the parser.
     pub fn load<R: ParserSource, P: Parser<R>>(
         mut parser: P,
-        obj_props: ObjectProperties
+        obj_props: &ObjectProperties
     ) -> Result<Self> {
         let mut type_flags = None;
         let mut properties = None;

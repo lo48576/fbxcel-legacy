@@ -96,18 +96,18 @@ impl Objects {
                 // `NodeAttribute`.
                 ("NodeAttribute", "LimbNode") => {
                     let id = obj_props.id;
-                    let obj = skeleton::Skeleton::load(parser.subtree_parser(), obj_props)?;
+                    let obj = skeleton::Skeleton::load(parser.subtree_parser(), &obj_props)?;
                     objects.skeleton.insert(id, obj);
                 },
                 ("NodeAttribute", "Null") => {
                     let id = obj_props.id;
-                    let obj = null::Null::load(parser.subtree_parser(), obj_props)?;
+                    let obj = null::Null::load(parser.subtree_parser(), &obj_props)?;
                     objects.null.insert(id, obj);
                 },
                 // `Deformer`.
                 ("SubDeformer", "Cluster") => {
                     let id = obj_props.id;
-                    let obj = cluster::Cluster::load(parser.subtree_parser(), obj_props)?;
+                    let obj = cluster::Cluster::load(parser.subtree_parser(), &obj_props)?;
                     objects.cluster.insert(id, obj);
                 },
                 _ => {
