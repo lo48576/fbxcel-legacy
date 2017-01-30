@@ -28,7 +28,7 @@ macro_rules! get_property {
 }
 
 
-pub mod deformer;
+pub mod cluster;
 pub mod null;
 pub mod skeleton;
 
@@ -73,12 +73,12 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
 /// `Objects`.
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct Objects {
+    /// `Cluster`.
+    pub cluster: ObjectMap<cluster::Cluster>,
     /// `Null`.
     pub null: ObjectMap<null::Null>,
     /// `Skeleton`.
     pub skeleton: ObjectMap<skeleton::Skeleton>,
-    /// `Deformer` node with class=`SubDeformer`, subclass=`Cluster`.
-    pub subdeformer_cluster: ObjectMap<deformer::SubDeformerCluster>,
     /// Unknown type.
     pub unknown: ObjectMap<UnknownObject>,
 }
@@ -107,9 +107,8 @@ impl Objects {
                 // `Deformer`.
                 ("SubDeformer", "Cluster") => {
                     let id = obj_props.id;
-                    let obj = deformer::SubDeformerCluster::load(parser.subtree_parser(),
-                                                                 obj_props)?;
-                    objects.subdeformer_cluster.insert(id, obj);
+                    let obj = cluster::Cluster::load(parser.subtree_parser(), obj_props)?;
+                    objects.cluster.insert(id, obj);
                 },
                 _ => {
                     warn!("Unknown object type: {:?}", obj_props);
