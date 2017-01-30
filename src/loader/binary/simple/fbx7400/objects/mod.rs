@@ -6,6 +6,31 @@ use loader::binary::simple::{Result, GenericNode};
 use loader::binary::simple::fbx7400::separate_name_class;
 
 
+macro_rules! node_msg {
+    ($node:ident, $class:ident, $subclass:ident) => {
+        concat!(stringify!($node),
+                " (class=`",
+                stringify!($class),
+                "`, subclass=`",
+                stringify!($subclass),
+                "`)")
+    }
+}
+
+
+macro_rules! get_property {
+    ($obj_props:expr, $def_props_opt:expr, $field:ident, $name:expr) => {
+        $obj_props
+            .$field
+            .get($name)
+            .or_else(|| $def_props_opt.and_then(|d| d.$field.get($name)))
+    };
+}
+
+
+pub mod node_attribute;
+
+
 /// Map type with key = `i64`.
 pub type ObjectMap<T> = FnvHashMap<i64, T>;
 
@@ -46,6 +71,8 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
 /// `Objects`.
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct Objects {
+    /// `NodeAttribute` node with class=`NodeAttribute`, subclass=`Null`.
+    pub node_attribute_null: ObjectMap<node_attribute::NodeAttributeNull>,
     /// Unknown type.
     pub unknown: ObjectMap<UnknownObject>,
 }
@@ -60,6 +87,13 @@ impl Objects {
             // Node name is inferable from object class, therefor the code here only requires
             // object properties to decide node type.
             match (obj_props.class.as_str(), obj_props.subclass.as_str()) {
+                // `NodeAttribute`.
+                ("NodeAttribute", "Null") => {
+                    let id = obj_props.id;
+                    let obj = node_attribute::NodeAttributeNull::load(parser.subtree_parser(),
+                                                                      obj_props)?;
+                    objects.node_attribute_null.insert(id, obj);
+                },
                 _ => {
                     warn!("Unknown object type: {:?}", obj_props);
                     let id = obj_props.id;
