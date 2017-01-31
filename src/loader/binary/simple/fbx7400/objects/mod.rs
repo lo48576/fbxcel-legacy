@@ -29,6 +29,7 @@ macro_rules! get_property {
 
 
 pub mod cluster;
+pub mod display_layer;
 pub mod model;
 pub mod null;
 pub mod skeleton;
@@ -76,6 +77,8 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
 pub struct Objects {
     /// `Cluster`.
     pub cluster: ObjectMap<cluster::Cluster>,
+    /// `DisplayLayer`.
+    pub display_layer: ObjectMap<display_layer::DisplayLayer>,
     /// `Model` (class=`Model`, subclass=`Camera`).
     pub model_camera: ObjectMap<model::Model>,
     /// `Model` (class=`Model`, subclass=`Light`).
@@ -136,6 +139,13 @@ impl Objects {
                     let id = obj_props.id;
                     let obj = null::Null::load(parser.subtree_parser(), &obj_props)?;
                     objects.null.insert(id, obj);
+                },
+                // `CollectionExclusive`.
+                ("DisplayLayer", "DisplayLayer") => {
+                    let id = obj_props.id;
+                    let obj = display_layer::DisplayLayer::load(parser.subtree_parser(),
+                                                                &obj_props)?;
+                    objects.display_layer.insert(id, obj);
                 },
                 // `Deformer`.
                 ("SubDeformer", "Cluster") => {
