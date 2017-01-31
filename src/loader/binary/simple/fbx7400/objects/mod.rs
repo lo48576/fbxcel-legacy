@@ -131,27 +131,23 @@ impl Objects {
                 },
                 // `NodeAttribute`.
                 ("NodeAttribute", "LimbNode") => {
-                    let id = obj_props.id;
                     let obj = skeleton::Skeleton::load(parser.subtree_parser(), &obj_props)?;
-                    objects.skeleton.insert(id, obj);
+                    objects.skeleton.insert(obj_props.id, obj);
                 },
                 ("NodeAttribute", "Null") => {
-                    let id = obj_props.id;
                     let obj = null::Null::load(parser.subtree_parser(), &obj_props)?;
-                    objects.null.insert(id, obj);
+                    objects.null.insert(obj_props.id, obj);
                 },
                 // `CollectionExclusive`.
                 ("DisplayLayer", "DisplayLayer") => {
-                    let id = obj_props.id;
                     let obj = display_layer::DisplayLayer::load(parser.subtree_parser(),
                                                                 &obj_props)?;
-                    objects.display_layer.insert(id, obj);
+                    objects.display_layer.insert(obj_props.id, obj);
                 },
                 // `Deformer`.
                 ("SubDeformer", "Cluster") => {
-                    let id = obj_props.id;
                     let obj = cluster::Cluster::load(parser.subtree_parser(), &obj_props)?;
-                    objects.cluster.insert(id, obj);
+                    objects.cluster.insert(obj_props.id, obj);
                 },
                 _ => {
                     // Here `obj_props` is borrowed and it can't be passed for
