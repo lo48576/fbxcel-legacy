@@ -1,4 +1,4 @@
-//! `Deformer` and `SubDeformer` nodes.
+//! `Cluster` object.
 
 use parser::binary::{Parser, ParserSource};
 use loader::binary::simple::{Result, Error};
