@@ -29,6 +29,7 @@ macro_rules! get_property {
 
 
 pub mod cluster;
+pub mod model;
 pub mod null;
 pub mod skeleton;
 
@@ -75,6 +76,18 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
 pub struct Objects {
     /// `Cluster`.
     pub cluster: ObjectMap<cluster::Cluster>,
+    /// `Model` (class=`Model`, subclass=`Camera`).
+    pub model_camera: ObjectMap<model::Model>,
+    /// `Model` (class=`Model`, subclass=`Light`).
+    pub model_light: ObjectMap<model::Model>,
+    /// `Model` (class=`Model`, subclass=`LimbNode`).
+    pub model_limbnode: ObjectMap<model::Model>,
+    /// `Model` (class=`Model`, subclass=`Mesh`).
+    pub model_mesh: ObjectMap<model::Model>,
+    /// `Model` (class=`Model`, subclass=`Null`).
+    pub model_null: ObjectMap<model::Model>,
+    /// `Model` (class=`Model`, subclass is unknown).
+    pub model_unknown: ObjectMap<model::Model>,
     /// `Null`.
     pub null: ObjectMap<null::Null>,
     /// `Skeleton`.
@@ -94,6 +107,25 @@ impl Objects {
             // Node name is inferable from object class, therefor the code here only requires
             // object properties to decide node type.
             match (obj_props.class.as_str(), obj_props.subclass.as_str()) {
+                // `Model`.
+                ("Model", subclass) => {
+                    let id = obj_props.id;
+                    let obj = model::Model::load(parser.subtree_parser(), &obj_props)?;
+                    let target = match subclass {
+                        "Camera" => &mut objects.model_camera,
+                        "Light" => &mut objects.model_light,
+                        "LimbNode" => &mut objects.model_limbnode,
+                        "Mesh" => &mut objects.model_mesh,
+                        "Null" => &mut objects.model_null,
+                        _ => {
+                            warn!("Unknown model subclass: id={:?}, subclass={:?}",
+                                  obj_props.id,
+                                  obj_props);
+                            &mut objects.model_unknown
+                        },
+                    };
+                    target.insert(id, obj);
+                },
                 // `NodeAttribute`.
                 ("NodeAttribute", "LimbNode") => {
                     let id = obj_props.id;
