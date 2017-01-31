@@ -46,8 +46,7 @@ impl Skeleton {
             id: obj_props.id,
             type_flags: ensure_node_exists!(type_flags,
                                             node_msg!(NodeAttribute, NodeAttribute, LimbNode)),
-            properties: ensure_node_exists!(properties,
-                                            node_msg!(NodeAttribute, NodeAttribute, LimbNode)),
+            properties: properties.unwrap_or_default(),
         })
     }
 

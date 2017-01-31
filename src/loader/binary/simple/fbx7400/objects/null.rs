@@ -46,8 +46,7 @@ impl Null {
             id: obj_props.id,
             type_flags: ensure_node_exists!(type_flags,
                                             node_msg!(NodeAttribute, NodeAttribute, Null)),
-            properties: ensure_node_exists!(properties,
-                                            node_msg!(NodeAttribute, NodeAttribute, Null)),
+            properties: properties.unwrap_or_default(),
         })
     }
 
