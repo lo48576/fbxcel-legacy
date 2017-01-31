@@ -33,6 +33,7 @@ pub mod cluster;
 pub mod display_layer;
 pub mod model;
 pub mod null;
+pub mod shape;
 pub mod skeleton;
 pub mod skin;
 
@@ -97,6 +98,8 @@ pub struct Objects {
     pub model_unknown: ObjectMap<model::Model>,
     /// `Null`.
     pub null: ObjectMap<null::Null>,
+    /// `Shape`.
+    pub shape: ObjectMap<shape::Shape>,
     /// `Skeleton`.
     pub skeleton: ObjectMap<skeleton::Skeleton>,
     /// `Skin`.
@@ -164,6 +167,11 @@ impl Objects {
                 ("SubDeformer", "Cluster") => {
                     let obj = cluster::Cluster::load(parser.subtree_parser(), &obj_props)?;
                     objects.cluster.insert(obj_props.id, obj);
+                },
+                // `Geometry`.
+                ("Geometry", "Shape") => {
+                    let obj = shape::Shape::load(parser.subtree_parser(), &obj_props)?;
+                    objects.shape.insert(obj_props.id, obj);
                 },
                 _ => {
                     // Here `obj_props` is borrowed and it can't be passed for
