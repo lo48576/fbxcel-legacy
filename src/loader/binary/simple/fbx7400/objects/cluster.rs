@@ -58,11 +58,10 @@ impl Cluster {
                     weights = Some(v);
                 },
                 ClusterChildAttrs::Transform(v) => {
-                    let mat = arr16_to_mat4x4(v);
-                    if mat.is_none() {
+                    transform = arr16_to_mat4x4(v);
+                    if transform.is_none() {
                         return Err(Error::InvalidAttribute("Transform".to_owned()));
                     }
-                    transform = mat;
                 },
                 ClusterChildAttrs::TransformLink(v) => {
                     let mat = arr16_to_mat4x4(v);
