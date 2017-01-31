@@ -28,6 +28,7 @@ macro_rules! get_property {
 }
 
 
+pub mod blend_shape;
 pub mod blend_shape_channel;
 pub mod cluster;
 pub mod display_layer;
@@ -79,6 +80,8 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
 /// `Objects`.
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct Objects {
+    /// `BlendShape`.
+    pub blend_shape: ObjectMap<blend_shape::BlendShape>,
     /// `BlendShapeChannel`.
     pub blend_shape_channel: ObjectMap<blend_shape_channel::BlendShapeChannel>,
     /// `Cluster`.
@@ -157,6 +160,10 @@ impl Objects {
                     objects.display_layer.insert(obj_props.id, obj);
                 },
                 // `Deformer`.
+                ("Deformer", "BlendShape") => {
+                    let obj = blend_shape::BlendShape::load(parser.subtree_parser(), &obj_props)?;
+                    objects.blend_shape.insert(obj_props.id, obj);
+                },
                 ("Deformer", "Skin") => {
                     let obj = skin::Skin::load(parser.subtree_parser(), &obj_props)?;
                     objects.skin.insert(obj_props.id, obj);
