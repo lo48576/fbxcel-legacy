@@ -90,6 +90,7 @@ impl Objects {
 
         loop {
             let obj_props = try_get_node_attrs!(parser, load_object_property);
+            let mut unknown_obj = false;
             // Node name is inferable from object class, therefor the code here only requires
             // object properties to decide node type.
             match (obj_props.class.as_str(), obj_props.subclass.as_str()) {
@@ -111,11 +112,16 @@ impl Objects {
                     objects.cluster.insert(id, obj);
                 },
                 _ => {
-                    warn!("Unknown object type: {:?}", obj_props);
-                    let id = obj_props.id;
-                    let obj = UnknownObject::load(parser.subtree_parser(), obj_props)?;
-                    objects.unknown.insert(id, obj);
+                    // Here `obj_props` is borrowed and it can't be passed for
+                    // `UnknownObject::load()`.
+                    unknown_obj = true;
                 },
+            }
+            if unknown_obj {
+                warn!("Unknown object type: {:?}", obj_props);
+                let id = obj_props.id;
+                let obj = UnknownObject::load(parser.subtree_parser(), obj_props)?;
+                objects.unknown.insert(id, obj);
             }
         }
         Ok(objects)
