@@ -34,6 +34,7 @@ pub mod display_layer;
 pub mod model;
 pub mod null;
 pub mod skeleton;
+pub mod skin;
 
 
 /// Map type with key = `i64`.
@@ -98,6 +99,8 @@ pub struct Objects {
     pub null: ObjectMap<null::Null>,
     /// `Skeleton`.
     pub skeleton: ObjectMap<skeleton::Skeleton>,
+    /// `Skin`.
+    pub skin: ObjectMap<skin::Skin>,
     /// Unknown type.
     pub unknown: ObjectMap<UnknownObject>,
 }
@@ -148,6 +151,10 @@ impl Objects {
                     objects.display_layer.insert(obj_props.id, obj);
                 },
                 // `Deformer`.
+                ("Deformer", "Skin") => {
+                    let obj = skin::Skin::load(parser.subtree_parser(), &obj_props)?;
+                    objects.skin.insert(obj_props.id, obj);
+                },
                 ("SubDeformer", "BlendShapeChannel") => {
                     let obj =
                         blend_shape_channel::BlendShapeChannel::load(parser.subtree_parser(),
