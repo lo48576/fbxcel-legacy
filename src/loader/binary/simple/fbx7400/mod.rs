@@ -61,14 +61,16 @@ macro_rules! child_attr_loader {
         impl $enum_name {
             pub fn load<R: $crate::parser::binary::ParserSource>(
                 name: &str,
-                mut attrs: $crate::parser::binary::Attributes<R>
+                mut _attrs: $crate::parser::binary::Attributes<R>
             ) -> $crate::loader::binary::simple::Result<Self> {
+                // `_attrs` might not be used.
+                #[allow(unused_imports)]
                 use $crate::parser::binary::utils::AttributeValues;
                 use $crate::loader::binary::simple::Error;
 
                 match name {
                     $($node_name => child_attr_loader!{
-                        @load $enum_name; name; attrs; $variant$(($content))*; $(=> $load)*
+                        @load $enum_name; name; _attrs; $variant$(($content))*; $(=> $load)*
                     }),*,
                     _ => Err(Error::UnexpectedNode(name.to_owned())),
                 }
