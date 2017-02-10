@@ -38,6 +38,7 @@ pub mod pose;
 pub mod shape;
 pub mod skeleton;
 pub mod skin;
+pub mod texture;
 
 
 /// Map type with key = `i64`.
@@ -110,6 +111,8 @@ pub struct Objects {
     pub skeleton: ObjectMap<skeleton::Skeleton>,
     /// `Skin`.
     pub skin: ObjectMap<skin::Skin>,
+    /// `Texture`.
+    pub texture: ObjectMap<texture::Texture>,
     /// Unknown type.
     pub unknown: ObjectMap<UnknownObject>,
 }
@@ -187,6 +190,11 @@ impl Objects {
                 ("Pose", "BindPose") => {
                     let obj = pose::Pose::load(parser.subtree_parser(), &obj_props)?;
                     objects.pose.insert(obj_props.id, obj);
+                },
+                // `Texture`.
+                ("Texture", "") => {
+                    let obj = texture::Texture::load(parser.subtree_parser(), &obj_props)?;
+                    objects.texture.insert(obj_props.id, obj);
                 },
                 _ => {
                     // Here `obj_props` is borrowed and it can't be passed for
