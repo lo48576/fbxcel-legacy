@@ -93,7 +93,7 @@ pub enum NullLook {
 }
 
 impl NullLook {
-    /// CReates an enum value from the given value.
+    /// Creates an enum value from the given value.
     pub fn from_i64(v: i64) -> Option<Self> {
         match v {
             v if v == NullLook::None as i64 => Some(NullLook::None),
