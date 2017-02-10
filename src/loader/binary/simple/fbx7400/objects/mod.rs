@@ -39,6 +39,7 @@ pub mod shape;
 pub mod skeleton;
 pub mod skin;
 pub mod texture;
+pub mod video;
 
 
 /// Map type with key = `i64`.
@@ -113,6 +114,8 @@ pub struct Objects {
     pub skin: ObjectMap<skin::Skin>,
     /// `Texture`.
     pub texture: ObjectMap<texture::Texture>,
+    /// `Video`.
+    pub video: ObjectMap<video::Video>,
     /// Unknown type.
     pub unknown: ObjectMap<UnknownObject>,
 }
@@ -195,6 +198,11 @@ impl Objects {
                 ("Texture", "") => {
                     let obj = texture::Texture::load(parser.subtree_parser(), &obj_props)?;
                     objects.texture.insert(obj_props.id, obj);
+                },
+                // `Video`.
+                ("Video", "Clip") => {
+                    let obj = video::Video::load(parser.subtree_parser(), &obj_props)?;
+                    objects.video.insert(obj_props.id, obj);
                 },
                 _ => {
                     // Here `obj_props` is borrowed and it can't be passed for
