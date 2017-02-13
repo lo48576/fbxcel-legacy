@@ -32,6 +32,7 @@ pub mod blend_shape;
 pub mod blend_shape_channel;
 pub mod cluster;
 pub mod display_layer;
+pub mod material;
 pub mod model;
 pub mod null;
 pub mod pose;
@@ -90,6 +91,8 @@ pub struct Objects {
     pub cluster: ObjectMap<cluster::Cluster>,
     /// `DisplayLayer`.
     pub display_layer: ObjectMap<display_layer::DisplayLayer>,
+    /// `Material`.
+    pub material: ObjectMap<material::Material>,
     /// `Model` (class=`Model`, subclass=`Camera`).
     pub model_camera: ObjectMap<model::Model>,
     /// `Model` (class=`Model`, subclass=`Light`).
@@ -188,6 +191,11 @@ impl Objects {
                 ("Geometry", "Shape") => {
                     let obj = shape::Shape::load(parser.subtree_parser(), &obj_props)?;
                     objects.shape.insert(obj_props.id, obj);
+                },
+                // `Material`.
+                ("Material", "") => {
+                    let obj = material::Material::load(parser.subtree_parser(), &obj_props)?;
+                    objects.material.insert(obj_props.id, obj);
                 },
                 // `Pose`.
                 ("Pose", "BindPose") => {
