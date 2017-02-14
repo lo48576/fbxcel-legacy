@@ -28,6 +28,7 @@ macro_rules! get_property {
 }
 
 
+pub mod animation_curve_node;
 pub mod blend_shape;
 pub mod blend_shape_channel;
 pub mod cluster;
@@ -83,6 +84,8 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
 /// `Objects`.
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct Objects {
+    /// `AnimationCurveNode`.
+    pub animation_curve_node: ObjectMap<animation_curve_node::AnimationCurveNode>,
     /// `BlendShape`.
     pub blend_shape: ObjectMap<blend_shape::BlendShape>,
     /// `BlendShapeChannel`.
@@ -161,6 +164,13 @@ impl Objects {
                 ("NodeAttribute", "Null") => {
                     let obj = null::Null::load(parser.subtree_parser(), &obj_props)?;
                     objects.null.insert(obj_props.id, obj);
+                },
+                // `AnimationCurveNode`.
+                ("AnimCurveNode", "") => {
+                    let obj =
+                        animation_curve_node::AnimationCurveNode::load(parser.subtree_parser(),
+                                                                       &obj_props)?;
+                    objects.animation_curve_node.insert(obj_props.id, obj);
                 },
                 // `CollectionExclusive`.
                 ("DisplayLayer", "DisplayLayer") => {
