@@ -15,23 +15,23 @@ pub type PropertyMap<T> = FnvHashMap<String, PropertyValue<T>>;
 #[derive(Default, Clone, PartialEq)]
 pub struct Properties70 {
     /// Properties without values.
-    values_empty: FnvHashSet<String>,
+    pub values_empty: FnvHashSet<String>,
     /// Values with `i64`, `i32`, or `i16` type.
-    values_i64: PropertyMap<i64>,
+    pub values_i64: PropertyMap<i64>,
     /// Values with `f64` or `f32` type.
-    values_f64: PropertyMap<f64>,
+    pub values_f64: PropertyMap<f64>,
     /// Values with `[f64; 2]` type.
-    values_f64_2: PropertyMap<[f64; 2]>,
+    pub values_f64_2: PropertyMap<[f64; 2]>,
     /// Values with `[f64; 3]` type.
-    values_f64_3: PropertyMap<[f64; 3]>,
+    pub values_f64_3: PropertyMap<[f64; 3]>,
     /// Values with `[f64; 4]` type.
-    values_f64_4: PropertyMap<[f64; 4]>,
+    pub values_f64_4: PropertyMap<[f64; 4]>,
     /// Values with `[[f64; 4]; 4]` type.
-    values_f64_4x4: PropertyMap<[[f64; 4]; 4]>,
+    pub values_f64_4x4: PropertyMap<[[f64; 4]; 4]>,
     /// Values with `String` type.
-    values_string: PropertyMap<String>,
+    pub values_string: PropertyMap<String>,
     /// Values with `Vec<u8>` type (called "blob").
-    values_binary: PropertyMap<Vec<u8>>,
+    pub values_binary: PropertyMap<Vec<u8>>,
 }
 
 impl Properties70 {
