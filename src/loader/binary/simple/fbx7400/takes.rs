@@ -32,7 +32,7 @@ impl Takes {
             }
         }
         Ok(Takes {
-            current: ensure_node_exists!(current, "Current"),
+            current: ensure_node_exists!(current, "Takes", "Current"),
             takes: takes,
         })
     }
@@ -82,9 +82,9 @@ impl Take {
         }
         Ok(Take {
             name: attrs,
-            filename: ensure_node_exists!(filename, "Take"),
-            local_time: ensure_node_exists!(local_time, "Take"),
-            reference_time: ensure_node_exists!(reference_time, "Take"),
+            filename: ensure_node_exists!(filename, "Take", "FileName"),
+            local_time: ensure_node_exists!(local_time, "Take", "LocalTime"),
+            reference_time: ensure_node_exists!(reference_time, "Take", "ReferenceTime"),
         })
     }
 }

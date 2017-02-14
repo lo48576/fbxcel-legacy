@@ -41,8 +41,8 @@ impl Definitions {
             }
         }
         Ok(Definitions {
-            version: ensure_node_exists!(version, "Definitions"),
-            count: ensure_node_exists!(count, "Definitions"),
+            version: ensure_node_exists!(version, "Definitions", "Version"),
+            count: ensure_node_exists!(count, "Definitions", "Count"),
             object_types: object_types,
         })
     }
@@ -89,7 +89,7 @@ impl ObjectType {
 
         Ok(ObjectType {
             object_type: attrs,
-            count: ensure_node_exists!(count, "ObjectType"),
+            count: ensure_node_exists!(count, "ObjectType", "Count"),
             property_template: property_template,
         })
     }
@@ -113,5 +113,5 @@ fn load_property_template<R: ParserSource, P: Parser<R>>(mut parser: P) -> Resul
         });
         props = Some(Properties70::load(parser.subtree_parser())?);
     }
-    Ok(ensure_node_exists!(props, "PropertyTemplate"))
+    Ok(ensure_node_exists!(props, "PropertyTemplate", "Properties70"))
 }

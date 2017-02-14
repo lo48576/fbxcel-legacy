@@ -60,12 +60,18 @@ impl FbxHeaderExtension {
             }
         }
         Ok(FbxHeaderExtension {
-            fbx_header_version: ensure_node_exists!(fbx_header_version, "FbxHeaderExtension"),
-            fbx_version: ensure_node_exists!(fbx_version, "FbxHeaderExtension"),
-            encryption_type: ensure_node_exists!(encryption_type, "FbxHeaderExtension"),
-            creation_timestamp: ensure_node_exists!(creation_timestamp, "FbxHeaderExtension"),
-            creator: ensure_node_exists!(creator, "FbxHeaderExtension"),
-            scene_info: ensure_node_exists!(scene_info, "FbxHeaderExtension"),
+            fbx_header_version: ensure_node_exists!(fbx_header_version,
+                                                    "FBXHeaderExtension",
+                                                    "FBXHeaderVersion"),
+            fbx_version: ensure_node_exists!(fbx_version, "FBXHeaderExtension", "FBXVersion"),
+            encryption_type: ensure_node_exists!(encryption_type,
+                                                 "FBXHeaderExtension",
+                                                 "EncryptionType"),
+            creation_timestamp: ensure_node_exists!(creation_timestamp,
+                                                    "FBXHeaderExtension",
+                                                    "CreationTimeStamp"),
+            creator: ensure_node_exists!(creator, "FBXHeaderExtension", "Creator"),
+            scene_info: ensure_node_exists!(scene_info, "FBXHeaderExtension", "SceneInfo"),
         })
     }
 }
@@ -145,14 +151,14 @@ impl CreationTimeStamp {
             parser.skip_current_node()?;
         }
         Ok(CreationTimeStamp {
-            version: ensure_node_exists!(version, "CreationTimeStamp"),
-            year: ensure_node_exists!(year, "CreationTimeStamp"),
-            month: ensure_node_exists!(month, "CreationTimeStamp"),
-            day: ensure_node_exists!(day, "CreationTimeStamp"),
-            hour: ensure_node_exists!(hour, "CreationTimeStamp"),
-            minute: ensure_node_exists!(minute, "CreationTimeStamp"),
-            second: ensure_node_exists!(second, "CreationTimeStamp"),
-            millisecond: ensure_node_exists!(millisecond, "CreationTimeStamp"),
+            version: ensure_node_exists!(version, "CreationTimeStamp", "Version"),
+            year: ensure_node_exists!(year, "CreationTimeStamp", "Year"),
+            month: ensure_node_exists!(month, "CreationTimeStamp", "Month"),
+            day: ensure_node_exists!(day, "CreationTimeStamp", "Day"),
+            hour: ensure_node_exists!(hour, "CreationTimeStamp", "Hour"),
+            minute: ensure_node_exists!(minute, "CreationTimeStamp", "Minute"),
+            second: ensure_node_exists!(second, "CreationTimeStamp", "Second"),
+            millisecond: ensure_node_exists!(millisecond, "CreationTimeStamp", "Millisecond"),
         })
     }
 }
@@ -235,10 +241,10 @@ impl SceneInfo {
             name: name,
             class: class,
             subclass: subclass,
-            type_: ensure_node_exists!(type_, "SceneInfo"),
-            version: ensure_node_exists!(version, "SceneInfo"),
-            metadata: ensure_node_exists!(metadata, "SceneInfo"),
-            properties: ensure_node_exists!(properties, "SceneInfo"),
+            type_: ensure_node_exists!(type_, "SceneInfo", "Type"),
+            version: ensure_node_exists!(version, "SceneInfo", "Version"),
+            metadata: ensure_node_exists!(metadata, "SceneInfo", "MetaData"),
+            properties: ensure_node_exists!(properties, "SceneInfo", "Properties70"),
         })
     }
 }
@@ -310,13 +316,13 @@ impl MetaData {
             parser.skip_current_node()?;
         }
         Ok(MetaData {
-            version: ensure_node_exists!(version, "MetaData"),
-            title: ensure_node_exists!(title, "MetaData"),
-            subject: ensure_node_exists!(subject, "MetaData"),
-            author: ensure_node_exists!(author, "MetaData"),
-            keywords: ensure_node_exists!(keywords, "MetaData"),
-            revision: ensure_node_exists!(revision, "MetaData"),
-            comment: ensure_node_exists!(comment, "MetaData"),
+            version: ensure_node_exists!(version, "MetaData", "Version"),
+            title: ensure_node_exists!(title, "MetaData", "Title"),
+            subject: ensure_node_exists!(subject, "MetaData", "Subject"),
+            author: ensure_node_exists!(author, "MetaData", "Author"),
+            keywords: ensure_node_exists!(keywords, "MetaData", "Keywords"),
+            revision: ensure_node_exists!(revision, "MetaData", "Revision"),
+            comment: ensure_node_exists!(comment, "MetaData", "Comment"),
         })
     }
 }

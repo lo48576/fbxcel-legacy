@@ -29,8 +29,10 @@ macro_rules! try_get_node_attrs {
 
 /// Unwraps `$node_op` or returns `Error::MissingNode` error.
 macro_rules! ensure_node_exists {
-    ($node_opt:expr, $name:expr) => {
-        $node_opt.ok_or_else(|| $crate::loader::binary::simple::Error::MissingNode($name.into()))?
+    ($node_opt:expr, $parent:expr, $child:expr) => {
+        $node_opt.ok_or_else(|| {
+            $crate::loader::binary::simple::Error::missing_node($parent, $child)
+        })?
     };
 }
 
@@ -182,16 +184,18 @@ impl Fbx7400 {
 
         Ok(Fbx7400 {
             version: version,
-            fbx_header_extension: ensure_node_exists!(fbx_header_extension, "FBXHeaderExtension"),
-            file_id: ensure_node_exists!(file_id, "FileId"),
-            creation_time: ensure_node_exists!(creation_time, "CreationTime"),
-            creator: ensure_node_exists!(creator, "Creator"),
-            global_settings: ensure_node_exists!(global_settings, "GlobalSettings"),
-            documents: ensure_node_exists!(documents, "Documents"),
-            references: ensure_node_exists!(references, "References"),
-            definitions: ensure_node_exists!(definitions, "Definitions"),
-            objects: ensure_node_exists!(objects, "Objects"),
-            connections: ensure_node_exists!(connections, "Connections"),
+            fbx_header_extension: ensure_node_exists!(fbx_header_extension,
+                                                      "(root)",
+                                                      "FBXHeaderExtension"),
+            file_id: ensure_node_exists!(file_id, "(root)", "FileId"),
+            creation_time: ensure_node_exists!(creation_time, "(root)", "CreationTime"),
+            creator: ensure_node_exists!(creator, "(root)", "Creator"),
+            global_settings: ensure_node_exists!(global_settings, "(root)", "GlobalSettings"),
+            documents: ensure_node_exists!(documents, "(root)", "Documents"),
+            references: ensure_node_exists!(references, "(root)", "References"),
+            definitions: ensure_node_exists!(definitions, "(root)", "Definitions"),
+            objects: ensure_node_exists!(objects, "(root)", "Objects"),
+            connections: ensure_node_exists!(connections, "(root)", "Connections"),
             takes: takes,
             footer: footer,
         })

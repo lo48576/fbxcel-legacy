@@ -21,18 +21,44 @@ pub enum Error {
     /// - The node has wrong (or unsupported) values of node attributes values.
     InvalidAttribute(String),
     /// Required node is missing.
-    MissingNode(String),
+    MissingNode {
+        /// Parent node.
+        parent: String,
+        /// The missing node, which is child node of the `parent` node.
+        ///
+        /// This may be `None` if the missing node is unknown or cannot be identified.
+        child: Option<String>,
+    },
     /// Parse error (including I/O error).
     Parse(ParseError),
     /// Got an unexpected node.
     UnexpectedNode(String),
 }
 
+impl Error {
+    /// Creates a new `Error::MissingNode`.
+    pub fn missing_node<'a, S: Into<String>, T: Into<Option<&'a str>>>(
+        parent: S,
+        child: T
+    ) -> Self {
+        Error::MissingNode {
+            parent: parent.into(),
+            child: child.into().map(|s| s.to_owned()),
+        }
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::InvalidAttribute(ref name) => write!(f, "Invalid attribute for node: {}", name),
-            Error::MissingNode(ref name) => write!(f, "Missing node: {}", name),
+            Error::MissingNode { ref parent, ref child } => {
+                if let Some(child) = child.as_ref() {
+                    write!(f, "Missing node: {} (parent={})", child, parent)
+                } else {
+                    write!(f, "Missing node: parent={}", parent)
+                }
+            },
             Error::UnexpectedNode(ref name) => write!(f, "Unexpected node: {}", name),
             _ => write!(f, "{}", (self as &error::Error).description()),
         }
@@ -43,7 +69,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::InvalidAttribute(_) => "Invalid node attribute",
-            Error::MissingNode(_) => "Missing node",
+            Error::MissingNode { .. } => "Missing node",
             Error::UnexpectedNode(_) => "Unexpected node",
             Error::Parse(ref err) => err.description(),
         }
