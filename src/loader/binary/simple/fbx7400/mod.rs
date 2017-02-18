@@ -6,6 +6,7 @@ pub use self::connections::{Connections, Connection};
 pub use self::definitions::{Definitions, ObjectType};
 pub use self::fbx_header_extension::{FbxHeaderExtension, CreationTimeStamp, SceneInfo};
 pub use self::global_settings::GlobalSettings;
+pub use self::objects::{LoadObjects7400, ObjectProperties};
 pub use self::properties70::{Properties70, PropertyMap, PropertyValue};
 pub use self::takes::{Takes, Take};
 
@@ -80,13 +81,14 @@ pub mod connections;
 pub mod definitions;
 pub mod fbx_header_extension;
 pub mod global_settings;
+pub mod objects;
 pub mod properties70;
 pub mod takes;
 
 
 /// FBX 7.4 or later.
 #[derive(Debug, Clone, PartialEq)]
-pub struct Fbx7400 {
+pub struct Fbx7400<O: LoadObjects7400> {
     /// FBX version.
     pub version: u32,
     /// `FBXHeaderExtension`.
@@ -106,7 +108,7 @@ pub struct Fbx7400 {
     /// `Definitions`.
     pub definitions: Definitions,
     /// `Objects`.
-    pub objects: Objects,
+    pub objects: O::Objects,
     /// `Connections`.
     pub connections: Connections,
     /// `Takes`.
@@ -115,14 +117,16 @@ pub struct Fbx7400 {
     pub footer: Option<FbxFooter>,
 }
 
-impl Fbx7400 {
+impl<O: LoadObjects7400> Fbx7400<O> {
     /// Loads FBX 7400 (or later) structure from the given parser.
     pub fn load_from_parser<R: ParserSource, P: Parser<R>>(
         version: u32,
-        mut parser: P
+        mut parser: P,
+        objs_loader: O
     ) -> Result<Self> {
         info!("FBX version: {}, loading in FBX 7400 mode", version);
 
+        let mut objs_loader = Some(objs_loader);
         let footer;
         let mut fbx_header_extension = None;
         let mut file_id = None;
@@ -172,7 +176,11 @@ impl Fbx7400 {
                     definitions = Some(Definitions::load(parser.subtree_parser())?);
                 },
                 NodeType::Objects => {
-                    objects = Some(Objects::load(parser.subtree_parser())?);
+                    if let Some(objs_loader) = objs_loader.take() {
+                        objects = Some(objects::load(parser.subtree_parser(), objs_loader)?);
+                    } else {
+                        warn!("Multiple `Objects` node found, ignoring.");
+                    }
                 },
                 NodeType::Connections => {
                     connections = Some(Connections::load(parser.subtree_parser())?);
@@ -328,17 +336,8 @@ impl References {
 }
 
 
-/// `Objects`.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Objects {
-    /// Child nodes.
-    pub nodes: Vec<GenericNode>,
-}
-
-impl Objects {
-    /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
-        let nodes = GenericNode::load_from_parser(&mut parser)?.0;
-        Ok(Objects { nodes: nodes })
-    }
+/// Returns `Option<(name: &'a str, class: &'a str)>`
+pub fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
+    name_class.find("\u{0}\u{1}")
+        .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
 }
