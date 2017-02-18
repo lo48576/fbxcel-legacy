@@ -13,7 +13,7 @@ pub mod fbx7400;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Fbx {
     /// FBX 7.4 or later.
-    Fbx7400(fbx7400::Fbx7400),
+    Fbx7400(Box<fbx7400::Fbx7400>),
 }
 
 impl Fbx {
@@ -32,7 +32,7 @@ impl Fbx {
             },
         };
         match version {
-            7400...7599 => fbx7400::Fbx7400::load_from_parser(version, parser).map(Fbx::Fbx7400),
+            7400...7599 => fbx7400::Fbx7400::load_from_parser(version, parser).map(|v| Fbx::Fbx7400(Box::new(v))),
             _ => {
                 error!("Unsupported FBX version: {}", version);
                 unimplemented!()
