@@ -2,7 +2,7 @@
 
 use std::fmt;
 use fnv::{FnvHashSet, FnvHashMap};
-use parser::binary::{Parser, ParserSource, Event, Attributes};
+use parser::binary::{Parser, ParserSource, Attributes};
 use parser::binary::{Attribute, PrimitiveAttribute};
 use loader::binary::simple::{Result, Error};
 

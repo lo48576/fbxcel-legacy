@@ -1,6 +1,6 @@
 //! `Takes` node and its children.
 
-use parser::binary::{Parser, ParserSource, Event, Attributes};
+use parser::binary::{Parser, ParserSource, Attributes};
 use loader::binary::simple::{Result, Error};
 
 
