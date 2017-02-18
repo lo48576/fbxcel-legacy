@@ -61,6 +61,8 @@ pub trait Parser<R: ParserSource> {
     /// `Ok(false)` if no nodes are open (i.e. the parser is reading under implicit root node),
     /// `Err(err)` if error happened.
     fn skip_current_node(&mut self) -> Result<bool>;
+    /// Creates subtree parser for the current node.
+    fn subtree_parser(&mut self) -> SubtreeParser<R>;
 }
 
 
@@ -179,11 +181,6 @@ impl<R: ParserSource> RootParser<R> {
     /// Returns the node name of the recent opened node with ownership.
     pub fn take_recent_node_name(&mut self) -> Option<String> {
         self.recent_node_name.take()
-    }
-
-    /// Creates subtree parser for the current node.
-    pub fn subtree_parser(&mut self) -> SubtreeParser<R> {
-        SubtreeParser::new(self)
     }
 
     /// Set the parser state as finished parsing.
@@ -349,6 +346,10 @@ impl<R: ParserSource> Parser<R> for RootParser<R> {
             Ok(false)
         }
     }
+
+    fn subtree_parser(&mut self) -> SubtreeParser<R> {
+        SubtreeParser::new(self)
+    }
 }
 
 
@@ -402,6 +403,10 @@ impl<'a, R: 'a + ParserSource> Parser<R> for SubtreeParser<'a, R> {
         self.check_finished()?;
         self.root_parser.skip_current_node()
     }
+
+    fn subtree_parser(&mut self) -> SubtreeParser<R> {
+        SubtreeParser::new(self.root_parser)
+    }
 }
 
 impl<'a, R: ParserSource, P: Parser<R>> Parser<R> for &'a mut P {
@@ -415,5 +420,9 @@ impl<'a, R: ParserSource, P: Parser<R>> Parser<R> for &'a mut P {
 
     fn skip_current_node(&mut self) -> Result<bool> {
         (**self).skip_current_node()
+    }
+
+    fn subtree_parser(&mut self) -> SubtreeParser<R> {
+        (**self).subtree_parser()
     }
 }
