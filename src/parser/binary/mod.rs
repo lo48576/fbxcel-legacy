@@ -393,6 +393,26 @@ impl<'a, R: 'a + ParserSource> SubtreeParser<'a, R> {
         }
         Ok(self.root_parser.num_open_nodes() < self.initial_depth)
     }
+
+    /// Skip to the end of the subtree parser's readable range.
+    ///
+    /// Note that this is not intended to called for `SubtreeParser` reading implicit root node.
+    /// If the subtree parser can read whole data, the parser skips all events including `FbxEnd`
+    /// and returns `Err(Error::Finished)`.
+    pub fn skip_to_end(self) -> Result<()> {
+        if self.is_finished()? {
+            return Ok(());
+        }
+        self.root_parser.open_nodes.truncate(self.initial_depth);
+        if let Some(end) = self.root_parser.open_nodes.pop().map(|v| v.end) {
+            self.root_parser.source.skip_to(end)?;
+            self.root_parser.state = Ok(State::NodeEnded);
+            Ok(())
+        } else {
+            self.root_parser.state = Err(Error::Finished);
+            Err(Error::Finished)
+        }
+    }
 }
 
 impl<'a, R: 'a + ParserSource> Parser<R> for SubtreeParser<'a, R> {
