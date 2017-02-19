@@ -378,7 +378,7 @@ impl<'a, R: 'a + ParserSource> SubtreeParser<'a, R> {
     /// Returns `Ok(())` if more events can be read,
     /// `Err(Error::Finished)` if the subtree is all read,
     /// `Err(_)` if error happened.
-    fn check_finished(&self) -> Result<()> {
+    fn ensure_not_finished(&self) -> Result<()> {
         if self.is_finished()? {
             Err(Error::Finished)
         } else {
@@ -421,12 +421,12 @@ impl<'a, R: 'a + ParserSource> Parser<R> for SubtreeParser<'a, R> {
     }
 
     fn next_event(&mut self) -> Result<Event<R>> {
-        self.check_finished()?;
+        self.ensure_not_finished()?;
         self.root_parser.next_event()
     }
 
     fn skip_current_node(&mut self) -> Result<bool> {
-        self.check_finished()?;
+        self.ensure_not_finished()?;
         self.root_parser.skip_current_node()
     }
 
