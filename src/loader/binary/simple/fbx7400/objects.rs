@@ -3,6 +3,7 @@
 use parser::binary::{Parser, ParserSource, Attributes, SubtreeParser};
 use parser::binary::Error as ParseError;
 use loader::binary::simple::Result;
+use loader::binary::simple::fbx7400::NodesBeforeObjects;
 use loader::binary::simple::fbx7400::separate_name_class;
 
 
@@ -18,7 +19,8 @@ pub trait LoadObjects7400: Sized {
     fn load<R: ParserSource>(
         &mut self,
         props: ObjectProperties,
-        subtree_parser: &mut SubtreeParser<R>
+        subtree_parser: &mut SubtreeParser<R>,
+        nodes_before_objects: &NodesBeforeObjects
     ) -> Result<()>;
 }
 
@@ -26,12 +28,13 @@ pub trait LoadObjects7400: Sized {
 /// Loads node contents from the parser.
 pub fn load<R: ParserSource, P: Parser<R>, O: LoadObjects7400>(
     mut parser: P,
-    mut objs_loader: O
+    mut objs_loader: O,
+    nodes_before_objects: &NodesBeforeObjects
 ) -> Result<O::Objects> {
     loop {
         let props = try_get_node_attrs!(parser, ObjectProperties::load);
         let mut sub_parser = parser.subtree_parser();
-        objs_loader.load(props, &mut sub_parser)?;
+        objs_loader.load(props, &mut sub_parser, nodes_before_objects)?;
         sub_parser.skip_current_node()?;
     }
     objs_loader.build()

@@ -136,7 +136,7 @@ impl<O: LoadObjects7400> Fbx7400<O> {
         let mut documents = None;
         let mut references = None;
         let mut definitions = None;
-        let mut objects = None;
+        let mut objects_and_before = None;
         let mut connections = None;
         let mut takes = None;
         loop {
@@ -177,7 +177,31 @@ impl<O: LoadObjects7400> Fbx7400<O> {
                 },
                 NodeType::Objects => {
                     if let Some(objs_loader) = objs_loader.take() {
-                        objects = Some(objects::load(parser.subtree_parser(), objs_loader)?);
+                        let nodes_before_objects = NodesBeforeObjects {
+                            version: version,
+                            fbx_header_extension: ensure_node_exists!(fbx_header_extension.take(),
+                                                                      "(root)",
+                                                                      "FBXHeaderExtension"),
+                            file_id: ensure_node_exists!(file_id.take(), "(root)", "FileId"),
+                            creation_time: ensure_node_exists!(creation_time.take(),
+                                                               "(root)",
+                                                               "CreationTime"),
+                            creator: ensure_node_exists!(creator.take(), "(root)", "Creator"),
+                            global_settings: ensure_node_exists!(global_settings.take(),
+                                                                 "(root)",
+                                                                 "GlobalSettings"),
+                            documents: ensure_node_exists!(documents.take(), "(root)", "Documents"),
+                            references: ensure_node_exists!(references.take(),
+                                                            "(root)",
+                                                            "References"),
+                            definitions: ensure_node_exists!(definitions.take(),
+                                                             "(root)",
+                                                             "Definitions"),
+                        };
+                        let objects = objects::load(parser.subtree_parser(),
+                                                    objs_loader,
+                                                    &nodes_before_objects)?;
+                        objects_and_before = Some((objects, nodes_before_objects));
                     } else {
                         warn!("Multiple `Objects` node found, ignoring.");
                     }
@@ -191,24 +215,51 @@ impl<O: LoadObjects7400> Fbx7400<O> {
             }
         }
 
+        let (objects, nodes_before_objects) =
+            ensure_node_exists!(objects_and_before, "(root)", "Objects");
+
         Ok(Fbx7400 {
             version: version,
-            fbx_header_extension: ensure_node_exists!(fbx_header_extension,
-                                                      "(root)",
-                                                      "FBXHeaderExtension"),
-            file_id: ensure_node_exists!(file_id, "(root)", "FileId"),
-            creation_time: ensure_node_exists!(creation_time, "(root)", "CreationTime"),
-            creator: ensure_node_exists!(creator, "(root)", "Creator"),
-            global_settings: ensure_node_exists!(global_settings, "(root)", "GlobalSettings"),
-            documents: ensure_node_exists!(documents, "(root)", "Documents"),
-            references: ensure_node_exists!(references, "(root)", "References"),
-            definitions: ensure_node_exists!(definitions, "(root)", "Definitions"),
-            objects: ensure_node_exists!(objects, "(root)", "Objects"),
+            fbx_header_extension: nodes_before_objects.fbx_header_extension,
+            file_id: nodes_before_objects.file_id,
+            creation_time: nodes_before_objects.creation_time,
+            creator: nodes_before_objects.creator,
+            global_settings: nodes_before_objects.global_settings,
+            documents: nodes_before_objects.documents,
+            references: nodes_before_objects.references,
+            definitions: nodes_before_objects.definitions,
+            objects: objects,
             connections: ensure_node_exists!(connections, "(root)", "Connections"),
             takes: takes,
             footer: footer,
         })
     }
+}
+
+
+/// Toplevel nodes before `Objects`.
+///
+/// These nodes would be referred by objects loader.
+#[derive(Debug, Clone, PartialEq)]
+pub struct NodesBeforeObjects {
+    /// FBX version.
+    pub version: u32,
+    /// `FBXHeaderExtension`.
+    pub fbx_header_extension: FbxHeaderExtension,
+    /// `FileId`.
+    pub file_id: FileId,
+    /// `CreationTime`.
+    pub creation_time: CreationTime,
+    /// `Creator`.
+    pub creator: Creator,
+    /// `References`.
+    pub references: References,
+    /// `GlobalSettings`.
+    pub global_settings: GlobalSettings,
+    /// `Documents`.
+    pub documents: Documents,
+    /// `Definitions`.
+    pub definitions: Definitions,
 }
 
 
