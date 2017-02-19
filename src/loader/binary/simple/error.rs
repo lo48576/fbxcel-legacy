@@ -11,7 +11,7 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 
 
 /// Load error.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum Error {
     /// Attribute is invalid.
     ///
@@ -20,6 +20,8 @@ pub enum Error {
     /// - The node has wrong types of node attribute values.
     /// - The node has wrong (or unsupported) values of node attributes values.
     InvalidAttribute(String),
+    /// Object load error.
+    LoadObject(Box<error::Error + Send + Sync>),
     /// Required node is missing.
     MissingNode {
         /// Parent node.
@@ -52,6 +54,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::InvalidAttribute(ref name) => write!(f, "Invalid attribute for node: {}", name),
+            Error::LoadObject(ref err) => write!(f, "Object load error: {}", err),
             Error::MissingNode { ref parent, ref child } => {
                 if let Some(child) = child.as_ref() {
                     write!(f, "Missing node: {} (parent={})", child, parent)
@@ -69,6 +72,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::InvalidAttribute(_) => "Invalid node attribute",
+            Error::LoadObject(ref err) => err.description(),
             Error::MissingNode { .. } => "Missing node",
             Error::UnexpectedNode(_) => "Unexpected node",
             Error::Parse(ref err) => err.description(),
@@ -77,6 +81,7 @@ impl error::Error for Error {
 
     fn cause(&self) -> Option<&error::Error> {
         match *self {
+            Error::LoadObject(ref err) => Some(err.as_ref()),
             Error::Parse(ref err) => Some(err),
             _ => None,
         }

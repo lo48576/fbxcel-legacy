@@ -6,6 +6,7 @@ pub use self::connections::{Connections, Connection};
 pub use self::definitions::{Definitions, ObjectType};
 pub use self::fbx_header_extension::{FbxHeaderExtension, CreationTimeStamp, SceneInfo};
 pub use self::global_settings::GlobalSettings;
+pub use self::objects::{LoadObjects7400, ObjectProperties};
 pub use self::properties70::{Properties70, PropertyMap, PropertyValue};
 pub use self::takes::{Takes, Take};
 
@@ -80,13 +81,14 @@ pub mod connections;
 pub mod definitions;
 pub mod fbx_header_extension;
 pub mod global_settings;
+pub mod objects;
 pub mod properties70;
 pub mod takes;
 
 
 /// FBX 7.4 or later.
 #[derive(Debug, Clone, PartialEq)]
-pub struct Fbx7400 {
+pub struct Fbx7400<O: LoadObjects7400> {
     /// FBX version.
     pub version: u32,
     /// `FBXHeaderExtension`.
@@ -106,7 +108,7 @@ pub struct Fbx7400 {
     /// `Definitions`.
     pub definitions: Definitions,
     /// `Objects`.
-    pub objects: Objects,
+    pub objects: O::Objects,
     /// `Connections`.
     pub connections: Connections,
     /// `Takes`.
@@ -115,14 +117,16 @@ pub struct Fbx7400 {
     pub footer: Option<FbxFooter>,
 }
 
-impl Fbx7400 {
+impl<O: LoadObjects7400> Fbx7400<O> {
     /// Loads FBX 7400 (or later) structure from the given parser.
     pub fn load_from_parser<R: ParserSource, P: Parser<R>>(
         version: u32,
-        mut parser: P
+        mut parser: P,
+        objs_loader: O
     ) -> Result<Self> {
         info!("FBX version: {}, loading in FBX 7400 mode", version);
 
+        let mut objs_loader = Some(objs_loader);
         let footer;
         let mut fbx_header_extension = None;
         let mut file_id = None;
@@ -132,7 +136,7 @@ impl Fbx7400 {
         let mut documents = None;
         let mut references = None;
         let mut definitions = None;
-        let mut objects = None;
+        let mut objects_and_before = None;
         let mut connections = None;
         let mut takes = None;
         loop {
@@ -172,7 +176,35 @@ impl Fbx7400 {
                     definitions = Some(Definitions::load(parser.subtree_parser())?);
                 },
                 NodeType::Objects => {
-                    objects = Some(Objects::load(parser.subtree_parser())?);
+                    if let Some(objs_loader) = objs_loader.take() {
+                        let nodes_before_objects = NodesBeforeObjects {
+                            version: version,
+                            fbx_header_extension: ensure_node_exists!(fbx_header_extension.take(),
+                                                                      "(root)",
+                                                                      "FBXHeaderExtension"),
+                            file_id: ensure_node_exists!(file_id.take(), "(root)", "FileId"),
+                            creation_time: ensure_node_exists!(creation_time.take(),
+                                                               "(root)",
+                                                               "CreationTime"),
+                            creator: ensure_node_exists!(creator.take(), "(root)", "Creator"),
+                            global_settings: ensure_node_exists!(global_settings.take(),
+                                                                 "(root)",
+                                                                 "GlobalSettings"),
+                            documents: ensure_node_exists!(documents.take(), "(root)", "Documents"),
+                            references: ensure_node_exists!(references.take(),
+                                                            "(root)",
+                                                            "References"),
+                            definitions: ensure_node_exists!(definitions.take(),
+                                                             "(root)",
+                                                             "Definitions"),
+                        };
+                        let objects = load_objects(parser.subtree_parser(),
+                                                   objs_loader,
+                                                   &nodes_before_objects)?;
+                        objects_and_before = Some((objects, nodes_before_objects));
+                    } else {
+                        warn!("Multiple `Objects` node found, ignoring.");
+                    }
                 },
                 NodeType::Connections => {
                     connections = Some(Connections::load(parser.subtree_parser())?);
@@ -183,24 +215,51 @@ impl Fbx7400 {
             }
         }
 
+        let (objects, nodes_before_objects) =
+            ensure_node_exists!(objects_and_before, "(root)", "Objects");
+
         Ok(Fbx7400 {
             version: version,
-            fbx_header_extension: ensure_node_exists!(fbx_header_extension,
-                                                      "(root)",
-                                                      "FBXHeaderExtension"),
-            file_id: ensure_node_exists!(file_id, "(root)", "FileId"),
-            creation_time: ensure_node_exists!(creation_time, "(root)", "CreationTime"),
-            creator: ensure_node_exists!(creator, "(root)", "Creator"),
-            global_settings: ensure_node_exists!(global_settings, "(root)", "GlobalSettings"),
-            documents: ensure_node_exists!(documents, "(root)", "Documents"),
-            references: ensure_node_exists!(references, "(root)", "References"),
-            definitions: ensure_node_exists!(definitions, "(root)", "Definitions"),
-            objects: ensure_node_exists!(objects, "(root)", "Objects"),
+            fbx_header_extension: nodes_before_objects.fbx_header_extension,
+            file_id: nodes_before_objects.file_id,
+            creation_time: nodes_before_objects.creation_time,
+            creator: nodes_before_objects.creator,
+            global_settings: nodes_before_objects.global_settings,
+            documents: nodes_before_objects.documents,
+            references: nodes_before_objects.references,
+            definitions: nodes_before_objects.definitions,
+            objects: objects,
             connections: ensure_node_exists!(connections, "(root)", "Connections"),
             takes: takes,
             footer: footer,
         })
     }
+}
+
+
+/// Toplevel nodes before `Objects`.
+///
+/// These nodes would be referred by objects loader.
+#[derive(Debug, Clone, PartialEq)]
+pub struct NodesBeforeObjects {
+    /// FBX version.
+    pub version: u32,
+    /// `FBXHeaderExtension`.
+    pub fbx_header_extension: FbxHeaderExtension,
+    /// `FileId`.
+    pub file_id: FileId,
+    /// `CreationTime`.
+    pub creation_time: CreationTime,
+    /// `Creator`.
+    pub creator: Creator,
+    /// `References`.
+    pub references: References,
+    /// `GlobalSettings`.
+    pub global_settings: GlobalSettings,
+    /// `Documents`.
+    pub documents: Documents,
+    /// `Definitions`.
+    pub definitions: Definitions,
 }
 
 
@@ -328,17 +387,24 @@ impl References {
 }
 
 
-/// `Objects`.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Objects {
-    /// Child nodes.
-    pub nodes: Vec<GenericNode>,
+/// Returns `Option<(name: &'a str, class: &'a str)>`
+pub fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
+    name_class.find("\u{0}\u{1}")
+        .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
 }
 
-impl Objects {
-    /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
-        let nodes = GenericNode::load_from_parser(&mut parser)?.0;
-        Ok(Objects { nodes: nodes })
+
+/// Loads node contents from the parser.
+fn load_objects<R: ParserSource, P: Parser<R>, O: LoadObjects7400>(
+    mut parser: P,
+    mut objs_loader: O,
+    nodes_before_objects: &NodesBeforeObjects
+) -> Result<O::Objects> {
+    loop {
+        let props = try_get_node_attrs!(parser, ObjectProperties::load);
+        let mut sub_parser = parser.subtree_parser();
+        objs_loader.load(props, &mut sub_parser, nodes_before_objects)?;
+        sub_parser.skip_current_node()?;
     }
+    objs_loader.build()
 }
