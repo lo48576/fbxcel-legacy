@@ -1,6 +1,6 @@
 //! Objects.
 
-use parser::binary::{Parser, ParserSource, Attributes, SubtreeParser};
+use parser::binary::{ParserSource, Attributes, SubtreeParser};
 use parser::binary::Error as ParseError;
 use loader::binary::simple::Result;
 use loader::binary::simple::fbx7400::NodesBeforeObjects;
@@ -25,22 +25,6 @@ pub trait LoadObjects7400: Sized {
 }
 
 
-/// Loads node contents from the parser.
-pub fn load<R: ParserSource, P: Parser<R>, O: LoadObjects7400>(
-    mut parser: P,
-    mut objs_loader: O,
-    nodes_before_objects: &NodesBeforeObjects
-) -> Result<O::Objects> {
-    loop {
-        let props = try_get_node_attrs!(parser, ObjectProperties::load);
-        let mut sub_parser = parser.subtree_parser();
-        objs_loader.load(props, &mut sub_parser, nodes_before_objects)?;
-        sub_parser.skip_current_node()?;
-    }
-    objs_loader.build()
-}
-
-
 /// Properties common to object nodes.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ObjectProperties {
@@ -56,7 +40,7 @@ pub struct ObjectProperties {
 
 impl ObjectProperties {
     /// Loads `ObjectProperties` in the same manner as usual child node attributes.
-    fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>) -> Result<ObjectProperties> {
+    pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>) -> Result<ObjectProperties> {
         use parser::binary::utils::AttributeValues;
         use loader::binary::simple::Error;
 

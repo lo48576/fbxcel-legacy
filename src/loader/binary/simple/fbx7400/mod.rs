@@ -198,9 +198,9 @@ impl<O: LoadObjects7400> Fbx7400<O> {
                                                              "(root)",
                                                              "Definitions"),
                         };
-                        let objects = objects::load(parser.subtree_parser(),
-                                                    objs_loader,
-                                                    &nodes_before_objects)?;
+                        let objects = load_objects(parser.subtree_parser(),
+                                                   objs_loader,
+                                                   &nodes_before_objects)?;
                         objects_and_before = Some((objects, nodes_before_objects));
                     } else {
                         warn!("Multiple `Objects` node found, ignoring.");
@@ -391,4 +391,20 @@ impl References {
 pub fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
     name_class.find("\u{0}\u{1}")
         .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
+}
+
+
+/// Loads node contents from the parser.
+fn load_objects<R: ParserSource, P: Parser<R>, O: LoadObjects7400>(
+    mut parser: P,
+    mut objs_loader: O,
+    nodes_before_objects: &NodesBeforeObjects
+) -> Result<O::Objects> {
+    loop {
+        let props = try_get_node_attrs!(parser, ObjectProperties::load);
+        let mut sub_parser = parser.subtree_parser();
+        objs_loader.load(props, &mut sub_parser, nodes_before_objects)?;
+        sub_parser.skip_current_node()?;
+    }
+    objs_loader.build()
 }
