@@ -378,14 +378,40 @@ impl<'a, R: 'a + ParserSource> SubtreeParser<'a, R> {
     /// Returns `Ok(())` if more events can be read,
     /// `Err(Error::Finished)` if the subtree is all read,
     /// `Err(_)` if error happened.
-    fn check_finished(&self) -> Result<()> {
+    fn ensure_not_finished(&self) -> Result<()> {
+        if self.is_finished()? {
+            Err(Error::Finished)
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Checks if the subtree parser finished reading events.
+    fn is_finished(&self) -> Result<bool> {
         if let Some(err) = self.root_parser.error() {
             return Err(err.clone());
         }
-        if self.root_parser.num_open_nodes() < self.initial_depth {
-            return Err(Error::Finished);
+        Ok(self.root_parser.num_open_nodes() < self.initial_depth)
+    }
+
+    /// Skip to the end of the subtree parser's readable range.
+    ///
+    /// Note that this is not intended to called for `SubtreeParser` reading implicit root node.
+    /// If the subtree parser can read whole data, the parser skips all events including `FbxEnd`
+    /// and returns `Err(Error::Finished)`.
+    pub fn skip_to_end(self) -> Result<()> {
+        if self.is_finished()? {
+            return Ok(());
         }
-        Ok(())
+        self.root_parser.open_nodes.truncate(self.initial_depth);
+        if let Some(end) = self.root_parser.open_nodes.pop().map(|v| v.end) {
+            self.root_parser.source.skip_to(end)?;
+            self.root_parser.state = Ok(State::NodeEnded);
+            Ok(())
+        } else {
+            self.root_parser.state = Err(Error::Finished);
+            Err(Error::Finished)
+        }
     }
 }
 
@@ -395,12 +421,12 @@ impl<'a, R: 'a + ParserSource> Parser<R> for SubtreeParser<'a, R> {
     }
 
     fn next_event(&mut self) -> Result<Event<R>> {
-        self.check_finished()?;
+        self.ensure_not_finished()?;
         self.root_parser.next_event()
     }
 
     fn skip_current_node(&mut self) -> Result<bool> {
-        self.check_finished()?;
+        self.ensure_not_finished()?;
         self.root_parser.skip_current_node()
     }
 

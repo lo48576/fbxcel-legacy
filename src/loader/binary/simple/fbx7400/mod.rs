@@ -404,7 +404,7 @@ fn load_objects<R: ParserSource, P: Parser<R>, O: LoadObjects7400>(
         let props = try_get_node_attrs!(parser, ObjectProperties::load);
         let mut sub_parser = parser.subtree_parser();
         objs_loader.load(props, &mut sub_parser, nodes_before_objects)?;
-        sub_parser.skip_current_node()?;
+        sub_parser.skip_to_end()?;
     }
     objs_loader.build()
 }
