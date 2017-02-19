@@ -379,13 +379,19 @@ impl<'a, R: 'a + ParserSource> SubtreeParser<'a, R> {
     /// `Err(Error::Finished)` if the subtree is all read,
     /// `Err(_)` if error happened.
     fn check_finished(&self) -> Result<()> {
+        if self.is_finished()? {
+            Err(Error::Finished)
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Checks if the subtree parser finished reading events.
+    fn is_finished(&self) -> Result<bool> {
         if let Some(err) = self.root_parser.error() {
             return Err(err.clone());
         }
-        if self.root_parser.num_open_nodes() < self.initial_depth {
-            return Err(Error::Finished);
-        }
-        Ok(())
+        Ok(self.root_parser.num_open_nodes() < self.initial_depth)
     }
 }
 
