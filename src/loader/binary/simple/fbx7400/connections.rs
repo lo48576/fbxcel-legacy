@@ -24,11 +24,11 @@ impl Connections {
 
 /// Attributes read from a `C` node.
 struct ConnectionAttrs {
-    pub child_id: i64,
-    pub parent_id: i64,
+    pub source_id: i64,
+    pub destination_id: i64,
     pub property: Option<String>,
-    pub child_is_prop: bool,
-    pub parent_is_prop: bool,
+    pub source_is_prop: bool,
+    pub destination_is_prop: bool,
 }
 
 impl ConnectionAttrs {
@@ -37,10 +37,10 @@ impl ConnectionAttrs {
         use parser::binary::utils::AttributeValues;
 
         if name == "C" {
-            let (ty, child_id, parent_id) =
+            let (ty, source_id, destination_id) =
                 <(String, i64, i64)>::from_attributes(&mut attrs)?
                     .ok_or_else(|| Error::InvalidAttribute("C".to_owned()))?;
-            let (child_is_prop, parent_is_prop) = match ty.as_str() {
+            let (source_is_prop, destination_is_prop) = match ty.as_str() {
                 "OO" => (false, false),
                 "OP" => (false, true),
                 "PO" => (true, false),
@@ -49,17 +49,17 @@ impl ConnectionAttrs {
             };
             let property = if attrs.rest_attributes() > 0 {
                 Some(String::from_attributes(&mut attrs)?
-                    .ok_or_else(|| Error::InvalidAttribute("C".to_owned()))?)
+                         .ok_or_else(|| Error::InvalidAttribute("C".to_owned()))?)
             } else {
                 None
             };
             Ok(ConnectionAttrs {
-                child_id: child_id,
-                parent_id: parent_id,
-                property: property,
-                child_is_prop: child_is_prop,
-                parent_is_prop: parent_is_prop,
-            })
+                   source_id: source_id,
+                   destination_id: destination_id,
+                   property: property,
+                   source_is_prop: source_is_prop,
+                   destination_is_prop: destination_is_prop,
+               })
         } else {
             Err(Error::UnexpectedNode(name.to_owned()))
         }
@@ -68,18 +68,23 @@ impl ConnectionAttrs {
 
 
 /// `C` node.
+///
+/// Note that "the child node will be a **source object** of the parent node", and "the parent node
+/// will be the **destination object** of the child node".
+/// See [FBX 2017 Developer Help:
+/// Connections](http://help.autodesk.com/view/FBX/2017/ENU/?guid=__files_GUID_BB63A93A_7663_4256_B060_8EA35CB0FF3A_htm)
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Connection {
-    /// Object ID of the child object.
-    pub child: i64,
-    /// Object ID of the parent object.
-    pub parent: i64,
+    /// Object ID of the source object.
+    pub source: i64,
+    /// Object ID of the destination object.
+    pub destination: i64,
     /// Property of the connection.
     pub property: Option<String>,
-    /// `true` if the child is property.
-    pub child_is_prop: bool,
-    /// `true` if the parent is property.
-    pub parent_is_prop: bool,
+    /// `true` if the source is property.
+    pub source_is_prop: bool,
+    /// `true` if the destination is property.
+    pub destination_is_prop: bool,
 }
 
 impl Connection {
@@ -87,11 +92,11 @@ impl Connection {
     fn load<R: ParserSource, P: Parser<R>>(mut parser: P, attrs: ConnectionAttrs) -> Result<Self> {
         parser.skip_current_node()?;
         Ok(Connection {
-            child: attrs.child_id,
-            parent: attrs.parent_id,
-            property: attrs.property,
-            child_is_prop: attrs.child_is_prop,
-            parent_is_prop: attrs.parent_is_prop,
-        })
+               source: attrs.source_id,
+               destination: attrs.destination_id,
+               property: attrs.property,
+               source_is_prop: attrs.source_is_prop,
+               destination_is_prop: attrs.destination_is_prop,
+           })
     }
 }
