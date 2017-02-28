@@ -247,10 +247,10 @@ impl<R: ParserSource> RootParser<R> {
                 if current_pos != last_node.end {
                     // Invalid node header.
                     return Err(Error::WrongNodeEndOffset {
-                        begin: last_node.begin,
-                        expected_end: last_node.end,
-                        real_end: current_pos,
-                    });
+                                   begin: last_node.begin,
+                                   expected_end: last_node.end,
+                                   real_end: current_pos,
+                               });
                 }
             } else {
                 assert_eq!(self.state.as_ref().ok(),
@@ -293,10 +293,10 @@ impl<R: ParserSource> RootParser<R> {
 
             let current_pos = self.source.position();
             self.open_nodes.push(OpenNode {
-                begin: current_pos,
-                end: header.end_offset,
-                attributes_end: current_pos + header.bytelen_attributes,
-            });
+                                     begin: current_pos,
+                                     end: header.end_offset,
+                                     attributes_end: current_pos + header.bytelen_attributes,
+                                 });
 
             // Zero or more attributes come after node start.
             self.state = Ok(State::NodeStarted);
@@ -404,8 +404,13 @@ impl<'a, R: 'a + ParserSource> SubtreeParser<'a, R> {
             return Ok(());
         }
         self.root_parser.open_nodes.truncate(self.initial_depth);
-        if let Some(end) = self.root_parser.open_nodes.pop().map(|v| v.end) {
-            self.root_parser.source.skip_to(end)?;
+        if let Some(end) = self.root_parser
+               .open_nodes
+               .pop()
+               .map(|v| v.end) {
+            self.root_parser
+                .source
+                .skip_to(end)?;
             self.root_parser.state = Ok(State::NodeEnded);
             Ok(())
         } else {

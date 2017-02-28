@@ -154,9 +154,7 @@ impl<R: io::BufRead> io::BufRead for BasicSource<R> {
 
 impl<R> fmt::Debug for BasicSource<R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("BasicSource")
-            .field("position", &self.position)
-            .finish()
+        f.debug_struct("BasicSource").field("position", &self.position).finish()
     }
 }
 
@@ -231,9 +229,7 @@ impl<R: io::Read + io::Seek> io::Seek for SeekableSource<R> {
 
 impl<R> fmt::Debug for SeekableSource<R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("SeekableSource")
-            .field("position", &self.position)
-            .finish()
+        f.debug_struct("SeekableSource").field("position", &self.position).finish()
     }
 }
 
@@ -324,7 +320,10 @@ impl<R> LimitedSeekReader<R> {
 impl<R: io::Read> io::Read for LimitedSeekReader<R> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let limit = self.rest_len();
-        let size = self.source.by_ref().take(limit).read(buf)?;
+        let size = self.source
+            .by_ref()
+            .take(limit)
+            .read(buf)?;
         self.current += size as u64;
         Ok(size)
     }

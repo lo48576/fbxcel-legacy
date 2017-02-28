@@ -219,20 +219,20 @@ impl<O: LoadObjects7400> Fbx7400<O> {
             ensure_node_exists!(objects_and_before, "(root)", "Objects");
 
         Ok(Fbx7400 {
-            version: version,
-            fbx_header_extension: nodes_before_objects.fbx_header_extension,
-            file_id: nodes_before_objects.file_id,
-            creation_time: nodes_before_objects.creation_time,
-            creator: nodes_before_objects.creator,
-            global_settings: nodes_before_objects.global_settings,
-            documents: nodes_before_objects.documents,
-            references: nodes_before_objects.references,
-            definitions: nodes_before_objects.definitions,
-            objects: objects,
-            connections: ensure_node_exists!(connections, "(root)", "Connections"),
-            takes: takes,
-            footer: footer,
-        })
+               version: version,
+               fbx_header_extension: nodes_before_objects.fbx_header_extension,
+               file_id: nodes_before_objects.file_id,
+               creation_time: nodes_before_objects.creation_time,
+               creator: nodes_before_objects.creator,
+               global_settings: nodes_before_objects.global_settings,
+               documents: nodes_before_objects.documents,
+               references: nodes_before_objects.references,
+               definitions: nodes_before_objects.definitions,
+               objects: objects,
+               connections: ensure_node_exists!(connections, "(root)", "Connections"),
+               takes: takes,
+               footer: footer,
+           })
     }
 }
 
@@ -389,8 +389,9 @@ impl References {
 
 /// Returns `Option<(name: &'a str, class: &'a str)>`
 pub fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
-    name_class.find("\u{0}\u{1}")
-        .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
+    name_class.find("\u{0}\u{1}").map(|sep_pos| {
+                                          (&name_class[0..sep_pos], &name_class[sep_pos + 2..])
+                                      })
 }
 
 

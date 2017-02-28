@@ -41,10 +41,10 @@ impl Definitions {
             }
         }
         Ok(Definitions {
-            version: ensure_node_exists!(version, "Definitions", "Version"),
-            count: ensure_node_exists!(count, "Definitions", "Count"),
-            object_types: object_types,
-        })
+               version: ensure_node_exists!(version, "Definitions", "Version"),
+               count: ensure_node_exists!(count, "Definitions", "Count"),
+               object_types: object_types,
+           })
     }
 }
 
@@ -88,10 +88,10 @@ impl ObjectType {
         }
 
         Ok(ObjectType {
-            object_type: attrs,
-            count: ensure_node_exists!(count, "ObjectType", "Count"),
-            property_template: property_template,
-        })
+               object_type: attrs,
+               count: ensure_node_exists!(count, "ObjectType", "Count"),
+               property_template: property_template,
+           })
     }
 }
 

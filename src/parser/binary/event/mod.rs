@@ -133,8 +133,8 @@ impl FbxFooter {
         };
         let mut unknown2 = [0u8; 16];
         // Copy partially read unknown header 2.
-        unknown2[0..partial_footer2_len]
-            .clone_from_slice(&buf[BUF_LEN - partial_footer2_len..BUF_LEN]);
+        unknown2[0..partial_footer2_len].clone_from_slice(&buf[BUF_LEN - partial_footer2_len..
+                                                           BUF_LEN]);
         // Read the rest of the unknown footer 2 (max 16 bytes).
         parser.source.read_exact(&mut unknown2[partial_footer2_len..])?;
 
@@ -146,9 +146,9 @@ impl FbxFooter {
                   expected_padding_len);
         } else {
             parser.warn(Warning::InvalidPaddingInFbxFooter {
-                expected: expected_padding_len as u8,
-                actual: 16 - partial_footer2_len as u8,
-            });
+                            expected: expected_padding_len as u8,
+                            actual: 16 - partial_footer2_len as u8,
+                        });
         }
 
         // Check the FBX version.
@@ -159,20 +159,21 @@ impl FbxFooter {
             (buf[ver_offset] as u32) | (buf[ver_offset + 1] as u32) << 8 |
             (buf[ver_offset + 2] as u32) << 16 | (buf[ver_offset + 3] as u32) << 24
         };
-        let header_fbx_version = parser.fbx_version
-            .expect("Parser should remember FBX version in the FBX header but it doesn't");
+        let header_fbx_version =
+            parser.fbx_version
+                .expect("Parser should remember FBX version in the FBX header but it doesn't");
         if header_fbx_version != footer_fbx_version {
             return Err(Error::HeaderFooterVersionMismatch {
-                header: header_fbx_version,
-                footer: footer_fbx_version,
-            });
+                           header: header_fbx_version,
+                           footer: footer_fbx_version,
+                       });
         }
 
         Ok(FbxFooter {
-            unknown1: unknown1,
-            version: footer_fbx_version,
-            unknown2: unknown2,
-        })
+               unknown1: unknown1,
+               version: footer_fbx_version,
+               unknown2: unknown2,
+           })
     }
 }
 
@@ -242,8 +243,8 @@ impl StartNodeBuilder {
     pub fn build<R: ParserSource>(self, parser: &mut RootParser<R>) -> StartNode<R> {
         let RootParser { ref mut source, ref mut warnings, ref recent_node_name, .. } = *parser;
         StartNode {
-            name: recent_node_name.as_ref()
-                .expect("`RootParser::recent_node_name` must not be empty"),
+            name:
+                recent_node_name.as_ref().expect("`RootParser::recent_node_name` must not be empty"),
             attributes: attribute::new_attributes(source, warnings, &self.header),
         }
     }
@@ -272,8 +273,9 @@ impl NodeHeader {
 
     /// Reads node header from the given parser and returns it.
     pub fn read_from_parser<R: ParserSource>(parser: &mut RootParser<R>) -> io::Result<Self> {
-        let fbx_version = parser.fbx_version
-            .expect("Attempt to read FBX node header but the parser doesn't know FBX version");
+        let fbx_version =
+            parser.fbx_version
+                .expect("Attempt to read FBX node header but the parser doesn't know FBX version");
         let (end_offset, num_attributes, bytelen_attributes) = if fbx_version < 7500 {
             let eo = parser.source.read_u32()? as u64;
             let na = parser.source.read_u32()? as u64;
@@ -287,10 +289,10 @@ impl NodeHeader {
         };
         let bytelen_name = parser.source.read_u8()?;
         Ok(NodeHeader {
-            end_offset: end_offset,
-            num_attributes: num_attributes,
-            bytelen_attributes: bytelen_attributes,
-            bytelen_name: bytelen_name,
-        })
+               end_offset: end_offset,
+               num_attributes: num_attributes,
+               bytelen_attributes: bytelen_attributes,
+               bytelen_name: bytelen_name,
+           })
     }
 }

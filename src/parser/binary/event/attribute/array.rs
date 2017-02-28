@@ -54,10 +54,10 @@ impl ArrayAttributeHeader {
         let bytelen_elements = source.read_u32()?;
 
         Ok(ArrayAttributeHeader {
-            num_elements: num_elements,
-            encoding: encoding,
-            bytelen_elements: bytelen_elements,
-        })
+               num_elements: num_elements,
+               encoding: encoding,
+               bytelen_elements: bytelen_elements,
+           })
     }
 }
 
@@ -237,11 +237,15 @@ impl<'a, R: 'a + Read> ArrayDecoder<'a, R> {
         match header.encoding {
             0 => Ok(ArrayDecoder::Raw(reader.take(header.bytelen_elements as u64))),
             #[cfg(feature = "flate2")]
-            1 => Ok(ArrayDecoder::Zlib(ZlibDecoder::new(
-                        reader.take(header.bytelen_elements as u64)))),
+            1 => {
+                Ok(ArrayDecoder::Zlib(ZlibDecoder::new(reader.take(header.bytelen_elements as
+                                                                   u64))))
+            },
             #[cfg(feature = "libflate")]
-            1 => Ok(ArrayDecoder::Zlib(zlib::Decoder::new(
-                        reader.take(header.bytelen_elements as u64))?)),
+            1 => {
+                Ok(ArrayDecoder::Zlib(zlib::Decoder::new(reader.take(header.bytelen_elements as
+                                                                     u64))?))
+            },
             _ => Err(Error::UnknownArrayAttributeEncoding(header.encoding)),
         }
     }

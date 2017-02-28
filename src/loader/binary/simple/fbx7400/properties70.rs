@@ -205,38 +205,50 @@ fn load_property_rest_f64s<R: ParserSource>(
             Ok(())
         },
         1 => {
-            let second = attrs.convert_into()?.ok_or_else(invalid_attr)?;
+            let second = attrs.convert_into()?
+                .ok_or_else(invalid_attr)?;
             props.values_f64_2.insert(name, [first, second].into());
             Ok(())
         },
         2 => {
-            let second = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
-            let third = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
+            let second = attrs.convert_into()?
+                .ok_or_else(&invalid_attr)?;
+            let third = attrs.convert_into()?
+                .ok_or_else(&invalid_attr)?;
             props.values_f64_3.insert(name, [first, second, third].into());
             Ok(())
         },
         3 => {
-            let second = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
-            let third = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
-            let fourth = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
+            let second = attrs.convert_into()?
+                .ok_or_else(&invalid_attr)?;
+            let third = attrs.convert_into()?
+                .ok_or_else(&invalid_attr)?;
+            let fourth = attrs.convert_into()?
+                .ok_or_else(&invalid_attr)?;
             props.values_f64_4.insert(name, [first, second, third, fourth].into());
             Ok(())
         },
         15 => {
-            let second = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
-            let third = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
-            let fourth = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
+            let second = attrs.convert_into()?
+                .ok_or_else(&invalid_attr)?;
+            let third = attrs.convert_into()?
+                .ok_or_else(&invalid_attr)?;
+            let fourth = attrs.convert_into()?
+                .ok_or_else(&invalid_attr)?;
             let vec1 = [first, second, third, fourth];
             let vec2 = {
-                let t: (f64, f64, f64, f64) = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
+                let t: (f64, f64, f64, f64) = attrs.convert_into()?
+                    .ok_or_else(&invalid_attr)?;
                 [t.0, t.1, t.2, t.3]
             };
             let vec3 = {
-                let t: (f64, f64, f64, f64) = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
+                let t: (f64, f64, f64, f64) = attrs.convert_into()?
+                    .ok_or_else(&invalid_attr)?;
                 [t.0, t.1, t.2, t.3]
             };
             let vec4 = {
-                let t: (f64, f64, f64, f64) = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
+                let t: (f64, f64, f64, f64) = attrs.convert_into()?
+                    .ok_or_else(&invalid_attr)?;
                 [t.0, t.1, t.2, t.3]
             };
             props.values_f64_4x4.insert(name, [vec1, vec2, vec3, vec4].into());

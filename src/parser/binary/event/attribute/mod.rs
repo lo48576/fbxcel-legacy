@@ -62,10 +62,10 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
                 let val = (raw & 0x01) == 1;
                 if raw != b'T' && raw != b'Y' {
                     self.warnings.warn(Warning::InvalidBooleanAttributeValue {
-                        got: raw,
-                        assumed: val,
-                        position: position,
-                    });
+                                           got: raw,
+                                           assumed: val,
+                                           position: position,
+                                       });
                 }
                 Ok(Some(PrimitiveAttribute::Bool(val).into()))
             },
@@ -90,9 +90,9 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
             // Unknown type attributes.
             _ => {
                 Err(Error::InvalidNodeAttributeTypeCode {
-                    got: type_code,
-                    position: position,
-                })
+                        got: type_code,
+                        position: position,
+                    })
             },
         }
     }

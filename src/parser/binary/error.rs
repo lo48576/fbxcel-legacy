@@ -99,9 +99,7 @@ impl error::Error for Error {
         match *self {
             Error::BrokenFbxFooter => "FBX footer is broken",
             Error::Finished => "Successfully finished parsing and there are no more data",
-            Error::HeaderFooterVersionMismatch { .. } => {
-                "Specified FBX versions mismatched in header and footer"
-            },
+            Error::HeaderFooterVersionMismatch { .. } => "Specified FBX versions mismatched in header and footer",
             Error::InvalidNodeAttributeTypeCode { .. } => "Invalid node attribute type code",
             Error::MagicNotDetected(_) => "Magic binary not detected",
             Error::NodeNameInvalidUtf8(_) => "Node name is not vaiid UTF-8 string",

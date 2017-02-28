@@ -51,11 +51,10 @@ impl ObjectProperties {
 impl ::parser::binary::utils::AttributeValues for ObjectProperties {
     fn from_attributes<R: ParserSource>(attrs: &mut Attributes<R>)
         -> ::std::result::Result<Option<Self>, ParseError> {
-        let (id, name_class, subclass) =
-            match <(i64, String, String)>::from_attributes(attrs)? {
-                Some(v) => v,
-                None => return Ok(None),
-            };
+        let (id, name_class, subclass) = match <(i64, String, String)>::from_attributes(attrs)? {
+            Some(v) => v,
+            None => return Ok(None),
+        };
         Ok(separate_name_class(&name_class).map(|(name, class)| {
             ObjectProperties {
                 id: id,
