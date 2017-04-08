@@ -78,7 +78,7 @@ impl<'a, R: 'a + ParserSource> SpecialAttribute<'a, R> {
 /// Read special type attribute from the given parser source.
 pub fn read_special_attribute<R>(
     source: &mut R,
-    type_code: u8
+    type_code: u8,
 ) -> io::Result<(SpecialAttribute<R>, u64)>
     where R: ParserSource
 {

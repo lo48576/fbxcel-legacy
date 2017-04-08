@@ -18,7 +18,7 @@ use parser::binary::reader::{ParserSource, ReadLittleEndian};
 pub fn read_array_attribute<'a, R>(
     source: &'a mut R,
     warnings: &'a mut Warnings,
-    type_code: u8
+    type_code: u8,
 ) -> Result<(ArrayAttribute<'a, R>, u64)>
     where R: ParserSource
 {
@@ -96,7 +96,7 @@ impl<'a, R: 'a + Read, T> ArrayAttributeReader<'a, R, T> {
     fn new<'b>(
         header: &'b ArrayAttributeHeader,
         reader: ArrayDecoder<'a, R>,
-        warnings: &'a mut Warnings
+        warnings: &'a mut Warnings,
     ) -> Self {
         ArrayAttributeReader {
             num_elements: header.num_elements as u64,

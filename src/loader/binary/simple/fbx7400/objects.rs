@@ -20,7 +20,7 @@ pub trait LoadObjects7400: Sized {
         &mut self,
         props: ObjectProperties,
         subtree_parser: &mut SubtreeParser<R>,
-        nodes_before_objects: &NodesBeforeObjects
+        nodes_before_objects: &NodesBeforeObjects,
     ) -> Result<()>
         where R: ParserSource;
 }
@@ -53,7 +53,7 @@ impl ObjectProperties {
 }
 
 impl ::parser::binary::utils::AttributeValues for ObjectProperties {
-    fn from_attributes<R>(attrs: &mut Attributes<R>)
+    fn from_attributes<R>(attrs: &mut Attributes<R>,)
         -> ::std::result::Result<Option<Self>, ParseError>
         where R: ParserSource
     {

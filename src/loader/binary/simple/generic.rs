@@ -24,7 +24,7 @@ impl GenericNode {
     /// Loads all sibling nodes from the given parser.
     ///
     /// This reads N `StartNode` and N+1 { `EndNode` or `EndFbx` }.
-    pub fn load_from_parser<R, P>(parser: &mut P)
+    pub fn load_from_parser<R, P>(parser: &mut P,)
         -> ParseResult<(Vec<GenericNode>, Option<FbxFooter>)>
         where R: ParserSource,
               P: Parser<R>

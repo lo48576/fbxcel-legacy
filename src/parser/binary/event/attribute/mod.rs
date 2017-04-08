@@ -129,7 +129,7 @@ impl<'a, R: 'a + ParserSource> From<ArrayAttribute<'a, R>> for Attribute<'a, R> 
 pub fn new_attributes<'a, R: 'a>(
     source: &'a mut R,
     warnings: &'a mut Warnings,
-    header: &NodeHeader
+    header: &NodeHeader,
 ) -> Attributes<'a, R> {
     Attributes {
         num_attributes: header.num_attributes,

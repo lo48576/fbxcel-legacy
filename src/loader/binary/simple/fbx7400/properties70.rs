@@ -200,7 +200,7 @@ fn load_property_rest_f64s<R>(
     props: &mut Properties70,
     mut attrs: Attributes<R>,
     name: String,
-    first: f64
+    first: f64,
 ) -> Result<()>
     where R: ParserSource
 {

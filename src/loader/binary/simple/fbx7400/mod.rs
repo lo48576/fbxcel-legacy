@@ -415,7 +415,7 @@ pub fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
 fn load_objects<R, P, O>(
     mut parser: P,
     mut objs_loader: O,
-    nodes_before_objects: &NodesBeforeObjects
+    nodes_before_objects: &NodesBeforeObjects,
 ) -> Result<O::Objects>
     where R: ParserSource,
           P: Parser<R>,
