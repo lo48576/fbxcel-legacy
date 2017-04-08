@@ -153,7 +153,8 @@ impl<O: LoadObjects7400> Fbx7400<O> {
             debug!("node_type: {:?}", node_type);
             match node_type {
                 NodeType::FbxHeaderExtension => {
-                    fbx_header_extension = Some(FbxHeaderExtension::load(parser.subtree_parser())?);
+                    fbx_header_extension =
+                        Some(FbxHeaderExtension::load(parser.subtree_parser())?);
                 },
                 NodeType::FileId(attrs) => {
                     file_id = Some(FileId::load(parser.subtree_parser(), attrs)?);
