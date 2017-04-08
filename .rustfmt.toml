@@ -1,12 +1,13 @@
-# Default value.
-newline_style = "Unix"
-fn_return_indent = "WithWhereClause"
-fn_args_paren_newline = false
-fn_args_layout = "Block"
-where_trailing_comma = true
-chain_indent = "Tabbed"
-# Default value.
-# Separate `std`, other crates, and `self` manually.
-reorder_imports = false
-match_block_trailing_comma = true
+array_layout = "Block"  # RFC.
+chain_indent = "Block"  # Default.
 error_on_line_overflow = false
+fn_args_layout = "Block"
+fn_args_paren_newline = false
+fn_return_indent = "WithWhereClause"
+match_block_trailing_comma = true
+newline_style = "Unix"  # Default.
+# Separate `std`, other crates, and `self` manually.
+reorder_imports = false  # Default.
+trailing_comma = "Vertical"  # Default.
+
+# This file is for =rustfmt-0.8.3 .
