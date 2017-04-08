@@ -219,7 +219,8 @@ impl SceneInfo {
         let mut properties = None;
 
         // Attrs.
-        let (name, class) = separate_name_class(&attrs.0).map(|(n, c)| (n.into(), c.into()))
+        let (name, class) = separate_name_class(&attrs.0)
+            .map(|(n, c)| (n.into(), c.into()))
             .ok_or_else(|| Error::InvalidAttribute("SceneInfo".to_owned()))?;
         let subclass = attrs.1;
 
@@ -350,7 +351,7 @@ child_attr_loader! { MetaDataChildAttrs {
 
 /// Returns `Option<(name: &'a str, class: &'a str)>`
 fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
-    name_class.find("\u{0}\u{1}").map(|sep_pos| {
-                                          (&name_class[0..sep_pos], &name_class[sep_pos + 2..])
-                                      })
+    name_class
+        .find("\u{0}\u{1}")
+        .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
 }

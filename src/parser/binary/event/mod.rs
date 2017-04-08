@@ -140,7 +140,9 @@ impl FbxFooter {
         unknown2[0..partial_footer2_len].clone_from_slice(&buf[BUF_LEN - partial_footer2_len..
                                                            BUF_LEN]);
         // Read the rest of the unknown footer 2 (max 16 bytes).
-        parser.source.read_exact(&mut unknown2[partial_footer2_len..])?;
+        parser
+            .source
+            .read_exact(&mut unknown2[partial_footer2_len..])?;
 
         // Check whether padding before the footer exists.
         if 16 - partial_footer2_len == expected_padding_len {
@@ -164,7 +166,8 @@ impl FbxFooter {
             (buf[ver_offset + 2] as u32) << 16 | (buf[ver_offset + 3] as u32) << 24
         };
         let header_fbx_version =
-            parser.fbx_version
+            parser
+                .fbx_version
                 .expect("Parser should remember FBX version in the FBX header but it doesn't");
         if header_fbx_version != footer_fbx_version {
             return Err(Error::HeaderFooterVersionMismatch {
@@ -256,8 +259,9 @@ impl StartNodeBuilder {
             ..
         } = *parser;
         StartNode {
-            name:
-                recent_node_name.as_ref().expect("`RootParser::recent_node_name` must not be empty"),
+            name: recent_node_name
+                .as_ref()
+                .expect("`RootParser::recent_node_name` must not be empty"),
             attributes: attribute::new_attributes(source, warnings, &self.header),
         }
     }
@@ -289,7 +293,8 @@ impl NodeHeader {
         where R: ParserSource
     {
         let fbx_version =
-            parser.fbx_version
+            parser
+                .fbx_version
                 .expect("Attempt to read FBX node header but the parser doesn't know FBX version");
         let (end_offset, num_attributes, bytelen_attributes) = if fbx_version < 7500 {
             let eo = parser.source.read_u32()? as u64;

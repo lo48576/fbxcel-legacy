@@ -289,20 +289,17 @@ impl NodeType {
         match name {
             "FBXHeaderExtension" => Ok(NodeType::FbxHeaderExtension),
             "FileId" => {
-                <Vec<u8>>::from_attributes(&mut attrs)
-                    ?
+                <Vec<u8>>::from_attributes(&mut attrs)?
                     .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
                     .map(NodeType::FileId)
             },
             "CreationTime" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
+                <String>::from_attributes(&mut attrs)?
                     .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
                     .map(NodeType::CreationTime)
             },
             "Creator" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
+                <String>::from_attributes(&mut attrs)?
                     .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
                     .map(NodeType::Creator)
             },
@@ -407,9 +404,9 @@ impl References {
 
 /// Returns `Option<(name: &'a str, class: &'a str)>`
 pub fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
-    name_class.find("\u{0}\u{1}").map(|sep_pos| {
-                                          (&name_class[0..sep_pos], &name_class[sep_pos + 2..])
-                                      })
+    name_class
+        .find("\u{0}\u{1}")
+        .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
 }
 
 
@@ -426,7 +423,8 @@ fn load_objects<R, P, O>(
     loop {
         let props = try_get_node_attrs!(parser, ObjectProperties::load);
         let mut sub_parser = parser.subtree_parser();
-        objs_loader.load(props, &mut sub_parser, nodes_before_objects)?;
+        objs_loader
+            .load(props, &mut sub_parser, nodes_before_objects)?;
         sub_parser.skip_to_end()?;
     }
     objs_loader.build()

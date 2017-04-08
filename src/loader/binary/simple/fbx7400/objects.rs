@@ -47,7 +47,8 @@ impl ObjectProperties {
         use parser::binary::utils::AttributeValues;
         use loader::binary::simple::Error;
 
-        Self::from_attributes(&mut attrs)?.ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
+        Self::from_attributes(&mut attrs)?
+            .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
     }
 }
 
@@ -61,12 +62,12 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
             None => return Ok(None),
         };
         Ok(separate_name_class(&name_class).map(|(name, class)| {
-            ObjectProperties {
-                id: id,
-                name: name.to_owned(),
-                class: class.to_owned(),
-                subclass: subclass,
-            }
-        }))
+                                                    ObjectProperties {
+                                                        id: id,
+                                                        name: name.to_owned(),
+                                                        class: class.to_owned(),
+                                                        subclass: subclass,
+                                                    }
+                                                }))
     }
 }

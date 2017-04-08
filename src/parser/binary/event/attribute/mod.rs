@@ -61,11 +61,12 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
                 let raw = self.source.read_u8()?;
                 let val = (raw & 0x01) == 1;
                 if raw != b'T' && raw != b'Y' {
-                    self.warnings.warn(Warning::InvalidBooleanAttributeValue {
-                                           got: raw,
-                                           assumed: val,
-                                           position: position,
-                                       });
+                    self.warnings
+                        .warn(Warning::InvalidBooleanAttributeValue {
+                                  got: raw,
+                                  assumed: val,
+                                  position: position,
+                              });
                 }
                 Ok(Some(PrimitiveAttribute::Bool(val).into()))
             },

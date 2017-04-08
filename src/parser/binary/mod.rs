@@ -274,13 +274,13 @@ impl<R: ParserSource> RootParser<R> {
                 let mut vecbuf = self.recent_node_name
                     .take()
                     .map(|s| {
-                        // Get inner `Vec` of the string.
-                        let mut v = s.into_bytes();
-                        // Resize buffer.
-                        // This reallocates only if the buffer is too small.
-                        v.resize(header.bytelen_name as usize, 0);
-                        v
-                    })
+                             // Get inner `Vec` of the string.
+                             let mut v = s.into_bytes();
+                             // Resize buffer.
+                             // This reallocates only if the buffer is too small.
+                             v.resize(header.bytelen_name as usize, 0);
+                             v
+                         })
                     .unwrap_or_else(|| vec![0; header.bytelen_name as usize]);
                 // Read the node name into the buffer.
                 self.source.read_exact(&mut vecbuf)?;
@@ -288,15 +288,17 @@ impl<R: ParserSource> RootParser<R> {
                 // If conversion failed, the buffer will be left empty.
                 // This is ok because no more node events would be loaded and
                 // the buffer would no longer be used.
-                Some(String::from_utf8(vecbuf).map_err(Error::node_name_invalid_utf8)?)
+                Some(String::from_utf8(vecbuf)
+                         .map_err(Error::node_name_invalid_utf8)?)
             };
 
             let current_pos = self.source.position();
-            self.open_nodes.push(OpenNode {
-                                     begin: current_pos,
-                                     end: header.end_offset,
-                                     attributes_end: current_pos + header.bytelen_attributes,
-                                 });
+            self.open_nodes
+                .push(OpenNode {
+                          begin: current_pos,
+                          end: header.end_offset,
+                          attributes_end: current_pos + header.bytelen_attributes,
+                      });
 
             // Zero or more attributes come after node start.
             self.state = Ok(State::NodeStarted);
@@ -404,13 +406,8 @@ impl<'a, R: 'a + ParserSource> SubtreeParser<'a, R> {
             return Ok(());
         }
         self.root_parser.open_nodes.truncate(self.initial_depth);
-        if let Some(end) = self.root_parser
-               .open_nodes
-               .pop()
-               .map(|v| v.end) {
-            self.root_parser
-                .source
-                .skip_to(end)?;
+        if let Some(end) = self.root_parser.open_nodes.pop().map(|v| v.end) {
+            self.root_parser.source.skip_to(end)?;
             self.root_parser.state = Ok(State::NodeEnded);
             Ok(())
         } else {
