@@ -10,7 +10,10 @@ pub struct Connections(pub Vec<Connection>);
 
 impl Connections {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         let mut connections = Vec::new();
 
         loop {
@@ -33,7 +36,9 @@ struct ConnectionAttrs {
 
 impl ConnectionAttrs {
     /// Loads attributes.
-    pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>) -> Result<Self> {
+    pub fn load<R>(name: &str, mut attrs: Attributes<R>) -> Result<Self>
+        where R: ParserSource
+    {
         use parser::binary::utils::AttributeValues;
 
         if name == "C" {
@@ -89,7 +94,10 @@ pub struct Connection {
 
 impl Connection {
     /// Loads node contents from the parser.
-    fn load<R: ParserSource, P: Parser<R>>(mut parser: P, attrs: ConnectionAttrs) -> Result<Self> {
+    fn load<R, P>(mut parser: P, attrs: ConnectionAttrs) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         parser.skip_current_node()?;
         Ok(Connection {
                source: attrs.source_id,

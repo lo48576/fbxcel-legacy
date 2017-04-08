@@ -98,7 +98,9 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
     }
 
     /// Converts some attributes into values of specific types.
-    pub fn convert_into<A: AttributeValues>(&mut self) -> Result<Option<A>> {
+    pub fn convert_into<A>(&mut self) -> Result<Option<A>>
+        where A: AttributeValues
+    {
         A::from_attributes(self)
     }
 }
@@ -151,7 +153,9 @@ pub enum Attribute<'a, R: 'a> {
 
 impl<'a, R: 'a + ParserSource> Attribute<'a, R> {
     /// Converts the attribute into a value of a specific type.
-    pub fn convert_into<A: AttributeValue>(self) -> Result<Option<A>> {
+    pub fn convert_into<A>(self) -> Result<Option<A>>
+        where A: AttributeValue
+    {
         A::from_attribute(self)
     }
 }

@@ -53,7 +53,9 @@ pub struct FbxHeader {
 
 
 /// Read FBX header.
-pub fn read_fbx_header<R: ParserSource>(parser: &mut RootParser<R>) -> Result<FbxHeader> {
+pub fn read_fbx_header<R>(parser: &mut RootParser<R>) -> Result<FbxHeader>
+    where R: ParserSource
+{
     assert!(parser.fbx_version.is_none(),
             "Parser should read FBX header only once");
     // Check magic binary.
@@ -98,7 +100,9 @@ pub struct FbxFooter {
 
 impl FbxFooter {
     /// Reads node header from the given parser and returns it.
-    pub fn read_from_parser<R: ParserSource>(parser: &mut RootParser<R>) -> Result<Self> {
+    pub fn read_from_parser<R>(parser: &mut RootParser<R>) -> Result<Self>
+        where R: ParserSource
+    {
         // Read unknown 16 bytes footer.
         let mut unknown1 = [0u8; 16];
         parser.source.read_exact(&mut unknown1)?;
@@ -202,7 +206,9 @@ pub enum EventBuilder {
 
 impl EventBuilder {
     /// Creates `Event` from the `EventBuilder` and the given parser.
-    pub fn build<R: ParserSource>(self, parser: &mut RootParser<R>) -> Event<R> {
+    pub fn build<R>(self, parser: &mut RootParser<R>) -> Event<R>
+        where R: ParserSource
+    {
         match self {
             EventBuilder::StartFbx(header) => header.into(),
             EventBuilder::EndFbx(footer) => footer.into(),
@@ -240,7 +246,9 @@ pub struct StartNodeBuilder {
 
 impl StartNodeBuilder {
     /// Creates `StartNode` from the `StartNodeBuilder` and the given parser.
-    pub fn build<R: ParserSource>(self, parser: &mut RootParser<R>) -> StartNode<R> {
+    pub fn build<R>(self, parser: &mut RootParser<R>) -> StartNode<R>
+        where R: ParserSource
+    {
         let RootParser { ref mut source, ref mut warnings, ref recent_node_name, .. } = *parser;
         StartNode {
             name:
@@ -272,7 +280,9 @@ impl NodeHeader {
     }
 
     /// Reads node header from the given parser and returns it.
-    pub fn read_from_parser<R: ParserSource>(parser: &mut RootParser<R>) -> io::Result<Self> {
+    pub fn read_from_parser<R>(parser: &mut RootParser<R>) -> io::Result<Self>
+        where R: ParserSource
+    {
         let fbx_version =
             parser.fbx_version
                 .expect("Attempt to read FBX node header but the parser doesn't know FBX version");

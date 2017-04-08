@@ -41,7 +41,10 @@ impl Properties70 {
     }
 
     /// Loads a node from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(parser: P) -> Result<Self> {
+    pub fn load<R, P>(parser: P) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         load_properties70(parser)
     }
 }
@@ -101,7 +104,10 @@ impl<T> From<T> for PropertyValue<T> {
 
 
 /// Loads a `Properties70` node.
-fn load_properties70<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Properties70> {
+fn load_properties70<R, P>(mut parser: P) -> Result<Properties70>
+    where R: ParserSource,
+          P: Parser<R>
+{
     let mut props = Properties70::new();
 
     loop {
@@ -118,10 +124,9 @@ fn load_properties70<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Pro
 
 
 /// Loads a `P` node in `Properties70`.
-fn load_property<R: ParserSource>(
-    props: &mut Properties70,
-    mut attrs: Attributes<R>
-) -> Result<()> {
+fn load_property<R>(props: &mut Properties70, mut attrs: Attributes<R>) -> Result<()>
+    where R: ParserSource
+{
     use parser::binary::utils::AttributeValues;
 
     // `type_name`, `label`, `flags` are `String`s, but ignore here because they are currently
@@ -191,12 +196,14 @@ fn load_property<R: ParserSource>(
 
 
 /// Loads rest `f64` values of a `P` node in `Properties70`.
-fn load_property_rest_f64s<R: ParserSource>(
+fn load_property_rest_f64s<R>(
     props: &mut Properties70,
     mut attrs: Attributes<R>,
     name: String,
     first: f64
-) -> Result<()> {
+) -> Result<()>
+    where R: ParserSource
+{
     let invalid_attr = || Error::InvalidAttribute("P".into());
 
     match attrs.rest_attributes() {

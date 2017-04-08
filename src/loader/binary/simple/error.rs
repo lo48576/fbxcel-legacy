@@ -39,10 +39,10 @@ pub enum Error {
 
 impl Error {
     /// Creates a new `Error::MissingNode`.
-    pub fn missing_node<'a, S: Into<String>, T: Into<Option<&'a str>>>(
-        parent: S,
-        child: T
-    ) -> Self {
+    pub fn missing_node<'a, S, T>(parent: S, child: T) -> Self
+        where S: Into<String>,
+              T: Into<Option<&'a str>>
+    {
         Error::MissingNode {
             parent: parent.into(),
             child: child.into().map(|s| s.to_owned()),
