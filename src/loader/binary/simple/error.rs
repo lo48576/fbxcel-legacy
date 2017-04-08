@@ -55,7 +55,10 @@ impl fmt::Display for Error {
         match *self {
             Error::InvalidAttribute(ref name) => write!(f, "Invalid attribute for node: {}", name),
             Error::LoadObject(ref err) => write!(f, "Object load error: {}", err),
-            Error::MissingNode { ref parent, ref child } => {
+            Error::MissingNode {
+                ref parent,
+                ref child,
+            } => {
                 if let Some(child) = child.as_ref() {
                     write!(f, "Missing node: {} (parent={})", child, parent)
                 } else {

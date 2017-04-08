@@ -249,7 +249,12 @@ impl StartNodeBuilder {
     pub fn build<R>(self, parser: &mut RootParser<R>) -> StartNode<R>
         where R: ParserSource
     {
-        let RootParser { ref mut source, ref mut warnings, ref recent_node_name, .. } = *parser;
+        let RootParser {
+            ref mut source,
+            ref mut warnings,
+            ref recent_node_name,
+            ..
+        } = *parser;
         StartNode {
             name:
                 recent_node_name.as_ref().expect("`RootParser::recent_node_name` must not be empty"),
