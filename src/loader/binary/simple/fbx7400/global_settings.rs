@@ -36,9 +36,9 @@ impl GlobalSettings {
             }
         }
         Ok(GlobalSettings {
-               version: ensure_node_exists!(version, "Definitions", "Version"),
-               properties: ensure_node_exists!(properties, "Definitions", "Properties70"),
-           })
+            version: ensure_node_exists!(version, "Definitions", "Version"),
+            properties: ensure_node_exists!(properties, "Definitions", "Properties70"),
+        })
     }
 }
 

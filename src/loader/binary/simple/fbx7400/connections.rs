@@ -53,18 +53,19 @@ impl ConnectionAttrs {
                 _ => return Err(Error::InvalidAttribute("C".to_owned())),
             };
             let property = if attrs.rest_attributes() > 0 {
-                Some(String::from_attributes(&mut attrs)?
-                         .ok_or_else(|| Error::InvalidAttribute("C".to_owned()))?)
+                Some(String::from_attributes(&mut attrs)?.ok_or_else(|| {
+                    Error::InvalidAttribute("C".to_owned())
+                })?)
             } else {
                 None
             };
             Ok(ConnectionAttrs {
-                   source_id: source_id,
-                   destination_id: destination_id,
-                   property: property,
-                   source_is_prop: source_is_prop,
-                   destination_is_prop: destination_is_prop,
-               })
+                source_id: source_id,
+                destination_id: destination_id,
+                property: property,
+                source_is_prop: source_is_prop,
+                destination_is_prop: destination_is_prop,
+            })
         } else {
             Err(Error::UnexpectedNode(name.to_owned()))
         }
@@ -100,11 +101,11 @@ impl Connection {
     {
         parser.skip_current_node()?;
         Ok(Connection {
-               source: attrs.source_id,
-               destination: attrs.destination_id,
-               property: attrs.property,
-               source_is_prop: attrs.source_is_prop,
-               destination_is_prop: attrs.destination_is_prop,
-           })
+            source: attrs.source_id,
+            destination: attrs.destination_id,
+            property: attrs.property,
+            source_is_prop: attrs.source_is_prop,
+            destination_is_prop: attrs.destination_is_prop,
+        })
     }
 }

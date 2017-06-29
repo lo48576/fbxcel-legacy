@@ -61,20 +61,29 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
                 let raw = self.source.read_u8()?;
                 let val = (raw & 0x01) == 1;
                 if raw != b'T' && raw != b'Y' {
-                    self.warnings
-                        .warn(Warning::InvalidBooleanAttributeValue {
-                                  got: raw,
-                                  assumed: val,
-                                  position: position,
-                              });
+                    self.warnings.warn(Warning::InvalidBooleanAttributeValue {
+                        got: raw,
+                        assumed: val,
+                        position: position,
+                    });
                 }
                 Ok(Some(PrimitiveAttribute::Bool(val).into()))
             },
-            b'Y' => Ok(Some(PrimitiveAttribute::I16(self.source.read_i16()?).into())),
-            b'I' => Ok(Some(PrimitiveAttribute::I32(self.source.read_i32()?).into())),
-            b'L' => Ok(Some(PrimitiveAttribute::I64(self.source.read_i64()?).into())),
-            b'F' => Ok(Some(PrimitiveAttribute::F32(self.source.read_f32()?).into())),
-            b'D' => Ok(Some(PrimitiveAttribute::F64(self.source.read_f64()?).into())),
+            b'Y' => Ok(Some(
+                PrimitiveAttribute::I16(self.source.read_i16()?).into(),
+            )),
+            b'I' => Ok(Some(
+                PrimitiveAttribute::I32(self.source.read_i32()?).into(),
+            )),
+            b'L' => Ok(Some(
+                PrimitiveAttribute::I64(self.source.read_i64()?).into(),
+            )),
+            b'F' => Ok(Some(
+                PrimitiveAttribute::F32(self.source.read_f32()?).into(),
+            )),
+            b'D' => Ok(Some(
+                PrimitiveAttribute::F64(self.source.read_f64()?).into(),
+            )),
             // Special type attributes.
             b'R' | b'S' => {
                 let (attr, end_offset) = read_special_attribute(self.source, type_code)?;
@@ -91,9 +100,9 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
             // Unknown type attributes.
             _ => {
                 Err(Error::InvalidNodeAttributeTypeCode {
-                        got: type_code,
-                        position: position,
-                    })
+                    got: type_code,
+                    position: position,
+                })
             },
         }
     }

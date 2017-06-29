@@ -47,14 +47,16 @@ impl ObjectProperties {
         use parser::binary::utils::AttributeValues;
         use loader::binary::simple::Error;
 
-        Self::from_attributes(&mut attrs)?
-            .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
+        Self::from_attributes(&mut attrs)?.ok_or_else(|| {
+            Error::InvalidAttribute(name.to_owned())
+        })
     }
 }
 
 impl ::parser::binary::utils::AttributeValues for ObjectProperties {
-    fn from_attributes<R>(attrs: &mut Attributes<R>,)
-        -> ::std::result::Result<Option<Self>, ParseError>
+    fn from_attributes<R>(
+        attrs: &mut Attributes<R>,
+    ) -> ::std::result::Result<Option<Self>, ParseError>
         where R: ParserSource
     {
         let (id, name_class, subclass) = match <(i64, String, String)>::from_attributes(attrs)? {
@@ -62,12 +64,12 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
             None => return Ok(None),
         };
         Ok(separate_name_class(&name_class).map(|(name, class)| {
-                                                    ObjectProperties {
-                                                        id: id,
-                                                        name: name.to_owned(),
-                                                        class: class.to_owned(),
-                                                        subclass: subclass,
-                                                    }
-                                                }))
+            ObjectProperties {
+                id: id,
+                name: name.to_owned(),
+                class: class.to_owned(),
+                subclass: subclass,
+            }
+        }))
     }
 }

@@ -60,9 +60,11 @@ impl<R: ParserSource, P: Parser<R>> FbxLoader<R, P> {
         let version = match parser.next_event()? {
             Event::StartFbx(header) => header.version,
             ev => {
-                panic!("FBX binary parser should return `StartFbx` as the first event but got \
+                panic!(
+                    "FBX binary parser should return `StartFbx` as the first event but got \
                         `{:?}`",
-                       ev)
+                    ev
+                )
             },
         };
         let inner = FbxLoaderInner {

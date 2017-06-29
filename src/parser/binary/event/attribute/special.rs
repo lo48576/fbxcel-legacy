@@ -91,11 +91,13 @@ pub fn read_special_attribute<R>(
     let current_pos = source.position();
     let end_offset = current_pos + byte_length as u64;
 
-    Ok((SpecialAttribute {
+    Ok((
+        SpecialAttribute {
             source: source,
             value_type: value_type,
             byte_length: byte_length,
             end_offset: end_offset,
         },
-        end_offset))
+        end_offset,
+    ))
 }

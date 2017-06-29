@@ -153,8 +153,7 @@ impl<O: LoadObjects7400> Fbx7400<O> {
             debug!("node_type: {:?}", node_type);
             match node_type {
                 NodeType::FbxHeaderExtension => {
-                    fbx_header_extension =
-                        Some(FbxHeaderExtension::load(parser.subtree_parser())?);
+                    fbx_header_extension = Some(FbxHeaderExtension::load(parser.subtree_parser())?);
                 },
                 NodeType::FileId(attrs) => {
                     file_id = Some(FileId::load(parser.subtree_parser(), attrs)?);
@@ -181,28 +180,40 @@ impl<O: LoadObjects7400> Fbx7400<O> {
                     if let Some(objs_loader) = objs_loader.take() {
                         let nodes_before_objects = NodesBeforeObjects {
                             version: version,
-                            fbx_header_extension: ensure_node_exists!(fbx_header_extension.take(),
-                                                                      "(root)",
-                                                                      "FBXHeaderExtension"),
+                            fbx_header_extension: ensure_node_exists!(
+                                fbx_header_extension.take(),
+                                "(root)",
+                                "FBXHeaderExtension"
+                            ),
                             file_id: ensure_node_exists!(file_id.take(), "(root)", "FileId"),
-                            creation_time: ensure_node_exists!(creation_time.take(),
-                                                               "(root)",
-                                                               "CreationTime"),
+                            creation_time: ensure_node_exists!(
+                                creation_time.take(),
+                                "(root)",
+                                "CreationTime"
+                            ),
                             creator: ensure_node_exists!(creator.take(), "(root)", "Creator"),
-                            global_settings: ensure_node_exists!(global_settings.take(),
-                                                                 "(root)",
-                                                                 "GlobalSettings"),
+                            global_settings: ensure_node_exists!(
+                                global_settings.take(),
+                                "(root)",
+                                "GlobalSettings"
+                            ),
                             documents: ensure_node_exists!(documents.take(), "(root)", "Documents"),
-                            references: ensure_node_exists!(references.take(),
-                                                            "(root)",
-                                                            "References"),
-                            definitions: ensure_node_exists!(definitions.take(),
-                                                             "(root)",
-                                                             "Definitions"),
+                            references: ensure_node_exists!(
+                                references.take(),
+                                "(root)",
+                                "References"
+                            ),
+                            definitions: ensure_node_exists!(
+                                definitions.take(),
+                                "(root)",
+                                "Definitions"
+                            ),
                         };
-                        let objects = load_objects(parser.subtree_parser(),
-                                                   objs_loader,
-                                                   &nodes_before_objects)?;
+                        let objects = load_objects(
+                            parser.subtree_parser(),
+                            objs_loader,
+                            &nodes_before_objects,
+                        )?;
                         objects_and_before = Some((objects, nodes_before_objects));
                     } else {
                         warn!("Multiple `Objects` node found, ignoring.");
@@ -221,20 +232,20 @@ impl<O: LoadObjects7400> Fbx7400<O> {
             ensure_node_exists!(objects_and_before, "(root)", "Objects");
 
         Ok(Fbx7400 {
-               version: version,
-               fbx_header_extension: nodes_before_objects.fbx_header_extension,
-               file_id: nodes_before_objects.file_id,
-               creation_time: nodes_before_objects.creation_time,
-               creator: nodes_before_objects.creator,
-               global_settings: nodes_before_objects.global_settings,
-               documents: nodes_before_objects.documents,
-               references: nodes_before_objects.references,
-               definitions: nodes_before_objects.definitions,
-               objects: objects,
-               connections: ensure_node_exists!(connections, "(root)", "Connections"),
-               takes: takes,
-               footer: footer,
-           })
+            version: version,
+            fbx_header_extension: nodes_before_objects.fbx_header_extension,
+            file_id: nodes_before_objects.file_id,
+            creation_time: nodes_before_objects.creation_time,
+            creator: nodes_before_objects.creator,
+            global_settings: nodes_before_objects.global_settings,
+            documents: nodes_before_objects.documents,
+            references: nodes_before_objects.references,
+            definitions: nodes_before_objects.definitions,
+            objects: objects,
+            connections: ensure_node_exists!(connections, "(root)", "Connections"),
+            takes: takes,
+            footer: footer,
+        })
     }
 }
 
@@ -405,9 +416,9 @@ impl References {
 
 /// Returns `Option<(name: &'a str, class: &'a str)>`
 pub fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
-    name_class
-        .find("\u{0}\u{1}")
-        .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
+    name_class.find("\u{0}\u{1}").map(|sep_pos| {
+        (&name_class[0..sep_pos], &name_class[sep_pos + 2..])
+    })
 }
 
 
@@ -424,8 +435,11 @@ fn load_objects<R, P, O>(
     loop {
         let props = try_get_node_attrs!(parser, ObjectProperties::load);
         let mut sub_parser = parser.subtree_parser();
-        objs_loader
-            .load(props, &mut sub_parser, nodes_before_objects)?;
+        objs_loader.load(
+            props,
+            &mut sub_parser,
+            nodes_before_objects,
+        )?;
         sub_parser.skip_to_end()?;
     }
     objs_loader.build()

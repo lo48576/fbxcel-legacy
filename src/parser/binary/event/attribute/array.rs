@@ -58,10 +58,10 @@ impl ArrayAttributeHeader {
         let bytelen_elements = source.read_u32()?;
 
         Ok(ArrayAttributeHeader {
-               num_elements: num_elements,
-               encoding: encoding,
-               bytelen_elements: bytelen_elements,
-           })
+            num_elements: num_elements,
+            encoding: encoding,
+            bytelen_elements: bytelen_elements,
+        })
     }
 }
 
@@ -180,7 +180,10 @@ impl<'a, R: 'a + Read> Iterator for ArrayAttributeReader<'a, R, bool> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.rest_elements as usize, Some(self.rest_elements as usize))
+        (
+            self.rest_elements as usize,
+            Some(self.rest_elements as usize),
+        )
     }
 
     fn count(self) -> usize {
@@ -239,16 +242,20 @@ enum ArrayDecoder<'a, R: 'a> {
 impl<'a, R: 'a + Read> ArrayDecoder<'a, R> {
     fn new(reader: &'a mut R, header: &ArrayAttributeHeader) -> Result<Self> {
         match header.encoding {
-            0 => Ok(ArrayDecoder::Raw(reader.take(header.bytelen_elements as u64))),
+            0 => Ok(ArrayDecoder::Raw(
+                reader.take(header.bytelen_elements as u64),
+            )),
             #[cfg(feature = "flate2")]
             1 => {
-                Ok(ArrayDecoder::Zlib(ZlibDecoder::new(reader.take(header.bytelen_elements as
-                                                                   u64))))
+                Ok(ArrayDecoder::Zlib(ZlibDecoder::new(
+                    reader.take(header.bytelen_elements as u64),
+                )))
             },
             #[cfg(feature = "libflate")]
             1 => {
-                Ok(ArrayDecoder::Zlib(zlib::Decoder::new(reader.take(header.bytelen_elements as
-                                                                     u64))?))
+                Ok(ArrayDecoder::Zlib(zlib::Decoder::new(
+                    reader.take(header.bytelen_elements as u64),
+                )?))
             },
             _ => Err(Error::UnknownArrayAttributeEncoding(header.encoding)),
         }
@@ -269,14 +276,16 @@ impl<'a, R: 'a + Read> Read for ArrayDecoder<'a, R> {
 
 impl<'a, R: 'a> fmt::Debug for ArrayDecoder<'a, R> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "ArrayDecoder::{}",
-               match *self {
-                   ArrayDecoder::Raw(_) => "Raw",
-                   #[cfg(feature = "flate2")]
-                   ArrayDecoder::Zlib(_) => "Zlib",
-                   #[cfg(feature = "libflate")]
-                   ArrayDecoder::Zlib(_) => "Zlib",
-               })
+        write!(
+            f,
+            "ArrayDecoder::{}",
+            match *self {
+                ArrayDecoder::Raw(_) => "Raw",
+                #[cfg(feature = "flate2")]
+                ArrayDecoder::Zlib(_) => "Zlib",
+                #[cfg(feature = "libflate")]
+                ArrayDecoder::Zlib(_) => "Zlib",
+            }
+        )
     }
 }

@@ -219,18 +219,20 @@ fn load_property_rest_f64s<R>(
         2 => {
             let second = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
             let third = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
-            props
-                .values_f64_3
-                .insert(name, [first, second, third].into());
+            props.values_f64_3.insert(
+                name,
+                [first, second, third].into(),
+            );
             Ok(())
         },
         3 => {
             let second = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
             let third = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
             let fourth = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
-            props
-                .values_f64_4
-                .insert(name, [first, second, third, fourth].into());
+            props.values_f64_4.insert(
+                name,
+                [first, second, third, fourth].into(),
+            );
             Ok(())
         },
         15 => {
@@ -250,15 +252,18 @@ fn load_property_rest_f64s<R>(
                 let t: (f64, f64, f64, f64) = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
                 [t.0, t.1, t.2, t.3]
             };
-            props
-                .values_f64_4x4
-                .insert(name, [vec1, vec2, vec3, vec4].into());
+            props.values_f64_4x4.insert(
+                name,
+                [vec1, vec2, vec3, vec4].into(),
+            );
             Ok(())
         },
         n => {
-            error!("Supported length of node property with f64 values are 1, 2, 3, 4 and 16, but \
+            error!(
+                "Supported length of node property with f64 values are 1, 2, 3, 4 and 16, but \
                     got {}",
-                   n + 1);
+                n + 1
+            );
             Err(Error::InvalidAttribute("P".into()))
         },
     }

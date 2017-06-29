@@ -247,16 +247,18 @@ impl<R: ParserSource> RootParser<R> {
                 if current_pos != last_node.end {
                     // Invalid node header.
                     return Err(Error::WrongNodeEndOffset {
-                                   begin: last_node.begin,
-                                   expected_end: last_node.end,
-                                   real_end: current_pos,
-                               });
+                        begin: last_node.begin,
+                        expected_end: last_node.end,
+                        real_end: current_pos,
+                    });
                 }
             } else {
-                assert_eq!(self.state.as_ref().ok(),
-                           Some(&State::NodeEnded),
-                           "End of implicit root node is read with unexpected parser state {:?}",
-                           self.state);
+                assert_eq!(
+                    self.state.as_ref().ok(),
+                    Some(&State::NodeEnded),
+                    "End of implicit root node is read with unexpected parser state {:?}",
+                    self.state
+                );
                 // No open nodes, so this `EndNode` event indicates the end of
                 // the implicit root node.
                 // FBX file has no more nodes.
@@ -274,13 +276,13 @@ impl<R: ParserSource> RootParser<R> {
                 let mut vecbuf = self.recent_node_name
                     .take()
                     .map(|s| {
-                             // Get inner `Vec` of the string.
-                             let mut v = s.into_bytes();
-                             // Resize buffer.
-                             // This reallocates only if the buffer is too small.
-                             v.resize(header.bytelen_name as usize, 0);
-                             v
-                         })
+                        // Get inner `Vec` of the string.
+                        let mut v = s.into_bytes();
+                        // Resize buffer.
+                        // This reallocates only if the buffer is too small.
+                        v.resize(header.bytelen_name as usize, 0);
+                        v
+                    })
                     .unwrap_or_else(|| vec![0; header.bytelen_name as usize]);
                 // Read the node name into the buffer.
                 self.source.read_exact(&mut vecbuf)?;
@@ -288,17 +290,17 @@ impl<R: ParserSource> RootParser<R> {
                 // If conversion failed, the buffer will be left empty.
                 // This is ok because no more node events would be loaded and
                 // the buffer would no longer be used.
-                Some(String::from_utf8(vecbuf)
-                         .map_err(Error::node_name_invalid_utf8)?)
+                Some(String::from_utf8(vecbuf).map_err(
+                    Error::node_name_invalid_utf8,
+                )?)
             };
 
             let current_pos = self.source.position();
-            self.open_nodes
-                .push(OpenNode {
-                          begin: current_pos,
-                          end: header.end_offset,
-                          attributes_end: current_pos + header.bytelen_attributes,
-                      });
+            self.open_nodes.push(OpenNode {
+                begin: current_pos,
+                end: header.end_offset,
+                attributes_end: current_pos + header.bytelen_attributes,
+            });
 
             // Zero or more attributes come after node start.
             self.state = Ok(State::NodeStarted);
@@ -316,7 +318,9 @@ impl<R: ParserSource> RootParser<R> {
     fn skip_attributes(&mut self) -> io::Result<()> {
         let attributes_end = self.open_nodes
             .last()
-            .expect("`RootParser::skip_attributes()` is called but no nodes are open")
+            .expect(
+                "`RootParser::skip_attributes()` is called but no nodes are open",
+            )
             .attributes_end;
         self.source.skip_to(attributes_end)
     }

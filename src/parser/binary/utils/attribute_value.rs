@@ -202,8 +202,8 @@ impl AttributeValue for Vec<i64> {
         match attr {
             Attribute::Array(ArrayAttribute::I32(arr)) => {
                 Ok(Some(arr.into_iter()
-                            .map(|v| v.map(Into::into))
-                            .collect::<IoResult<_>>()?))
+                    .map(|v| v.map(Into::into))
+                    .collect::<IoResult<_>>()?))
             },
             Attribute::Array(ArrayAttribute::I64(arr)) => Ok(Some(arr.into_vec()?)),
             _ => Ok(None),
@@ -229,8 +229,8 @@ impl AttributeValue for Vec<f32> {
             Attribute::Array(ArrayAttribute::F32(arr)) => Ok(Some(arr.into_vec()?)),
             Attribute::Array(ArrayAttribute::F64(arr)) => {
                 Ok(Some(arr.into_iter()
-                            .map(|v| v.map(|v| v as f32))
-                            .collect::<IoResult<_>>()?))
+                    .map(|v| v.map(|v| v as f32))
+                    .collect::<IoResult<_>>()?))
             },
             _ => Ok(None),
         }
@@ -254,8 +254,8 @@ impl AttributeValue for Vec<f64> {
         match attr {
             Attribute::Array(ArrayAttribute::F32(arr)) => {
                 Ok(Some(arr.into_iter()
-                            .map(|v| v.map(Into::into))
-                            .collect::<IoResult<_>>()?))
+                    .map(|v| v.map(Into::into))
+                    .collect::<IoResult<_>>()?))
             },
             Attribute::Array(ArrayAttribute::F64(arr)) => Ok(Some(arr.into_vec()?)),
             _ => Ok(None),

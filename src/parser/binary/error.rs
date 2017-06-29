@@ -62,16 +62,20 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::HeaderFooterVersionMismatch { header, footer } => {
-                write!(f,
-                       "FBX version is {} in the FBX header but {} in the footer",
-                       header,
-                       footer)
+                write!(
+                    f,
+                    "FBX version is {} in the FBX header but {} in the footer",
+                    header,
+                    footer
+                )
             },
             Error::InvalidNodeAttributeTypeCode { got, position } => {
-                write!(f,
-                       "Invalid node attribute type code: Got {:?} at position {}",
-                       got,
-                       position)
+                write!(
+                    f,
+                    "Invalid node attribute type code: Got {:?} at position {}",
+                    got,
+                    position
+                )
             },
             Error::MagicNotDetected(ref bytes) => {
                 write!(f, "Magic binary not detected: Got {:?}", bytes)
@@ -87,11 +91,13 @@ impl fmt::Display for Error {
                 expected_end,
                 real_end,
             } => {
-                write!(f,
-                       "Node ends with unexpected position: begin={}, expected_end={}, real_end={}",
-                       begin,
-                       expected_end,
-                       real_end)
+                write!(
+                    f,
+                    "Node ends with unexpected position: begin={}, expected_end={}, real_end={}",
+                    begin,
+                    expected_end,
+                    real_end
+                )
             },
             _ => write!(f, "{}", (self as &error::Error).description()),
         }
@@ -103,7 +109,9 @@ impl error::Error for Error {
         match *self {
             Error::BrokenFbxFooter => "FBX footer is broken",
             Error::Finished => "Successfully finished parsing and there are no more data",
-            Error::HeaderFooterVersionMismatch { .. } => "Specified FBX versions mismatched in header and footer",
+            Error::HeaderFooterVersionMismatch { .. } => {
+                "Specified FBX versions mismatched in header and footer"
+            },
             Error::InvalidNodeAttributeTypeCode { .. } => "Invalid node attribute type code",
             Error::MagicNotDetected(_) => "Magic binary not detected",
             Error::NodeNameInvalidUtf8(_) => "Node name is not vaiid UTF-8 string",
@@ -199,23 +207,29 @@ impl fmt::Display for Warning {
                 assumed,
                 position,
             } => {
-                write!(f,
-                       "Invalid boolean node attribute value at position {}: got {:?}, assumed {}",
-                       position,
-                       got,
-                       assumed)
+                write!(
+                    f,
+                    "Invalid boolean node attribute value at position {}: got {:?}, assumed {}",
+                    position,
+                    got,
+                    assumed
+                )
             },
             Warning::InvalidPaddingInFbxFooter { expected, actual } => {
-                write!(f,
-                       "Invalid padding in FBX footer: expected {} bytes but got {} bytes",
-                       expected,
-                       actual)
+                write!(
+                    f,
+                    "Invalid padding in FBX footer: expected {} bytes but got {} bytes",
+                    expected,
+                    actual
+                )
             },
             Warning::UnexpectedBytesAfterMagic(ref bytes) => {
-                write!(f,
-                       "Unexpected bytes right after magic binary: expected [0x1a, 0x00] but got \
+                write!(
+                    f,
+                    "Unexpected bytes right after magic binary: expected [0x1a, 0x00] but got \
                         {:?}",
-                       bytes)
+                    bytes
+                )
             },
         }
     }

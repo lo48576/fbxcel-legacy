@@ -35,9 +35,9 @@ impl Takes {
             }
         }
         Ok(Takes {
-               current: ensure_node_exists!(current, "Takes", "Current"),
-               takes: takes,
-           })
+            current: ensure_node_exists!(current, "Takes", "Current"),
+            takes: takes,
+        })
     }
 }
 
@@ -87,11 +87,11 @@ impl Take {
             parser.skip_current_node()?;
         }
         Ok(Take {
-               name: attrs,
-               filename: ensure_node_exists!(filename, "Take", "FileName"),
-               local_time: ensure_node_exists!(local_time, "Take", "LocalTime"),
-               reference_time: ensure_node_exists!(reference_time, "Take", "ReferenceTime"),
-           })
+            name: attrs,
+            filename: ensure_node_exists!(filename, "Take", "FileName"),
+            local_time: ensure_node_exists!(local_time, "Take", "LocalTime"),
+            reference_time: ensure_node_exists!(reference_time, "Take", "ReferenceTime"),
+        })
     }
 }
 
