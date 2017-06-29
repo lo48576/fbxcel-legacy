@@ -168,10 +168,12 @@ impl<R: io::Read> ParserSource for BasicSource<R> {
     fn skip_to(&mut self, dest_pos: u64) -> io::Result<()> {
         use std::io::Read;
 
-        assert!(dest_pos >= self.position(),
-                "Destination position should be after current position: dest_pos={}, position={}",
-                dest_pos,
-                self.position());
+        assert!(
+            dest_pos >= self.position(),
+            "Destination position should be after current position: dest_pos={}, position={}",
+            dest_pos,
+            self.position()
+        );
         const TEMP_BUF_LEN: usize = 256;
         let mut temp_buf = [0u8; TEMP_BUF_LEN];
         let mut rest_len = dest_pos - self.position();
@@ -245,10 +247,12 @@ impl<R: io::Read + io::Seek> ParserSource for SeekableSource<R> {
     fn skip_to(&mut self, dest_pos: u64) -> io::Result<()> {
         use std::io::{Seek, SeekFrom};
 
-        assert!(dest_pos >= self.position(),
-                "Destination position should be after current position: dest_pos={}, position={}",
-                dest_pos,
-                self.position());
+        assert!(
+            dest_pos >= self.position(),
+            "Destination position should be after current position: dest_pos={}, position={}",
+            dest_pos,
+            self.position()
+        );
         self.seek(SeekFrom::Start(dest_pos))?;
 
         assert_eq!(self.position(), dest_pos);
@@ -403,10 +407,12 @@ mod tests {
             reader.position()
         };
         assert_eq!(short_count, skip_dest);
-        assert_eq!(short_count,
-                   short_buf
-                       .seek(SeekFrom::Current(0))
-                       .expect("Failed to seek"));
+        assert_eq!(
+            short_count,
+            short_buf.seek(SeekFrom::Current(0)).expect(
+                "Failed to seek",
+            )
+        );
     }
 
     fn do_test_seekable_skip_to(buf_size: usize, skip_dest: u64) {

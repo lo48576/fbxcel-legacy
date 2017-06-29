@@ -25,8 +25,9 @@ pub struct FbxHeaderExtension {
 impl FbxHeaderExtension {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut fbx_header_version = None;
         let mut fbx_version = None;
@@ -63,19 +64,25 @@ impl FbxHeaderExtension {
             }
         }
         Ok(FbxHeaderExtension {
-               fbx_header_version: ensure_node_exists!(fbx_header_version,
-                                                       "FBXHeaderExtension",
-                                                       "FBXHeaderVersion"),
-               fbx_version: ensure_node_exists!(fbx_version, "FBXHeaderExtension", "FBXVersion"),
-               encryption_type: ensure_node_exists!(encryption_type,
-                                                    "FBXHeaderExtension",
-                                                    "EncryptionType"),
-               creation_timestamp: ensure_node_exists!(creation_timestamp,
-                                                       "FBXHeaderExtension",
-                                                       "CreationTimeStamp"),
-               creator: ensure_node_exists!(creator, "FBXHeaderExtension", "Creator"),
-               scene_info: ensure_node_exists!(scene_info, "FBXHeaderExtension", "SceneInfo"),
-           })
+            fbx_header_version: ensure_node_exists!(
+                fbx_header_version,
+                "FBXHeaderExtension",
+                "FBXHeaderVersion"
+            ),
+            fbx_version: ensure_node_exists!(fbx_version, "FBXHeaderExtension", "FBXVersion"),
+            encryption_type: ensure_node_exists!(
+                encryption_type,
+                "FBXHeaderExtension",
+                "EncryptionType"
+            ),
+            creation_timestamp: ensure_node_exists!(
+                creation_timestamp,
+                "FBXHeaderExtension",
+                "CreationTimeStamp"
+            ),
+            creator: ensure_node_exists!(creator, "FBXHeaderExtension", "Creator"),
+            scene_info: ensure_node_exists!(scene_info, "FBXHeaderExtension", "SceneInfo"),
+        })
     }
 }
 
@@ -114,8 +121,9 @@ pub struct CreationTimeStamp {
 impl CreationTimeStamp {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut version = None;
         let mut year = None;
@@ -157,15 +165,15 @@ impl CreationTimeStamp {
             parser.skip_current_node()?;
         }
         Ok(CreationTimeStamp {
-               version: ensure_node_exists!(version, "CreationTimeStamp", "Version"),
-               year: ensure_node_exists!(year, "CreationTimeStamp", "Year"),
-               month: ensure_node_exists!(month, "CreationTimeStamp", "Month"),
-               day: ensure_node_exists!(day, "CreationTimeStamp", "Day"),
-               hour: ensure_node_exists!(hour, "CreationTimeStamp", "Hour"),
-               minute: ensure_node_exists!(minute, "CreationTimeStamp", "Minute"),
-               second: ensure_node_exists!(second, "CreationTimeStamp", "Second"),
-               millisecond: ensure_node_exists!(millisecond, "CreationTimeStamp", "Millisecond"),
-           })
+            version: ensure_node_exists!(version, "CreationTimeStamp", "Version"),
+            year: ensure_node_exists!(year, "CreationTimeStamp", "Year"),
+            month: ensure_node_exists!(month, "CreationTimeStamp", "Month"),
+            day: ensure_node_exists!(day, "CreationTimeStamp", "Day"),
+            hour: ensure_node_exists!(hour, "CreationTimeStamp", "Hour"),
+            minute: ensure_node_exists!(minute, "CreationTimeStamp", "Minute"),
+            second: ensure_node_exists!(second, "CreationTimeStamp", "Second"),
+            millisecond: ensure_node_exists!(millisecond, "CreationTimeStamp", "Millisecond"),
+        })
     }
 }
 
@@ -210,8 +218,9 @@ pub struct SceneInfo {
 impl SceneInfo {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P, attrs: (String, String)) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut type_ = None;
         let mut version = None;
@@ -245,14 +254,14 @@ impl SceneInfo {
             }
         }
         Ok(SceneInfo {
-               name: name,
-               class: class,
-               subclass: subclass,
-               type_: ensure_node_exists!(type_, "SceneInfo", "Type"),
-               version: ensure_node_exists!(version, "SceneInfo", "Version"),
-               metadata: ensure_node_exists!(metadata, "SceneInfo", "MetaData"),
-               properties: ensure_node_exists!(properties, "SceneInfo", "Properties70"),
-           })
+            name: name,
+            class: class,
+            subclass: subclass,
+            type_: ensure_node_exists!(type_, "SceneInfo", "Type"),
+            version: ensure_node_exists!(version, "SceneInfo", "Version"),
+            metadata: ensure_node_exists!(metadata, "SceneInfo", "MetaData"),
+            properties: ensure_node_exists!(properties, "SceneInfo", "Properties70"),
+        })
     }
 }
 
@@ -287,8 +296,9 @@ pub struct MetaData {
 impl MetaData {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut version = None;
         let mut title = None;
@@ -326,14 +336,14 @@ impl MetaData {
             parser.skip_current_node()?;
         }
         Ok(MetaData {
-               version: ensure_node_exists!(version, "MetaData", "Version"),
-               title: ensure_node_exists!(title, "MetaData", "Title"),
-               subject: ensure_node_exists!(subject, "MetaData", "Subject"),
-               author: ensure_node_exists!(author, "MetaData", "Author"),
-               keywords: ensure_node_exists!(keywords, "MetaData", "Keywords"),
-               revision: ensure_node_exists!(revision, "MetaData", "Revision"),
-               comment: ensure_node_exists!(comment, "MetaData", "Comment"),
-           })
+            version: ensure_node_exists!(version, "MetaData", "Version"),
+            title: ensure_node_exists!(title, "MetaData", "Title"),
+            subject: ensure_node_exists!(subject, "MetaData", "Subject"),
+            author: ensure_node_exists!(author, "MetaData", "Author"),
+            keywords: ensure_node_exists!(keywords, "MetaData", "Keywords"),
+            revision: ensure_node_exists!(revision, "MetaData", "Revision"),
+            comment: ensure_node_exists!(comment, "MetaData", "Comment"),
+        })
     }
 }
 
@@ -351,7 +361,7 @@ child_attr_loader! { MetaDataChildAttrs {
 
 /// Returns `Option<(name: &'a str, class: &'a str)>`
 fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
-    name_class
-        .find("\u{0}\u{1}")
-        .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
+    name_class.find("\u{0}\u{1}").map(|sep_pos| {
+        (&name_class[0..sep_pos], &name_class[sep_pos + 2..])
+    })
 }

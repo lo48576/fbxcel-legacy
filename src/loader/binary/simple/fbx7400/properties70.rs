@@ -42,8 +42,9 @@ impl Properties70 {
 
     /// Loads a node from the parser.
     pub fn load<R, P>(parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         load_properties70(parser)
     }
@@ -105,8 +106,9 @@ impl<T> From<T> for PropertyValue<T> {
 
 /// Loads a `Properties70` node.
 fn load_properties70<R, P>(mut parser: P) -> Result<Properties70>
-    where R: ParserSource,
-          P: Parser<R>
+where
+    R: ParserSource,
+    P: Parser<R>,
 {
     let mut props = Properties70::new();
 
@@ -125,7 +127,8 @@ fn load_properties70<R, P>(mut parser: P) -> Result<Properties70>
 
 /// Loads a `P` node in `Properties70`.
 fn load_property<R>(props: &mut Properties70, mut attrs: Attributes<R>) -> Result<()>
-    where R: ParserSource
+where
+    R: ParserSource,
 {
     use parser::binary::utils::AttributeValues;
 
@@ -202,7 +205,8 @@ fn load_property_rest_f64s<R>(
     name: String,
     first: f64,
 ) -> Result<()>
-    where R: ParserSource
+where
+    R: ParserSource,
 {
     let invalid_attr = || Error::InvalidAttribute("P".into());
 
@@ -219,18 +223,20 @@ fn load_property_rest_f64s<R>(
         2 => {
             let second = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
             let third = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
-            props
-                .values_f64_3
-                .insert(name, [first, second, third].into());
+            props.values_f64_3.insert(
+                name,
+                [first, second, third].into(),
+            );
             Ok(())
         },
         3 => {
             let second = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
             let third = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
             let fourth = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
-            props
-                .values_f64_4
-                .insert(name, [first, second, third, fourth].into());
+            props.values_f64_4.insert(
+                name,
+                [first, second, third, fourth].into(),
+            );
             Ok(())
         },
         15 => {
@@ -250,15 +256,18 @@ fn load_property_rest_f64s<R>(
                 let t: (f64, f64, f64, f64) = attrs.convert_into()?.ok_or_else(&invalid_attr)?;
                 [t.0, t.1, t.2, t.3]
             };
-            props
-                .values_f64_4x4
-                .insert(name, [vec1, vec2, vec3, vec4].into());
+            props.values_f64_4x4.insert(
+                name,
+                [vec1, vec2, vec3, vec4].into(),
+            );
             Ok(())
         },
         n => {
-            error!("Supported length of node property with f64 values are 1, 2, 3, 4 and 16, but \
+            error!(
+                "Supported length of node property with f64 values are 1, 2, 3, 4 and 16, but \
                     got {}",
-                   n + 1);
+                n + 1
+            );
             Err(Error::InvalidAttribute("P".into()))
         },
     }

@@ -16,8 +16,9 @@ pub struct Takes {
 impl Takes {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut current = None;
         let mut takes = Vec::new();
@@ -35,9 +36,9 @@ impl Takes {
             }
         }
         Ok(Takes {
-               current: ensure_node_exists!(current, "Takes", "Current"),
-               takes: takes,
-           })
+            current: ensure_node_exists!(current, "Takes", "Current"),
+            takes: takes,
+        })
     }
 }
 
@@ -64,8 +65,9 @@ pub struct Take {
 impl Take {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P, attrs: String) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut filename = None;
         let mut local_time = None;
@@ -87,11 +89,11 @@ impl Take {
             parser.skip_current_node()?;
         }
         Ok(Take {
-               name: attrs,
-               filename: ensure_node_exists!(filename, "Take", "FileName"),
-               local_time: ensure_node_exists!(local_time, "Take", "LocalTime"),
-               reference_time: ensure_node_exists!(reference_time, "Take", "ReferenceTime"),
-           })
+            name: attrs,
+            filename: ensure_node_exists!(filename, "Take", "FileName"),
+            local_time: ensure_node_exists!(local_time, "Take", "LocalTime"),
+            reference_time: ensure_node_exists!(reference_time, "Take", "ReferenceTime"),
+        })
     }
 }
 

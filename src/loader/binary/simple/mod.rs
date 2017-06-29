@@ -36,7 +36,8 @@ impl<R: ParserSource, P: Parser<R>> FbxLoader7400<R, P> {
 
     /// Load FBX 7.4 compatible data.
     pub fn load<O>(self, objs_loader: O) -> Result<fbx7400::Fbx7400<O>>
-        where O: fbx7400::LoadObjects7400
+    where
+        O: fbx7400::LoadObjects7400,
     {
         fbx7400::Fbx7400::load_from_parser(self.inner.version, self.inner.parser, objs_loader)
     }
@@ -60,9 +61,11 @@ impl<R: ParserSource, P: Parser<R>> FbxLoader<R, P> {
         let version = match parser.next_event()? {
             Event::StartFbx(header) => header.version,
             ev => {
-                panic!("FBX binary parser should return `StartFbx` as the first event but got \
+                panic!(
+                    "FBX binary parser should return `StartFbx` as the first event but got \
                         `{:?}`",
-                       ev)
+                    ev
+                )
             },
         };
         let inner = FbxLoaderInner {

@@ -80,7 +80,8 @@ pub fn read_special_attribute<R>(
     source: &mut R,
     type_code: u8,
 ) -> io::Result<(SpecialAttribute<R>, u64)>
-    where R: ParserSource
+where
+    R: ParserSource,
 {
     let byte_length = source.read_u32()?;
     let value_type = match type_code {
@@ -91,11 +92,13 @@ pub fn read_special_attribute<R>(
     let current_pos = source.position();
     let end_offset = current_pos + byte_length as u64;
 
-    Ok((SpecialAttribute {
+    Ok((
+        SpecialAttribute {
             source: source,
             value_type: value_type,
             byte_length: byte_length,
             end_offset: end_offset,
         },
-        end_offset))
+        end_offset,
+    ))
 }

@@ -22,7 +22,8 @@ pub trait LoadObjects7400: Sized {
         subtree_parser: &mut SubtreeParser<R>,
         nodes_before_objects: &NodesBeforeObjects,
     ) -> Result<()>
-        where R: ParserSource;
+    where
+        R: ParserSource;
 }
 
 
@@ -42,32 +43,36 @@ pub struct ObjectProperties {
 impl ObjectProperties {
     /// Loads `ObjectProperties` in the same manner as usual child node attributes.
     pub fn load<R>(name: &str, mut attrs: Attributes<R>) -> Result<ObjectProperties>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         use parser::binary::utils::AttributeValues;
         use loader::binary::simple::Error;
 
-        Self::from_attributes(&mut attrs)?
-            .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
+        Self::from_attributes(&mut attrs)?.ok_or_else(|| {
+            Error::InvalidAttribute(name.to_owned())
+        })
     }
 }
 
 impl ::parser::binary::utils::AttributeValues for ObjectProperties {
-    fn from_attributes<R>(attrs: &mut Attributes<R>,)
-        -> ::std::result::Result<Option<Self>, ParseError>
-        where R: ParserSource
+    fn from_attributes<R>(
+        attrs: &mut Attributes<R>,
+    ) -> ::std::result::Result<Option<Self>, ParseError>
+    where
+        R: ParserSource,
     {
         let (id, name_class, subclass) = match <(i64, String, String)>::from_attributes(attrs)? {
             Some(v) => v,
             None => return Ok(None),
         };
         Ok(separate_name_class(&name_class).map(|(name, class)| {
-                                                    ObjectProperties {
-                                                        id: id,
-                                                        name: name.to_owned(),
-                                                        class: class.to_owned(),
-                                                        subclass: subclass,
-                                                    }
-                                                }))
+            ObjectProperties {
+                id: id,
+                name: name.to_owned(),
+                class: class.to_owned(),
+                subclass: subclass,
+            }
+        }))
     }
 }

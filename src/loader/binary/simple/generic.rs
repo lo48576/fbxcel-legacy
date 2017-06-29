@@ -24,10 +24,12 @@ impl GenericNode {
     /// Loads all sibling nodes from the given parser.
     ///
     /// This reads N `StartNode` and N+1 { `EndNode` or `EndFbx` }.
-    pub fn load_from_parser<R, P>(parser: &mut P,)
-        -> ParseResult<(Vec<GenericNode>, Option<FbxFooter>)>
-        where R: ParserSource,
-              P: Parser<R>
+    pub fn load_from_parser<R, P>(
+        parser: &mut P,
+    ) -> ParseResult<(Vec<GenericNode>, Option<FbxFooter>)>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut nodes = Vec::new();
         let mut footer = None;
@@ -94,7 +96,8 @@ pub enum OwnedAttribute {
 impl OwnedAttribute {
     /// Loads `OwnedAttribute`s from `parser::binary::Attributes`.
     pub fn load_attrs_from_parser_event<R>(mut attrs: Attributes<R>) -> ParseResult<Vec<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         let mut result = Vec::with_capacity(attrs.num_attributes() as usize);
         while let Some(attr) = attrs.next_attribute()? {
@@ -105,44 +108,45 @@ impl OwnedAttribute {
 
     /// Loads an `OwnedAttribute` from `parser::binary::Attribute`.
     pub fn load_from_parser_event<R>(attr: Attribute<R>) -> ::std::io::Result<Self>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         use parser::binary::{PrimitiveAttribute, ArrayAttribute, SpecialAttributeType};
         Ok(match attr {
-               Attribute::Primitive(PrimitiveAttribute::Bool(v)) => OwnedAttribute::Bool(v),
-               Attribute::Primitive(PrimitiveAttribute::I16(v)) => OwnedAttribute::I16(v),
-               Attribute::Primitive(PrimitiveAttribute::I32(v)) => OwnedAttribute::I32(v),
-               Attribute::Primitive(PrimitiveAttribute::I64(v)) => OwnedAttribute::I64(v),
-               Attribute::Primitive(PrimitiveAttribute::F32(v)) => OwnedAttribute::F32(v),
-               Attribute::Primitive(PrimitiveAttribute::F64(v)) => OwnedAttribute::F64(v),
-               Attribute::Array(ArrayAttribute::Bool(arr)) => {
-                   OwnedAttribute::ArrBool(arr.into_vec()?.into_boxed_slice())
-               },
-               Attribute::Array(ArrayAttribute::I32(arr)) => {
-                   OwnedAttribute::ArrI32(arr.into_vec()?.into_boxed_slice())
-               },
-               Attribute::Array(ArrayAttribute::I64(arr)) => {
-                   OwnedAttribute::ArrI64(arr.into_vec()?.into_boxed_slice())
-               },
-               Attribute::Array(ArrayAttribute::F32(arr)) => {
-                   OwnedAttribute::ArrF32(arr.into_vec()?.into_boxed_slice())
-               },
-               Attribute::Array(ArrayAttribute::F64(arr)) => {
-                   OwnedAttribute::ArrF64(arr.into_vec()?.into_boxed_slice())
-               },
-               Attribute::Special(v) => {
-                   match v.value_type() {
-                       SpecialAttributeType::Binary => {
-                           OwnedAttribute::Binary(v.into_vec()?.into_boxed_slice())
-                       },
-                       SpecialAttributeType::String => {
-                           OwnedAttribute::String(match String::from_utf8(v.into_vec()?) {
-                                                      Ok(s) => Ok(s),
-                                                      Err(e) => Err(e.into_bytes()),
-                                                  })
-                       },
-                   }
-               },
-           })
+            Attribute::Primitive(PrimitiveAttribute::Bool(v)) => OwnedAttribute::Bool(v),
+            Attribute::Primitive(PrimitiveAttribute::I16(v)) => OwnedAttribute::I16(v),
+            Attribute::Primitive(PrimitiveAttribute::I32(v)) => OwnedAttribute::I32(v),
+            Attribute::Primitive(PrimitiveAttribute::I64(v)) => OwnedAttribute::I64(v),
+            Attribute::Primitive(PrimitiveAttribute::F32(v)) => OwnedAttribute::F32(v),
+            Attribute::Primitive(PrimitiveAttribute::F64(v)) => OwnedAttribute::F64(v),
+            Attribute::Array(ArrayAttribute::Bool(arr)) => {
+                OwnedAttribute::ArrBool(arr.into_vec()?.into_boxed_slice())
+            },
+            Attribute::Array(ArrayAttribute::I32(arr)) => {
+                OwnedAttribute::ArrI32(arr.into_vec()?.into_boxed_slice())
+            },
+            Attribute::Array(ArrayAttribute::I64(arr)) => {
+                OwnedAttribute::ArrI64(arr.into_vec()?.into_boxed_slice())
+            },
+            Attribute::Array(ArrayAttribute::F32(arr)) => {
+                OwnedAttribute::ArrF32(arr.into_vec()?.into_boxed_slice())
+            },
+            Attribute::Array(ArrayAttribute::F64(arr)) => {
+                OwnedAttribute::ArrF64(arr.into_vec()?.into_boxed_slice())
+            },
+            Attribute::Special(v) => {
+                match v.value_type() {
+                    SpecialAttributeType::Binary => {
+                        OwnedAttribute::Binary(v.into_vec()?.into_boxed_slice())
+                    },
+                    SpecialAttributeType::String => {
+                        OwnedAttribute::String(match String::from_utf8(v.into_vec()?) {
+                            Ok(s) => Ok(s),
+                            Err(e) => Err(e.into_bytes()),
+                        })
+                    },
+                }
+            },
+        })
     }
 }

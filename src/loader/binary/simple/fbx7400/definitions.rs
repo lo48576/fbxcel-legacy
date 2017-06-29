@@ -20,8 +20,9 @@ pub struct Definitions {
 impl Definitions {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut version = None;
         let mut count = None;
@@ -44,10 +45,10 @@ impl Definitions {
             }
         }
         Ok(Definitions {
-               version: ensure_node_exists!(version, "Definitions", "Version"),
-               count: ensure_node_exists!(count, "Definitions", "Count"),
-               object_types: object_types,
-           })
+            version: ensure_node_exists!(version, "Definitions", "Version"),
+            count: ensure_node_exists!(count, "Definitions", "Count"),
+            object_types: object_types,
+        })
     }
 }
 
@@ -73,8 +74,9 @@ pub struct ObjectType {
 impl ObjectType {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P, attrs: String) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut count = None;
         let mut property_template = FnvHashMap::default();
@@ -94,10 +96,10 @@ impl ObjectType {
         }
 
         Ok(ObjectType {
-               object_type: attrs,
-               count: ensure_node_exists!(count, "ObjectType", "Count"),
-               property_template: property_template,
-           })
+            object_type: attrs,
+            count: ensure_node_exists!(count, "ObjectType", "Count"),
+            property_template: property_template,
+        })
     }
 }
 
@@ -109,8 +111,9 @@ child_attr_loader! { ObjectTypeChildAttrs {
 
 
 fn load_property_template<R, P>(mut parser: P) -> Result<Properties70>
-    where R: ParserSource,
-          P: Parser<R>
+where
+    R: ParserSource,
+    P: Parser<R>,
 {
     let mut props = None;
 
@@ -122,5 +125,9 @@ fn load_property_template<R, P>(mut parser: P) -> Result<Properties70>
         });
         props = Some(Properties70::load(parser.subtree_parser())?);
     }
-    Ok(ensure_node_exists!(props, "PropertyTemplate", "Properties70"))
+    Ok(ensure_node_exists!(
+        props,
+        "PropertyTemplate",
+        "Properties70"
+    ))
 }

@@ -11,8 +11,9 @@ pub struct Connections(pub Vec<Connection>);
 impl Connections {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut connections = Vec::new();
 
@@ -37,7 +38,8 @@ struct ConnectionAttrs {
 impl ConnectionAttrs {
     /// Loads attributes.
     pub fn load<R>(name: &str, mut attrs: Attributes<R>) -> Result<Self>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         use parser::binary::utils::AttributeValues;
 
@@ -53,18 +55,19 @@ impl ConnectionAttrs {
                 _ => return Err(Error::InvalidAttribute("C".to_owned())),
             };
             let property = if attrs.rest_attributes() > 0 {
-                Some(String::from_attributes(&mut attrs)?
-                         .ok_or_else(|| Error::InvalidAttribute("C".to_owned()))?)
+                Some(String::from_attributes(&mut attrs)?.ok_or_else(|| {
+                    Error::InvalidAttribute("C".to_owned())
+                })?)
             } else {
                 None
             };
             Ok(ConnectionAttrs {
-                   source_id: source_id,
-                   destination_id: destination_id,
-                   property: property,
-                   source_is_prop: source_is_prop,
-                   destination_is_prop: destination_is_prop,
-               })
+                source_id: source_id,
+                destination_id: destination_id,
+                property: property,
+                source_is_prop: source_is_prop,
+                destination_is_prop: destination_is_prop,
+            })
         } else {
             Err(Error::UnexpectedNode(name.to_owned()))
         }
@@ -95,16 +98,17 @@ pub struct Connection {
 impl Connection {
     /// Loads node contents from the parser.
     fn load<R, P>(mut parser: P, attrs: ConnectionAttrs) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         parser.skip_current_node()?;
         Ok(Connection {
-               source: attrs.source_id,
-               destination: attrs.destination_id,
-               property: attrs.property,
-               source_is_prop: attrs.source_is_prop,
-               destination_is_prop: attrs.destination_is_prop,
-           })
+            source: attrs.source_id,
+            destination: attrs.destination_id,
+            property: attrs.property,
+            source_is_prop: attrs.source_is_prop,
+            destination_is_prop: attrs.destination_is_prop,
+        })
     }
 }

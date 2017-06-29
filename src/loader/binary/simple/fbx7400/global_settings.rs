@@ -17,8 +17,9 @@ pub struct GlobalSettings {
 impl GlobalSettings {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut version = None;
         let mut properties = None;
@@ -36,9 +37,9 @@ impl GlobalSettings {
             }
         }
         Ok(GlobalSettings {
-               version: ensure_node_exists!(version, "Definitions", "Version"),
-               properties: ensure_node_exists!(properties, "Definitions", "Properties70"),
-           })
+            version: ensure_node_exists!(version, "Definitions", "Version"),
+            properties: ensure_node_exists!(properties, "Definitions", "Properties70"),
+        })
     }
 }
 
