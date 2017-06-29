@@ -80,7 +80,8 @@ pub fn read_special_attribute<R>(
     source: &mut R,
     type_code: u8,
 ) -> io::Result<(SpecialAttribute<R>, u64)>
-    where R: ParserSource
+where
+    R: ParserSource,
 {
     let byte_length = source.read_u32()?;
     let value_type = match type_code {

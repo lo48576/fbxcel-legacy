@@ -11,6 +11,6 @@ newline_style = "Unix"  # Default.
 # Separate `std`, other crates, and `self` manually.
 reorder_imports = false  # Default.
 trailing_comma = "Vertical"  # Default.
-where_style = "Legacy"
+where_style = "Rfc"  # RFC.
 
 # This file is for =rustfmt-0.9.0 .

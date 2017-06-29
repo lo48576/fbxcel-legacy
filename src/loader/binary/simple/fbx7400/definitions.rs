@@ -20,8 +20,9 @@ pub struct Definitions {
 impl Definitions {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut version = None;
         let mut count = None;
@@ -73,8 +74,9 @@ pub struct ObjectType {
 impl ObjectType {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P, attrs: String) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut count = None;
         let mut property_template = FnvHashMap::default();
@@ -109,8 +111,9 @@ child_attr_loader! { ObjectTypeChildAttrs {
 
 
 fn load_property_template<R, P>(mut parser: P) -> Result<Properties70>
-    where R: ParserSource,
-          P: Parser<R>
+where
+    R: ParserSource,
+    P: Parser<R>,
 {
     let mut props = None;
 

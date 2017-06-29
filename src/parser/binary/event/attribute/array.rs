@@ -20,7 +20,8 @@ pub fn read_array_attribute<'a, R>(
     warnings: &'a mut Warnings,
     type_code: u8,
 ) -> Result<(ArrayAttribute<'a, R>, u64)>
-    where R: ParserSource
+where
+    R: ParserSource,
 {
     let header = ArrayAttributeHeader::read_from_parser_source(source)?;
     let current_pos = source.position();
@@ -51,7 +52,8 @@ struct ArrayAttributeHeader {
 
 impl ArrayAttributeHeader {
     fn read_from_parser_source<R>(source: &mut R) -> io::Result<Self>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         let num_elements = source.read_u32()?;
         let encoding = source.read_u32()?;

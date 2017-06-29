@@ -15,7 +15,9 @@ pub trait AttributeValue: Sized {
     /// Returns `Ok(Some(Self))` if successfully converted,
     /// `Ok(None)` if successfully read but the types didn't matched,
     /// `Err(_)` if parse error happened.
-    fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>> where R: ParserSource;
+    fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
+    where
+        R: ParserSource;
 
     /// Reads the given attribute and converts into `Self` type.
     ///
@@ -24,19 +26,23 @@ pub trait AttributeValue: Sized {
     /// Returns `Ok(Some(Self))` if successfully converted,
     /// `Ok(None)` if successfully read but the types were incompatible,
     /// `Err(_)` if parse error happened.
-    fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>> where R: ParserSource;
+    fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
+    where
+        R: ParserSource;
 }
 
 // Simply ignore the attribute.
 impl AttributeValue for () {
     fn from_attribute<R>(_: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         Ok(Some(()))
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         Self::from_attribute(attr)
     }
@@ -44,7 +50,8 @@ impl AttributeValue for () {
 
 impl AttributeValue for bool {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Primitive(PrimitiveAttribute::Bool(val)) = attr {
             Ok(Some(val))
@@ -54,7 +61,8 @@ impl AttributeValue for bool {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         Self::from_attribute(attr)
     }
@@ -62,7 +70,8 @@ impl AttributeValue for bool {
 
 impl AttributeValue for i16 {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Primitive(PrimitiveAttribute::I16(val)) = attr {
             Ok(Some(val))
@@ -72,7 +81,8 @@ impl AttributeValue for i16 {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         Self::from_attribute(attr)
     }
@@ -80,7 +90,8 @@ impl AttributeValue for i16 {
 
 impl AttributeValue for i32 {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Primitive(PrimitiveAttribute::I32(val)) = attr {
             Ok(Some(val))
@@ -90,7 +101,8 @@ impl AttributeValue for i32 {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         match attr {
             Attribute::Primitive(PrimitiveAttribute::I16(val)) => Ok(Some(val as i32)),
@@ -102,7 +114,8 @@ impl AttributeValue for i32 {
 
 impl AttributeValue for i64 {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Primitive(PrimitiveAttribute::I64(val)) = attr {
             Ok(Some(val))
@@ -112,7 +125,8 @@ impl AttributeValue for i64 {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         match attr {
             Attribute::Primitive(PrimitiveAttribute::I16(val)) => Ok(Some(val as i64)),
@@ -125,7 +139,8 @@ impl AttributeValue for i64 {
 
 impl AttributeValue for f32 {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Primitive(PrimitiveAttribute::F32(val)) = attr {
             Ok(Some(val))
@@ -135,7 +150,8 @@ impl AttributeValue for f32 {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Primitive(attr) = attr {
             Ok(attr.as_f32())
@@ -147,7 +163,8 @@ impl AttributeValue for f32 {
 
 impl AttributeValue for f64 {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Primitive(PrimitiveAttribute::F64(val)) = attr {
             Ok(Some(val))
@@ -157,7 +174,8 @@ impl AttributeValue for f64 {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Primitive(attr) = attr {
             Ok(attr.as_f64())
@@ -169,7 +187,8 @@ impl AttributeValue for f64 {
 
 impl AttributeValue for Vec<i32> {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Array(ArrayAttribute::I32(arr)) = attr {
             Ok(Some(arr.into_vec()?))
@@ -179,7 +198,8 @@ impl AttributeValue for Vec<i32> {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         Self::from_attribute(attr)
     }
@@ -187,7 +207,8 @@ impl AttributeValue for Vec<i32> {
 
 impl AttributeValue for Vec<i64> {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Array(ArrayAttribute::I64(arr)) = attr {
             Ok(Some(arr.into_vec()?))
@@ -197,7 +218,8 @@ impl AttributeValue for Vec<i64> {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         match attr {
             Attribute::Array(ArrayAttribute::I32(arr)) => {
@@ -213,7 +235,8 @@ impl AttributeValue for Vec<i64> {
 
 impl AttributeValue for Vec<f32> {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Array(ArrayAttribute::F32(arr)) = attr {
             Ok(Some(arr.into_vec()?))
@@ -223,7 +246,8 @@ impl AttributeValue for Vec<f32> {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         match attr {
             Attribute::Array(ArrayAttribute::F32(arr)) => Ok(Some(arr.into_vec()?)),
@@ -239,7 +263,8 @@ impl AttributeValue for Vec<f32> {
 
 impl AttributeValue for Vec<f64> {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Array(ArrayAttribute::F64(arr)) = attr {
             Ok(Some(arr.into_vec()?))
@@ -249,7 +274,8 @@ impl AttributeValue for Vec<f64> {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         match attr {
             Attribute::Array(ArrayAttribute::F32(arr)) => {
@@ -265,7 +291,8 @@ impl AttributeValue for Vec<f64> {
 
 impl AttributeValue for String {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Special(val) = attr {
             if val.value_type() == SpecialAttributeType::String {
@@ -276,7 +303,8 @@ impl AttributeValue for String {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         Self::from_attribute(attr)
     }
@@ -284,7 +312,8 @@ impl AttributeValue for String {
 
 impl AttributeValue for Vec<u8> {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Special(val) = attr {
             if val.value_type() == SpecialAttributeType::Binary {
@@ -295,7 +324,8 @@ impl AttributeValue for Vec<u8> {
     }
 
     fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         if let Attribute::Special(val) = attr {
             Ok(Some(val.into_vec()?))
@@ -313,7 +343,9 @@ pub trait AttributeValues: Sized {
     /// Returns `Ok(Some(values))` if successfully converted,
     /// `Ok(None)` if the parsing is successfully done but types are incompatible,
     /// `Err(_)` if the parsing failed.
-    fn from_attributes<R>(attrs: &mut Attributes<R>) -> Result<Option<Self>> where R: ParserSource;
+    fn from_attributes<R>(attrs: &mut Attributes<R>) -> Result<Option<Self>>
+    where
+        R: ParserSource;
 }
 
 macro_rules! impl_attribute_values {
@@ -342,7 +374,8 @@ macro_rules! impl_attribute_values {
 
 impl<T: AttributeValue> AttributeValues for T {
     fn from_attributes<R>(attrs: &mut Attributes<R>) -> Result<Option<Self>>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         <(T,)>::from_attributes(attrs).map(|v_opt| v_opt.map(|v| v.0))
     }

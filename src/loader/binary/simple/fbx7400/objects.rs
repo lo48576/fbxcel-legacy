@@ -22,7 +22,8 @@ pub trait LoadObjects7400: Sized {
         subtree_parser: &mut SubtreeParser<R>,
         nodes_before_objects: &NodesBeforeObjects,
     ) -> Result<()>
-        where R: ParserSource;
+    where
+        R: ParserSource;
 }
 
 
@@ -42,7 +43,8 @@ pub struct ObjectProperties {
 impl ObjectProperties {
     /// Loads `ObjectProperties` in the same manner as usual child node attributes.
     pub fn load<R>(name: &str, mut attrs: Attributes<R>) -> Result<ObjectProperties>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         use parser::binary::utils::AttributeValues;
         use loader::binary::simple::Error;
@@ -57,7 +59,8 @@ impl ::parser::binary::utils::AttributeValues for ObjectProperties {
     fn from_attributes<R>(
         attrs: &mut Attributes<R>,
     ) -> ::std::result::Result<Option<Self>, ParseError>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         let (id, name_class, subclass) = match <(i64, String, String)>::from_attributes(attrs)? {
             Some(v) => v,

@@ -122,8 +122,9 @@ pub struct Fbx7400<O: LoadObjects7400> {
 impl<O: LoadObjects7400> Fbx7400<O> {
     /// Loads FBX 7400 (or later) structure from the given parser.
     pub fn load_from_parser<R, P>(version: u32, mut parser: P, objs_loader: O) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         info!("FBX version: {}, loading in FBX 7400 mode", version);
 
@@ -294,7 +295,8 @@ enum NodeType {
 impl NodeType {
     /// Creates `NodeType` from the given node name.
     pub fn load<R>(name: &str, mut attrs: Attributes<R>) -> Result<Self>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         use parser::binary::utils::AttributeValues;
 
@@ -335,8 +337,9 @@ pub struct FileId(pub Vec<u8>);
 impl FileId {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P, attrs: Vec<u8>) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         parser.skip_current_node()?;
         Ok(FileId(attrs))
@@ -351,8 +354,9 @@ pub struct CreationTime(pub String);
 impl CreationTime {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P, attrs: String) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         parser.skip_current_node()?;
         Ok(CreationTime(attrs))
@@ -367,8 +371,9 @@ pub struct Creator(pub String);
 impl Creator {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P, attrs: String) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         parser.skip_current_node()?;
         Ok(Creator(attrs))
@@ -386,8 +391,9 @@ pub struct Documents {
 impl Documents {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let nodes = GenericNode::load_from_parser(&mut parser)?.0;
         Ok(Documents { nodes: nodes })
@@ -405,8 +411,9 @@ pub struct References {
 impl References {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let nodes = GenericNode::load_from_parser(&mut parser)?.0;
         Ok(References { nodes: nodes })
@@ -428,9 +435,10 @@ fn load_objects<R, P, O>(
     mut objs_loader: O,
     nodes_before_objects: &NodesBeforeObjects,
 ) -> Result<O::Objects>
-    where R: ParserSource,
-          P: Parser<R>,
-          O: LoadObjects7400
+where
+    R: ParserSource,
+    P: Parser<R>,
+    O: LoadObjects7400,
 {
     loop {
         let props = try_get_node_attrs!(parser, ObjectProperties::load);

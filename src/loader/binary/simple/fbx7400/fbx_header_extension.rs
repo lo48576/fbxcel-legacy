@@ -25,8 +25,9 @@ pub struct FbxHeaderExtension {
 impl FbxHeaderExtension {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut fbx_header_version = None;
         let mut fbx_version = None;
@@ -120,8 +121,9 @@ pub struct CreationTimeStamp {
 impl CreationTimeStamp {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut version = None;
         let mut year = None;
@@ -216,8 +218,9 @@ pub struct SceneInfo {
 impl SceneInfo {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P, attrs: (String, String)) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut type_ = None;
         let mut version = None;
@@ -293,8 +296,9 @@ pub struct MetaData {
 impl MetaData {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut version = None;
         let mut title = None;

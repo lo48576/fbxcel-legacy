@@ -11,8 +11,9 @@ pub struct Connections(pub Vec<Connection>);
 impl Connections {
     /// Loads node contents from the parser.
     pub fn load<R, P>(mut parser: P) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         let mut connections = Vec::new();
 
@@ -37,7 +38,8 @@ struct ConnectionAttrs {
 impl ConnectionAttrs {
     /// Loads attributes.
     pub fn load<R>(name: &str, mut attrs: Attributes<R>) -> Result<Self>
-        where R: ParserSource
+    where
+        R: ParserSource,
     {
         use parser::binary::utils::AttributeValues;
 
@@ -96,8 +98,9 @@ pub struct Connection {
 impl Connection {
     /// Loads node contents from the parser.
     fn load<R, P>(mut parser: P, attrs: ConnectionAttrs) -> Result<Self>
-        where R: ParserSource,
-              P: Parser<R>
+    where
+        R: ParserSource,
+        P: Parser<R>,
     {
         parser.skip_current_node()?;
         Ok(Connection {
