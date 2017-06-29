@@ -53,7 +53,9 @@ pub struct FbxHeader {
 
 
 /// Read FBX header.
-pub fn read_fbx_header<R: ParserSource>(parser: &mut RootParser<R>) -> Result<FbxHeader> {
+pub fn read_fbx_header<R>(parser: &mut RootParser<R>) -> Result<FbxHeader>
+    where R: ParserSource
+{
     assert!(parser.fbx_version.is_none(),
             "Parser should read FBX header only once");
     // Check magic binary.
@@ -98,7 +100,9 @@ pub struct FbxFooter {
 
 impl FbxFooter {
     /// Reads node header from the given parser and returns it.
-    pub fn read_from_parser<R: ParserSource>(parser: &mut RootParser<R>) -> Result<Self> {
+    pub fn read_from_parser<R>(parser: &mut RootParser<R>) -> Result<Self>
+        where R: ParserSource
+    {
         // Read unknown 16 bytes footer.
         let mut unknown1 = [0u8; 16];
         parser.source.read_exact(&mut unknown1)?;
@@ -136,7 +140,9 @@ impl FbxFooter {
         unknown2[0..partial_footer2_len].clone_from_slice(&buf[BUF_LEN - partial_footer2_len..
                                                            BUF_LEN]);
         // Read the rest of the unknown footer 2 (max 16 bytes).
-        parser.source.read_exact(&mut unknown2[partial_footer2_len..])?;
+        parser
+            .source
+            .read_exact(&mut unknown2[partial_footer2_len..])?;
 
         // Check whether padding before the footer exists.
         if 16 - partial_footer2_len == expected_padding_len {
@@ -160,7 +166,8 @@ impl FbxFooter {
             (buf[ver_offset + 2] as u32) << 16 | (buf[ver_offset + 3] as u32) << 24
         };
         let header_fbx_version =
-            parser.fbx_version
+            parser
+                .fbx_version
                 .expect("Parser should remember FBX version in the FBX header but it doesn't");
         if header_fbx_version != footer_fbx_version {
             return Err(Error::HeaderFooterVersionMismatch {
@@ -202,7 +209,9 @@ pub enum EventBuilder {
 
 impl EventBuilder {
     /// Creates `Event` from the `EventBuilder` and the given parser.
-    pub fn build<R: ParserSource>(self, parser: &mut RootParser<R>) -> Event<R> {
+    pub fn build<R>(self, parser: &mut RootParser<R>) -> Event<R>
+        where R: ParserSource
+    {
         match self {
             EventBuilder::StartFbx(header) => header.into(),
             EventBuilder::EndFbx(footer) => footer.into(),
@@ -240,11 +249,19 @@ pub struct StartNodeBuilder {
 
 impl StartNodeBuilder {
     /// Creates `StartNode` from the `StartNodeBuilder` and the given parser.
-    pub fn build<R: ParserSource>(self, parser: &mut RootParser<R>) -> StartNode<R> {
-        let RootParser { ref mut source, ref mut warnings, ref recent_node_name, .. } = *parser;
+    pub fn build<R>(self, parser: &mut RootParser<R>) -> StartNode<R>
+        where R: ParserSource
+    {
+        let RootParser {
+            ref mut source,
+            ref mut warnings,
+            ref recent_node_name,
+            ..
+        } = *parser;
         StartNode {
-            name:
-                recent_node_name.as_ref().expect("`RootParser::recent_node_name` must not be empty"),
+            name: recent_node_name
+                .as_ref()
+                .expect("`RootParser::recent_node_name` must not be empty"),
             attributes: attribute::new_attributes(source, warnings, &self.header),
         }
     }
@@ -272,9 +289,12 @@ impl NodeHeader {
     }
 
     /// Reads node header from the given parser and returns it.
-    pub fn read_from_parser<R: ParserSource>(parser: &mut RootParser<R>) -> io::Result<Self> {
+    pub fn read_from_parser<R>(parser: &mut RootParser<R>) -> io::Result<Self>
+        where R: ParserSource
+    {
         let fbx_version =
-            parser.fbx_version
+            parser
+                .fbx_version
                 .expect("Attempt to read FBX node header but the parser doesn't know FBX version");
         let (end_offset, num_attributes, bytelen_attributes) = if fbx_version < 7500 {
             let eo = parser.source.read_u32()? as u64;

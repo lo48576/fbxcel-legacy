@@ -15,11 +15,13 @@ use parser::binary::reader::{ParserSource, ReadLittleEndian};
 
 
 /// Read array type attribute from the given parser.
-pub fn read_array_attribute<'a, R: ParserSource>(
+pub fn read_array_attribute<'a, R>(
     source: &'a mut R,
     warnings: &'a mut Warnings,
-    type_code: u8
-) -> Result<(ArrayAttribute<'a, R>, u64)> {
+    type_code: u8,
+) -> Result<(ArrayAttribute<'a, R>, u64)>
+    where R: ParserSource
+{
     let header = ArrayAttributeHeader::read_from_parser_source(source)?;
     let current_pos = source.position();
     let reader = ArrayDecoder::new(source, &header)?;
@@ -48,7 +50,9 @@ struct ArrayAttributeHeader {
 }
 
 impl ArrayAttributeHeader {
-    fn read_from_parser_source<R: ParserSource>(source: &mut R) -> io::Result<Self> {
+    fn read_from_parser_source<R>(source: &mut R) -> io::Result<Self>
+        where R: ParserSource
+    {
         let num_elements = source.read_u32()?;
         let encoding = source.read_u32()?;
         let bytelen_elements = source.read_u32()?;
@@ -92,7 +96,7 @@ impl<'a, R: 'a + Read, T> ArrayAttributeReader<'a, R, T> {
     fn new<'b>(
         header: &'b ArrayAttributeHeader,
         reader: ArrayDecoder<'a, R>,
-        warnings: &'a mut Warnings
+        warnings: &'a mut Warnings,
     ) -> Self {
         ArrayAttributeReader {
             num_elements: header.num_elements as u64,

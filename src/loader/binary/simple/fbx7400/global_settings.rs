@@ -16,7 +16,10 @@ pub struct GlobalSettings {
 
 impl GlobalSettings {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         let mut version = None;
         let mut properties = None;
 

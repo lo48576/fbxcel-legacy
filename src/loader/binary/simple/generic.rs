@@ -24,9 +24,11 @@ impl GenericNode {
     /// Loads all sibling nodes from the given parser.
     ///
     /// This reads N `StartNode` and N+1 { `EndNode` or `EndFbx` }.
-    pub fn load_from_parser<R: ParserSource, P: Parser<R>>(
-        parser: &mut P)
-        -> ParseResult<(Vec<GenericNode>, Option<FbxFooter>)> {
+    pub fn load_from_parser<R, P>(parser: &mut P,)
+        -> ParseResult<(Vec<GenericNode>, Option<FbxFooter>)>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         let mut nodes = Vec::new();
         let mut footer = None;
         loop {
@@ -43,7 +45,8 @@ impl GenericNode {
                     (name, attrs)
                 },
             };
-            let children = GenericNode::load_from_parser(&mut parser.subtree_parser())?.0;
+            let children = GenericNode::load_from_parser(&mut parser.subtree_parser())?
+                .0;
             let node = GenericNode {
                 name: name,
                 attributes: attrs,
@@ -90,8 +93,9 @@ pub enum OwnedAttribute {
 
 impl OwnedAttribute {
     /// Loads `OwnedAttribute`s from `parser::binary::Attributes`.
-    pub fn load_attrs_from_parser_event<R: ParserSource>(mut attrs: Attributes<R>)
-        -> ParseResult<Vec<Self>> {
+    pub fn load_attrs_from_parser_event<R>(mut attrs: Attributes<R>) -> ParseResult<Vec<Self>>
+        where R: ParserSource
+    {
         let mut result = Vec::with_capacity(attrs.num_attributes() as usize);
         while let Some(attr) = attrs.next_attribute()? {
             result.push(Self::load_from_parser_event(attr)?);
@@ -100,7 +104,9 @@ impl OwnedAttribute {
     }
 
     /// Loads an `OwnedAttribute` from `parser::binary::Attribute`.
-    pub fn load_from_parser_event<R: ParserSource>(attr: Attribute<R>) -> ::std::io::Result<Self> {
+    pub fn load_from_parser_event<R>(attr: Attribute<R>) -> ::std::io::Result<Self>
+        where R: ParserSource
+    {
         use parser::binary::{PrimitiveAttribute, ArrayAttribute, SpecialAttributeType};
         Ok(match attr {
                Attribute::Primitive(PrimitiveAttribute::Bool(v)) => OwnedAttribute::Bool(v),

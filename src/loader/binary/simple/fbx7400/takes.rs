@@ -15,7 +15,10 @@ pub struct Takes {
 
 impl Takes {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         let mut current = None;
         let mut takes = Vec::new();
 
@@ -60,7 +63,10 @@ pub struct Take {
 
 impl Take {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P, attrs: String) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P, attrs: String) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         let mut filename = None;
         let mut local_time = None;
         let mut reference_time = None;

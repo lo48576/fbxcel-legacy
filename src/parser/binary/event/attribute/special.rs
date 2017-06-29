@@ -76,10 +76,12 @@ impl<'a, R: 'a + ParserSource> SpecialAttribute<'a, R> {
 
 
 /// Read special type attribute from the given parser source.
-pub fn read_special_attribute<R: ParserSource>(
+pub fn read_special_attribute<R>(
     source: &mut R,
-    type_code: u8
-) -> io::Result<(SpecialAttribute<R>, u64)> {
+    type_code: u8,
+) -> io::Result<(SpecialAttribute<R>, u64)>
+    where R: ParserSource
+{
     let byte_length = source.read_u32()?;
     let value_type = match type_code {
         b'R' => SpecialAttributeType::Binary,

@@ -24,7 +24,10 @@ pub struct FbxHeaderExtension {
 
 impl FbxHeaderExtension {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         let mut fbx_header_version = None;
         let mut fbx_version = None;
         let mut encryption_type = None;
@@ -110,7 +113,10 @@ pub struct CreationTimeStamp {
 
 impl CreationTimeStamp {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         let mut version = None;
         let mut year = None;
         let mut month = None;
@@ -203,17 +209,18 @@ pub struct SceneInfo {
 
 impl SceneInfo {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(
-        mut parser: P,
-        attrs: (String, String)
-    ) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P, attrs: (String, String)) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         let mut type_ = None;
         let mut version = None;
         let mut metadata = None;
         let mut properties = None;
 
         // Attrs.
-        let (name, class) = separate_name_class(&attrs.0).map(|(n, c)| (n.into(), c.into()))
+        let (name, class) = separate_name_class(&attrs.0)
+            .map(|(n, c)| (n.into(), c.into()))
             .ok_or_else(|| Error::InvalidAttribute("SceneInfo".to_owned()))?;
         let subclass = attrs.1;
 
@@ -279,7 +286,10 @@ pub struct MetaData {
 
 impl MetaData {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         let mut version = None;
         let mut title = None;
         let mut subject = None;
@@ -341,7 +351,7 @@ child_attr_loader! { MetaDataChildAttrs {
 
 /// Returns `Option<(name: &'a str, class: &'a str)>`
 fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
-    name_class.find("\u{0}\u{1}").map(|sep_pos| {
-                                          (&name_class[0..sep_pos], &name_class[sep_pos + 2..])
-                                      })
+    name_class
+        .find("\u{0}\u{1}")
+        .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
 }

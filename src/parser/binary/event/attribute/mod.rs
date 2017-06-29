@@ -61,11 +61,12 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
                 let raw = self.source.read_u8()?;
                 let val = (raw & 0x01) == 1;
                 if raw != b'T' && raw != b'Y' {
-                    self.warnings.warn(Warning::InvalidBooleanAttributeValue {
-                                           got: raw,
-                                           assumed: val,
-                                           position: position,
-                                       });
+                    self.warnings
+                        .warn(Warning::InvalidBooleanAttributeValue {
+                                  got: raw,
+                                  assumed: val,
+                                  position: position,
+                              });
                 }
                 Ok(Some(PrimitiveAttribute::Bool(val).into()))
             },
@@ -98,7 +99,9 @@ impl<'a, R: 'a + ParserSource> Attributes<'a, R> {
     }
 
     /// Converts some attributes into values of specific types.
-    pub fn convert_into<A: AttributeValues>(&mut self) -> Result<Option<A>> {
+    pub fn convert_into<A>(&mut self) -> Result<Option<A>>
+        where A: AttributeValues
+    {
         A::from_attributes(self)
     }
 }
@@ -126,7 +129,7 @@ impl<'a, R: 'a + ParserSource> From<ArrayAttribute<'a, R>> for Attribute<'a, R> 
 pub fn new_attributes<'a, R: 'a>(
     source: &'a mut R,
     warnings: &'a mut Warnings,
-    header: &NodeHeader
+    header: &NodeHeader,
 ) -> Attributes<'a, R> {
     Attributes {
         num_attributes: header.num_attributes,
@@ -151,7 +154,9 @@ pub enum Attribute<'a, R: 'a> {
 
 impl<'a, R: 'a + ParserSource> Attribute<'a, R> {
     /// Converts the attribute into a value of a specific type.
-    pub fn convert_into<A: AttributeValue>(self) -> Result<Option<A>> {
+    pub fn convert_into<A>(self) -> Result<Option<A>>
+        where A: AttributeValue
+    {
         A::from_attribute(self)
     }
 }

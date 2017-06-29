@@ -82,7 +82,11 @@ impl fmt::Display for Error {
             Error::UnknownArrayAttributeEncoding(val) => {
                 write!(f, "Unknown array attribute encoding: encoding={}", val)
             },
-            Error::WrongNodeEndOffset { begin, expected_end, real_end } => {
+            Error::WrongNodeEndOffset {
+                begin,
+                expected_end,
+                real_end,
+            } => {
                 write!(f,
                        "Node ends with unexpected position: begin={}, expected_end={}, real_end={}",
                        begin,
@@ -143,7 +147,11 @@ impl Clone for Error {
                 Error::Io(io::Error::new(err.kind(), error::Error::description(err)))
             },
             Error::UnknownArrayAttributeEncoding(v) => Error::UnknownArrayAttributeEncoding(v),
-            Error::WrongNodeEndOffset { begin, expected_end, real_end } => {
+            Error::WrongNodeEndOffset {
+                begin,
+                expected_end,
+                real_end,
+            } => {
                 Error::WrongNodeEndOffset {
                     begin: begin,
                     expected_end: expected_end,
@@ -186,7 +194,11 @@ pub enum Warning {
 impl fmt::Display for Warning {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Warning::InvalidBooleanAttributeValue { got, assumed, position } => {
+            Warning::InvalidBooleanAttributeValue {
+                got,
+                assumed,
+                position,
+            } => {
                 write!(f,
                        "Invalid boolean node attribute value at position {}: got {:?}, assumed {}",
                        position,

@@ -39,10 +39,10 @@ pub enum Error {
 
 impl Error {
     /// Creates a new `Error::MissingNode`.
-    pub fn missing_node<'a, S: Into<String>, T: Into<Option<&'a str>>>(
-        parent: S,
-        child: T
-    ) -> Self {
+    pub fn missing_node<'a, S, T>(parent: S, child: T) -> Self
+        where S: Into<String>,
+              T: Into<Option<&'a str>>
+    {
         Error::MissingNode {
             parent: parent.into(),
             child: child.into().map(|s| s.to_owned()),
@@ -55,7 +55,10 @@ impl fmt::Display for Error {
         match *self {
             Error::InvalidAttribute(ref name) => write!(f, "Invalid attribute for node: {}", name),
             Error::LoadObject(ref err) => write!(f, "Object load error: {}", err),
-            Error::MissingNode { ref parent, ref child } => {
+            Error::MissingNode {
+                ref parent,
+                ref child,
+            } => {
                 if let Some(child) = child.as_ref() {
                     write!(f, "Missing node: {} (parent={})", child, parent)
                 } else {

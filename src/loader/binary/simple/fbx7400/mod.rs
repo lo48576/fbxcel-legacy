@@ -61,8 +61,10 @@ macro_rules! child_attr_loader {
             $($variant$(($content))*),*,
         }
         impl $enum_name {
-            pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>)
-                -> $crate::loader::binary::simple::Result<Self> {
+            pub fn load<R>(name: &str, mut attrs: Attributes<R>)
+                -> $crate::loader::binary::simple::Result<Self>
+                where R: ParserSource
+            {
                 use parser::binary::utils::AttributeValues;
 
                 match name {
@@ -119,11 +121,10 @@ pub struct Fbx7400<O: LoadObjects7400> {
 
 impl<O: LoadObjects7400> Fbx7400<O> {
     /// Loads FBX 7400 (or later) structure from the given parser.
-    pub fn load_from_parser<R: ParserSource, P: Parser<R>>(
-        version: u32,
-        mut parser: P,
-        objs_loader: O
-    ) -> Result<Self> {
+    pub fn load_from_parser<R, P>(version: u32, mut parser: P, objs_loader: O) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         info!("FBX version: {}, loading in FBX 7400 mode", version);
 
         let mut objs_loader = Some(objs_loader);
@@ -152,7 +153,8 @@ impl<O: LoadObjects7400> Fbx7400<O> {
             debug!("node_type: {:?}", node_type);
             match node_type {
                 NodeType::FbxHeaderExtension => {
-                    fbx_header_extension = Some(FbxHeaderExtension::load(parser.subtree_parser())?);
+                    fbx_header_extension =
+                        Some(FbxHeaderExtension::load(parser.subtree_parser())?);
                 },
                 NodeType::FileId(attrs) => {
                     file_id = Some(FileId::load(parser.subtree_parser(), attrs)?);
@@ -280,26 +282,25 @@ enum NodeType {
 
 impl NodeType {
     /// Creates `NodeType` from the given node name.
-    pub fn load<R: ParserSource>(name: &str, mut attrs: Attributes<R>) -> Result<Self> {
+    pub fn load<R>(name: &str, mut attrs: Attributes<R>) -> Result<Self>
+        where R: ParserSource
+    {
         use parser::binary::utils::AttributeValues;
 
         match name {
             "FBXHeaderExtension" => Ok(NodeType::FbxHeaderExtension),
             "FileId" => {
-                <Vec<u8>>::from_attributes(&mut attrs)
-                    ?
+                <Vec<u8>>::from_attributes(&mut attrs)?
                     .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
                     .map(NodeType::FileId)
             },
             "CreationTime" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
+                <String>::from_attributes(&mut attrs)?
                     .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
                     .map(NodeType::CreationTime)
             },
             "Creator" => {
-                <String>::from_attributes(&mut attrs)
-                    ?
+                <String>::from_attributes(&mut attrs)?
                     .ok_or_else(|| Error::InvalidAttribute(name.to_owned()))
                     .map(NodeType::Creator)
             },
@@ -322,7 +323,10 @@ pub struct FileId(pub Vec<u8>);
 
 impl FileId {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P, attrs: Vec<u8>) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P, attrs: Vec<u8>) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         parser.skip_current_node()?;
         Ok(FileId(attrs))
     }
@@ -335,7 +339,10 @@ pub struct CreationTime(pub String);
 
 impl CreationTime {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P, attrs: String) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P, attrs: String) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         parser.skip_current_node()?;
         Ok(CreationTime(attrs))
     }
@@ -348,7 +355,10 @@ pub struct Creator(pub String);
 
 impl Creator {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P, attrs: String) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P, attrs: String) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         parser.skip_current_node()?;
         Ok(Creator(attrs))
     }
@@ -364,7 +374,10 @@ pub struct Documents {
 
 impl Documents {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         let nodes = GenericNode::load_from_parser(&mut parser)?.0;
         Ok(Documents { nodes: nodes })
     }
@@ -380,7 +393,10 @@ pub struct References {
 
 impl References {
     /// Loads node contents from the parser.
-    pub fn load<R: ParserSource, P: Parser<R>>(mut parser: P) -> Result<Self> {
+    pub fn load<R, P>(mut parser: P) -> Result<Self>
+        where R: ParserSource,
+              P: Parser<R>
+    {
         let nodes = GenericNode::load_from_parser(&mut parser)?.0;
         Ok(References { nodes: nodes })
     }
@@ -389,22 +405,27 @@ impl References {
 
 /// Returns `Option<(name: &'a str, class: &'a str)>`
 pub fn separate_name_class(name_class: &str) -> Option<(&str, &str)> {
-    name_class.find("\u{0}\u{1}").map(|sep_pos| {
-                                          (&name_class[0..sep_pos], &name_class[sep_pos + 2..])
-                                      })
+    name_class
+        .find("\u{0}\u{1}")
+        .map(|sep_pos| (&name_class[0..sep_pos], &name_class[sep_pos + 2..]))
 }
 
 
 /// Loads node contents from the parser.
-fn load_objects<R: ParserSource, P: Parser<R>, O: LoadObjects7400>(
+fn load_objects<R, P, O>(
     mut parser: P,
     mut objs_loader: O,
-    nodes_before_objects: &NodesBeforeObjects
-) -> Result<O::Objects> {
+    nodes_before_objects: &NodesBeforeObjects,
+) -> Result<O::Objects>
+    where R: ParserSource,
+          P: Parser<R>,
+          O: LoadObjects7400
+{
     loop {
         let props = try_get_node_attrs!(parser, ObjectProperties::load);
         let mut sub_parser = parser.subtree_parser();
-        objs_loader.load(props, &mut sub_parser, nodes_before_objects)?;
+        objs_loader
+            .load(props, &mut sub_parser, nodes_before_objects)?;
         sub_parser.skip_to_end()?;
     }
     objs_loader.build()
