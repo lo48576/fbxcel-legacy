@@ -528,7 +528,7 @@ macro_rules! impl_attribute_values {
                             Some(attr) => attr,
                             None => return Ok(None),
                         };
-                        match $t::from_attribute(attr)? {
+                        match $t::from_attribute_loose(attr)? {
                             Some(val) => val,
                             None => return Ok(None),
                         }
