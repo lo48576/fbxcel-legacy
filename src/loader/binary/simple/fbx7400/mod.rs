@@ -121,10 +121,9 @@ pub struct Fbx7400<O: LoadObjects7400> {
 
 impl<O: LoadObjects7400> Fbx7400<O> {
     /// Loads FBX 7400 (or later) structure from the given parser.
-    pub fn load_from_parser<R, P>(version: u32, mut parser: P, objs_loader: O) -> Result<Self>
+    pub fn load_from_parser<P>(version: u32, mut parser: P, objs_loader: O) -> Result<Self>
     where
-        R: ParserSource,
-        P: Parser<R>,
+        P: Parser<O::Reader>,
     {
         info!("FBX version: {}, loading in FBX 7400 mode", version);
 
@@ -438,7 +437,7 @@ fn load_objects<R, P, O>(
 where
     R: ParserSource,
     P: Parser<R>,
-    O: LoadObjects7400,
+    O: LoadObjects7400<Reader = R>,
 {
     loop {
         let props = try_get_node_attrs!(parser, ObjectProperties::load);
