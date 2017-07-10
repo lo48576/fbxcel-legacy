@@ -9,6 +9,9 @@ use loader::binary::simple::fbx7400::separate_name_class;
 
 /// A trait for objects nodes loader of FBX 7.4 compatible data.
 pub trait LoadObjects7400: Sized {
+    /// Reader type.
+    type Reader: ParserSource;
+
     /// Result objects.
     type Objects;
 
@@ -16,14 +19,12 @@ pub trait LoadObjects7400: Sized {
     fn build(self) -> Result<Self::Objects>;
 
     /// Loads an object.
-    fn load<R>(
+    fn load(
         &mut self,
         props: ObjectProperties,
-        subtree_parser: &mut SubtreeParser<R>,
+        subtree_parser: &mut SubtreeParser<Self::Reader>,
         nodes_before_objects: &NodesBeforeObjects,
-    ) -> Result<()>
-    where
-        R: ParserSource;
+    ) -> Result<()>;
 }
 
 

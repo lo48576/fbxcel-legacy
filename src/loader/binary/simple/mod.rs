@@ -37,7 +37,7 @@ impl<R: ParserSource, P: Parser<R>> FbxLoader7400<R, P> {
     /// Load FBX 7.4 compatible data.
     pub fn load<O>(self, objs_loader: O) -> Result<fbx7400::Fbx7400<O>>
     where
-        O: fbx7400::LoadObjects7400,
+        O: fbx7400::LoadObjects7400<Reader = R>,
     {
         fbx7400::Fbx7400::load_from_parser(self.inner.version, self.inner.parser, objs_loader)
     }
