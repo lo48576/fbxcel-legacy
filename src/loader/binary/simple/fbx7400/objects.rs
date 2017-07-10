@@ -12,10 +12,10 @@ pub trait LoadObjects7400: Sized {
     /// Result objects.
     type Objects;
 
-    /// Build objects from the loader.
+    /// Builds objects from the loader.
     fn build(self) -> Result<Self::Objects>;
 
-    /// Load an object.
+    /// Loads an object.
     fn load<R>(
         &mut self,
         props: ObjectProperties,
