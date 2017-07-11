@@ -290,172 +290,135 @@ impl AttributeValue for Vec<f64> {
 }
 
 
-/// Gets `[f32; 3]` from `ArrayAttributeReader<R, f32>`.
-fn array_attr_f32_into_vec3<R>(mut arr: ArrayAttributeReader<R, f32>) -> IoResult<Vec<[f32; 3]>>
-where
-    R: ParserSource,
-{
-    let components_len = arr.rest_elements();
-    let (num_vecs, remainder) = (components_len / 3, components_len % 3);
-    if remainder != 0 {
-        warn!(
-            "Converting `ArrayAttribute::F32` into `Vec<[f32; 3]>` but array length ({}) is not a multiple of 3",
-            components_len
-        );
-    }
-    let mut vec = Vec::with_capacity(num_vecs as usize);
-    assert_eq!(
-        ::std::mem::align_of::<[f32; 3]>(),
-        ::std::mem::align_of::<f32>(),
-        "`[[f32; 3]]` should not have padding but it has"
-    );
-    let components_buf_len = (components_len - remainder) as usize; // Equals to `num_vecs * 3`.
-    let components_buf = unsafe {
-        ::std::slice::from_raw_parts_mut(vec.as_mut_ptr() as *mut f32, components_buf_len)
-    };
-    assert!(components_buf.len() <= vec.len() * 3);
-    let size = arr.read_into_buf(components_buf)?;
-    assert_eq!(size, components_buf_len);
-    Ok(vec)
-}
-
-
-/// Gets `[f32; 3]` from `ArrayAttributeReader<R, f32>`.
-fn array_attr_f64_into_vec3<R>(mut arr: ArrayAttributeReader<R, f64>) -> IoResult<Vec<[f64; 3]>>
-where
-    R: ParserSource,
-{
-    let components_len = arr.rest_elements();
-    let (num_vecs, remainder) = (components_len / 3, components_len % 3);
-    if remainder != 0 {
-        warn!(
-            "Converting `ArrayAttribute::F64` into `Vec<[f64; 3]>` but array length ({}) is not a multiple of 3",
-            components_len
-        );
-    }
-    let mut vec = Vec::with_capacity(num_vecs as usize);
-    assert_eq!(
-        ::std::mem::align_of::<[f64; 3]>(),
-        ::std::mem::align_of::<f64>(),
-        "`[[f64; 3]]` should not have padding but it has"
-    );
-    let components_buf_len = (components_len - remainder) as usize; // Equals to `num_vecs * 3`.
-    let components_buf = unsafe {
-        ::std::slice::from_raw_parts_mut(vec.as_mut_ptr() as *mut f64, components_buf_len)
-    };
-    assert!(components_buf.len() <= vec.len() * 3);
-    let size = arr.read_into_buf(components_buf)?;
-    assert_eq!(size, components_buf_len);
-    Ok(vec)
-}
-
-
-impl AttributeValue for Vec<[f32; 3]> {
-    fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-    where
-        R: ParserSource,
-    {
-        if let Attribute::Array(ArrayAttribute::F32(arr)) = attr {
-            Ok(Some(array_attr_f32_into_vec3(arr)?))
-        } else {
-            Ok(None)
+macro_rules! def_fn_array_attr_into_vec {
+    ($t:ty, $len:expr, $fn_name:ident) => {
+        /// Gets `[$t; $len]` from `ArrayAttributeReader<R, $t>`.
+        fn $fn_name<R>(mut arr: ArrayAttributeReader<R, $t>) -> IoResult<Vec<[$t; $len]>>
+        where
+            R: ParserSource,
+        {
+            let components_len = arr.rest_elements();
+            let (num_vecs, remainder) = (components_len / $len, components_len % $len);
+            if remainder != 0 {
+                warn!(
+                    concat!(
+                        "Loading data from `ArrayAttributeReader<R, ",
+                        stringify!($ty),
+                        ">` into `Vec<[",
+                        stringify!($t),
+                        "; ",
+                        stringify!($len),
+                        "]>` but array length ({}) is not a multiple of ",
+                        stringify!($len),
+                    ),
+                    components_len,
+                );
+            }
+            let mut vec = Vec::with_capacity(num_vecs as usize);
+            assert_eq!(
+                ::std::mem::align_of::<[$t; $len]>(),
+                ::std::mem::align_of::<$t>(),
+                concat!(
+                    "`[[",
+                    stringify!($t),
+                    "; ",
+                    stringify!($len),
+                    "]]` should not have padding but it has",
+                ),
+            );
+            let components_buf_len = (components_len - remainder) as usize; // Equals to `num_vecs * $len`.
+            let components_buf = unsafe {
+                ::std::slice::from_raw_parts_mut(vec.as_mut_ptr() as *mut $t, components_buf_len)
+            };
+            assert!(components_buf.len() <= vec.len() * $len);
+            let size = arr.read_into_buf(components_buf)?;
+            assert_eq!(size, components_buf_len);
+            Ok(vec)
         }
     }
+}
 
-    fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-    where
-        R: ParserSource,
-    {
-        match attr {
-            Attribute::Array(ArrayAttribute::F32(arr)) => Ok(Some(array_attr_f32_into_vec3(arr)?)),
-            Attribute::Array(ArrayAttribute::F64(arr)) => {
-                let components_len = arr.rest_elements();
-                let mut buf = Vec::with_capacity((components_len / 3) as usize);
-                // Can't use `Into::into()` because `From<f64>` is not implemented for `f32`.
-                let mut iter = arr.into_iter().map(|v| v.map(|f| f as f32));
-                while let Some(v0r) = iter.next() {
-                    let v0 = v0r?;
-                    let v1 = match iter.next() {
-                        Some(v) => v?,
-                        None => {
-                            warn!(
-                                "Converting `ArrayAttribute::F64` into `Vec<[f32; 3]>` but array length ({}) is not a multiple of 3",
-                                components_len
-                            );
-                            break;
-                        },
-                    };
-                    let v2 = match iter.next() {
-                        Some(v) => v?,
-                        None => {
-                            warn!(
-                                "Converting `ArrayAttribute::F64` into `Vec<[f32; 3]>` but array length ({}) is not a multiple of 3",
-                                components_len
-                            );
-                            break;
-                        },
-                    };
-                    buf.push([v0, v1, v2]);
+def_fn_array_attr_into_vec!(f32, 3, array_attr_f32_into_vec3);
+def_fn_array_attr_into_vec!(f64, 3, array_attr_f64_into_vec3);
+
+
+macro_rules! impl_attribute_value_for_array {
+    (@subvariant_load; $t:ty, 3, $variant:ident, $sub_variant:ident, $arr:ident) => {{
+        let arr = $arr;
+        let components_len = arr.rest_elements();
+        let mut buf = Vec::with_capacity((components_len / 3) as usize);
+        // Cast instead of using `Into::into` because `From<f64>` is not implemented for `f32`.
+        let mut iter = arr.into_iter().map(|v| v.map(|f| f as $t));
+        while let Some(v0r) = iter.next() {
+            let v0 = v0r?;
+            let v1r = iter.next();
+            let v2r = iter.next();
+            let (v1, v2) = match (v1r, v2r) {
+                (Some(v1r), Some(v2r)) => (v1r?, v2r?),
+                _ => {
+                    warn!(
+                        concat!(
+                            "Converting `ArrayAttribute::",
+                            stringify!($sub_variant),
+                            "` into `Vec<[",
+                            stringify!($t),
+                            "; 3]>` but array length ({}) is not a multiple of 3",
+                        ),
+                        components_len
+                    );
+                    break;
+                },
+            };
+            buf.push([v0, v1, v2]);
+        }
+        Ok(Some(buf))
+    }};
+    ($t:ty, $len:tt, $variant:ident, $sub_variant:ident, $read_fn:ident, $sub_read_fn:ident) => {
+        impl AttributeValue for Vec<[$t; $len]> {
+            fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
+            where
+                R: ParserSource,
+            {
+                if let Attribute::Array(ArrayAttribute::$variant(arr)) = attr {
+                    Ok(Some($read_fn(arr)?))
+                } else {
+                    Ok(None)
                 }
-                Ok(Some(buf))
-            },
-            _ => Ok(None),
-        }
-    }
-}
+            }
 
-impl AttributeValue for Vec<[f64; 3]> {
-    fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
-    where
-        R: ParserSource,
-    {
-        if let Attribute::Array(ArrayAttribute::F64(arr)) = attr {
-            Ok(Some(array_attr_f64_into_vec3(arr)?))
-        } else {
-            Ok(None)
-        }
-    }
-
-    fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
-    where
-        R: ParserSource,
-    {
-        match attr {
-            Attribute::Array(ArrayAttribute::F32(arr)) => {
-                let components_len = arr.rest_elements();
-                let mut buf = Vec::with_capacity((components_len / 3) as usize);
-                let mut iter = arr.into_iter().map(|v| v.map(Into::into));
-                while let Some(v0r) = iter.next() {
-                    let v0 = v0r?;
-                    let v1 = match iter.next() {
-                        Some(v) => v?,
-                        None => {
-                            warn!(
-                                "Converting `ArrayAttribute::F32` into `Vec<[f64; 3]>` but array length ({}) is not a multiple of 3",
-                                components_len
-                            );
-                            break;
-                        },
-                    };
-                    let v2 = match iter.next() {
-                        Some(v) => v?,
-                        None => {
-                            warn!(
-                                "Converting `ArrayAttribute::F32` into `Vec<[f64; 3]>` but array length ({}) is not a multiple of 3",
-                                components_len
-                            );
-                            break;
-                        },
-                    };
-                    buf.push([v0, v1, v2]);
+            fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
+            where
+                R: ParserSource,
+            {
+                match attr {
+                    Attribute::Array(ArrayAttribute::$variant(arr)) => Ok(Some($read_fn(arr)?)),
+                    Attribute::Array(ArrayAttribute::$sub_variant(arr)) => {
+                        impl_attribute_value_for_array!(@subvariant_load; $t, $len, $variant, $sub_variant, arr)
+                    },
+                    _ => Ok(None),
                 }
-                Ok(Some(buf))
-            },
-            Attribute::Array(ArrayAttribute::F64(arr)) => Ok(Some(array_attr_f64_into_vec3(arr)?)),
-            _ => Ok(None),
+            }
         }
     }
 }
+
+impl_attribute_value_for_array!(
+    f32,
+    3,
+    F32,
+    F64,
+    array_attr_f32_into_vec3,
+    array_attr_f64_into_vec3
+);
+impl_attribute_value_for_array!(
+    f64,
+    3,
+    F64,
+    F32,
+    array_attr_f64_into_vec3,
+    array_attr_f32_into_vec3
+);
+
 
 impl AttributeValue for String {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
