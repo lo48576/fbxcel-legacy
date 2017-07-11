@@ -338,6 +338,8 @@ macro_rules! def_fn_array_attr_into_vec {
     }
 }
 
+def_fn_array_attr_into_vec!(f32, 2, array_attr_f32_into_vec2);
+def_fn_array_attr_into_vec!(f64, 2, array_attr_f64_into_vec2);
 def_fn_array_attr_into_vec!(f32, 3, array_attr_f32_into_vec3);
 def_fn_array_attr_into_vec!(f64, 3, array_attr_f64_into_vec3);
 
@@ -373,6 +375,34 @@ macro_rules! impl_attribute_value_for_array {
         }
         Ok(Some(buf))
     }};
+    (@subvariant_load; $t:ty, 2, $variant:ident, $sub_variant:ident, $arr:ident) => {{
+        let arr = $arr;
+        let components_len = arr.rest_elements();
+        let mut buf = Vec::with_capacity((components_len / 2) as usize);
+        // Cast instead of using `Into::into` because `From<f64>` is not implemented for `f32`.
+        let mut iter = arr.into_iter().map(|v| v.map(|f| f as $t));
+        while let Some(v0r) = iter.next() {
+            let v0 = v0r?;
+            let v1 = match iter.next() {
+                Some(v1r) => v1r?,
+                _ => {
+                    warn!(
+                        concat!(
+                            "Converting `ArrayAttribute::",
+                            stringify!($sub_variant),
+                            "` into `Vec<[",
+                            stringify!($t),
+                            "; 2]>` but array length ({}) is not a multiple of 2",
+                        ),
+                        components_len
+                    );
+                    break;
+                },
+            };
+            buf.push([v0, v1]);
+        }
+        Ok(Some(buf))
+    }};
     ($t:ty, $len:tt, $variant:ident, $sub_variant:ident, $read_fn:ident, $sub_read_fn:ident) => {
         impl AttributeValue for Vec<[$t; $len]> {
             fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
@@ -401,6 +431,23 @@ macro_rules! impl_attribute_value_for_array {
         }
     }
 }
+
+impl_attribute_value_for_array!(
+    f32,
+    2,
+    F32,
+    F64,
+    array_attr_f32_into_vec2,
+    array_attr_f64_into_vec2
+);
+impl_attribute_value_for_array!(
+    f64,
+    2,
+    F64,
+    F32,
+    array_attr_f64_into_vec2,
+    array_attr_f32_into_vec2
+);
 
 impl_attribute_value_for_array!(
     f32,
