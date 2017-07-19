@@ -79,8 +79,8 @@ impl ConnectionAttrs {
 ///
 /// Note that "the child node will be a **source object** of the parent node", and "the parent node
 /// will be the **destination object** of the child node".
-/// See [FBX 2017 Developer Help:
-/// Connections](http://help.autodesk.com/view/FBX/2017/ENU/?guid=__files_GUID_BB63A93A_7663_4256_B060_8EA35CB0FF3A_htm)
+/// See [FBX 2018 Developer Help:
+/// Connections](https://help.autodesk.com/view/FBX/2018/ENU/?guid=__files_GUID_BB63A93A_7663_4256_B060_8EA35CB0FF3A_htm)
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Connection {
     /// Object ID of the source object.
