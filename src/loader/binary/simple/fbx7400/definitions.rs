@@ -50,6 +50,14 @@ impl Definitions {
             object_types: object_types,
         })
     }
+
+    /// Returns reference to `Properties70` object of the specified node.
+    pub fn get_properties70(&self, object_type: &str, node_type: &str) -> Option<&Properties70> {
+        self.object_types
+            .iter()
+            .find(|t| t.object_type == object_type)
+            .and_then(|t| t.property_template.get(node_type))
+    }
 }
 
 
