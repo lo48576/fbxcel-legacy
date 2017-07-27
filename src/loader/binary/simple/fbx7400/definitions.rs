@@ -3,7 +3,7 @@
 use fnv::FnvHashMap;
 use parser::binary::{Parser, ParserSource, Attributes};
 use loader::binary::simple::{Result, Error};
-use loader::binary::simple::fbx7400::Properties70;
+use loader::binary::simple::fbx7400::{Properties70, PropertyMap, PropertyValue};
 
 
 /// `Definitions` node.
@@ -57,6 +57,27 @@ impl Definitions {
             .iter()
             .find(|t| t.object_type == object_type)
             .and_then(|t| t.property_template.get(node_type))
+    }
+
+    /// Looks up and returns the property value.
+    pub fn get_property_value<'s, 'p, T, F>(
+        &'p self,
+        object_type: &'s str,
+        node_type: &'s str,
+        prop_name: &'s str,
+        props: &'p Properties70,
+        f: F,
+    ) -> Option<&'p PropertyValue<T>>
+    where
+        F: Fn(&Properties70) -> &PropertyMap<T>,
+    {
+        f(props).get(prop_name).or_else(|| {
+            self.get_properties70(object_type, node_type).and_then(
+                |v| {
+                    f(v).get(prop_name)
+                },
+            )
+        })
     }
 }
 
