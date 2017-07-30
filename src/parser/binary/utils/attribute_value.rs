@@ -467,6 +467,127 @@ impl_attribute_value_for_array!(
 );
 
 
+macro_rules! def_fn_array_attr_into_mat4 {
+    ($t:ty, $fn_name:ident) => {
+        fn $fn_name<R>(mut arr: ArrayAttributeReader<R, $t>) -> IoResult<Option<[[$t; 4]; 4]>>
+        where
+            R: ParserSource,
+        {
+            const NUM_COLS: usize = 4;
+            const NUM_ROWS: usize = 4;
+            const NUM_ELEMS: usize = NUM_COLS * NUM_ROWS;
+            // Column major.
+            let mut mat = [[0.0; NUM_COLS]; NUM_ROWS];
+            let read_size = {
+                let buf = unsafe {
+                    ::std::slice::from_raw_parts_mut(mat.as_mut_ptr() as *mut $t, NUM_ELEMS)
+                };
+                arr.read_into_buf(buf)?
+            };
+            assert!(read_size <= NUM_ELEMS, "More than {} elements can't be read into mat{}x{}", NUM_ELEMS, NUM_ROWS, NUM_COLS);
+            if read_size == NUM_ELEMS {
+                Ok(Some(mat))
+            } else {
+                warn!(
+                    concat!(
+                        "Loading data from `ArrayAttributeReader<R, ",
+                        stringify!($t),
+                        ">` into `[[",
+                        stringify!($t),
+                        "; {}]; {}]` but array is too short (length={})"
+                    ),
+                    NUM_COLS,
+                    NUM_ROWS,
+                    read_size);
+                Ok(None)
+            }
+        }
+    }
+}
+
+def_fn_array_attr_into_mat4!(f32, array_attr_f32_into_mat4);
+def_fn_array_attr_into_mat4!(f64, array_attr_f64_into_mat4);
+
+
+macro_rules! impl_attribute_value_for_mat4 {
+    ($t:ty, $variant:ident, $sub_variant:ident, $read_fn:ident, $sub_read_fn:ident) => {
+        impl AttributeValue for [[$t; 4]; 4] {
+            fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
+            where
+                R: ParserSource,
+            {
+                if let Attribute::Array(ArrayAttribute::$variant(arr)) = attr {
+                    $read_fn(arr).map_err(Into::into)
+                } else {
+                    Ok(None)
+                }
+            }
+
+            fn from_attribute_loose<R>(attr: Attribute<R>) -> Result<Option<Self>>
+            where
+                R: ParserSource,
+            {
+                match attr {
+                    Attribute::Array(ArrayAttribute::$variant(arr)) => {
+                        $read_fn(arr).map_err(Into::into)
+                    },
+                    Attribute::Array(ArrayAttribute::$sub_variant(arr)) => {
+                        let mat = match $sub_read_fn(arr)? {
+                            Some(m) => {
+                                [
+                                    [
+                                        m[0][0] as $t,
+                                        m[0][1] as $t,
+                                        m[0][2] as $t,
+                                        m[0][3] as $t,
+                                    ],
+                                    [
+                                        m[1][0] as $t,
+                                        m[1][1] as $t,
+                                        m[1][2] as $t,
+                                        m[1][3] as $t,
+                                    ],
+                                    [
+                                        m[2][0] as $t,
+                                        m[2][1] as $t,
+                                        m[2][2] as $t,
+                                        m[2][3] as $t,
+                                    ],
+                                    [
+                                        m[3][0] as $t,
+                                        m[3][1] as $t,
+                                        m[3][2] as $t,
+                                        m[3][3] as $t,
+                                    ],
+                                ]
+                            },
+                            None => return Ok(None),
+                        };
+                        Ok(Some(mat))
+                    },
+                    _ => Ok(None),
+                }
+            }
+        }
+    }
+}
+
+impl_attribute_value_for_mat4!(
+    f32,
+    F32,
+    F64,
+    array_attr_f32_into_mat4,
+    array_attr_f64_into_mat4
+);
+impl_attribute_value_for_mat4!(
+    f64,
+    F64,
+    F32,
+    array_attr_f64_into_mat4,
+    array_attr_f32_into_mat4
+);
+
+
 impl AttributeValue for String {
     fn from_attribute<R>(attr: Attribute<R>) -> Result<Option<Self>>
     where
